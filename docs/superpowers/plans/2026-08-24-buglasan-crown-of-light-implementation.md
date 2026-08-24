@@ -4,15 +4,16 @@
 
 **Goal:** Rebuild the public Buglasan page as the approved Crown of Light Three.js experience while preserving the existing login and voter dashboard flow.
 
-**Architecture:** `LandingPage` owns semantic chapter content and navigation. `FestivalScene` owns a landing-only Three.js renderer whose camera reads pure interpolation helpers from `landingSceneMath.ts`. The existing reducer remains the only navigation and voting state boundary.
+**Architecture:** `LandingPage` owns semantic chapter content and GSAP-scoped DOM choreography. `FestivalScene` owns a landing-only Three.js renderer whose camera reads pure interpolation helpers from `landingSceneMath.ts` and receives GSAP ScrollTrigger progress. The supplied logo is the real masthead asset and central stage focal point. The existing reducer remains the only navigation and voting state boundary.
 
-**Tech Stack:** React, TypeScript, Vite, Vitest, Three.js, Phosphor Icons, CSS, in-app browser verification.
+**Tech Stack:** React, TypeScript, Vite, Vitest, Three.js, GSAP ScrollTrigger, `@gsap/react`, Phosphor Icons, CSS, in-app browser verification.
 
 ## Global constraints
 
 - Use the supplied Buglasan Festival 2026 logo without redrawing it.
 - Do not copy or embed Kage assets, Japanese motifs, or source code.
 - Three.js must mount only on the landing view and dispose on unmount.
+- GSAP must use `useGSAP` with scoped selectors and automatic cleanup.
 - Cap renderer pixel ratio at `1.5` and provide reduced-motion and WebGL-failure fallbacks.
 - Preserve the existing login, dashboard, and one-vote demo behavior.
 - Keep all core controls keyboard-accessible and at least `44px` high.
@@ -71,9 +72,9 @@ Use `renderToStaticMarkup` and assert the expected logo `src`, CTA label, canvas
 
 Run `file public/assets/buglasan-festival-2026-logo.png` and retain the source pixels.
 
-- [ ] **Step 2: Install Three.js, its TypeScript declarations, and Phosphor Icons**
+- [ ] **Step 2: Install Three.js, GSAP, the GSAP React hook, and Phosphor Icons**
 
-Run: `npm install three @types/three @phosphor-icons/react`
+Run: `npm install three @types/three gsap @gsap/react @phosphor-icons/react`
 
 - [ ] **Step 3: Implement the renderer lifecycle**
 
@@ -83,9 +84,9 @@ Create the renderer with antialiasing, `powerPreference: 'high-performance'`, AC
 
 Use reusable Three.js `BufferGeometry`, `MeshStandardMaterial`, `LineBasicMaterial`, instanced light points, stage platforms, translucent pavilion sails, parol spokes, sugarcane blade meshes, fog, and warm key lights. Keep geometry count and particle count bounded.
 
-- [ ] **Step 5: Wire camera chapters and reduced motion**
+- [ ] **Step 5: Wire GSAP camera chapters and reduced motion**
 
-Measure `[data-scene-chapter]` elements, calculate progress with `progressForScroll`, interpolate five camera stops, and skip scroll/pointer updates when reduced motion is requested.
+Create one scoped GSAP ScrollTrigger for the landing narrative, map its progress to five camera stops, use scrub smoothing for section handoffs, and skip scroll/pointer updates when reduced motion is requested. Kill the trigger and dispose the Three.js world on unmount.
 
 ### Task 3: Approved landing composition
 
@@ -100,7 +101,7 @@ Measure `[data-scene-chapter]` elements, calculate progress with `progressForScr
 
 - [ ] **Step 1: Recompose the header and hero**
 
-Render the official logo, compact fixed navigation, approved headline, two actions, voting status, dimensional DOM title, chapter rail, and candidate procession over `FestivalScene`.
+Render the official logo, compact fixed navigation, approved headline, two actions, voting status, a large illuminated official-logo centerpiece instead of the generated BUGLASAN 2026 title, chapter rail, and candidate procession over `FestivalScene`.
 
 - [ ] **Step 2: Build five semantic chapters**
 
@@ -108,7 +109,7 @@ Render the approved candidate, voting, coronation, and update sections with exis
 
 - [ ] **Step 3: Add menu and reveal behavior**
 
-Use React state for the mobile menu, Escape handling, body scroll lock, once-only `IntersectionObserver` reveals, and visible-by-default reduced-motion behavior.
+Use React state for the mobile menu and Escape handling. Use scoped `useGSAP` timelines and ScrollTrigger for once-only reveals, logo handoffs, and chapter transitions; keep content visible by default and disable nonessential motion for reduced-motion users.
 
 - [ ] **Step 4: Implement responsive styles**
 

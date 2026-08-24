@@ -19,7 +19,7 @@ The approved first fold contains:
 - The headline “Your vote. Their moment.” with one short supporting sentence.
 - A primary “Enter the voting room” action and a secondary “Explore the festival” action.
 - A visible online-voting status and one-vote-per-day rule.
-- A monumental BUGLASAN 2026 title integrated over the 3D scene.
+- A large illuminated presentation of the supplied Buglasan Festival 2026 logo as the scene centerpiece; the generated BUGLASAN 2026 title is removed.
 - A slim chapter rail on wide screens.
 - A six-candidate procession strip leading into the next chapter.
 
@@ -37,7 +37,7 @@ Each chapter changes the camera framing and scene lighting while retaining one s
 
 ## Assets
 
-- Use the supplied logo file as the real brand asset. Do not redraw, reinterpret, or replace the logo.
+- Use the supplied logo file as the real brand asset in both the masthead and the central stage presentation. Do not redraw, reinterpret, or replace the logo.
 - Use the existing candidate portrait source in `public/assets/candidate-portraits.png`; expose each portrait through measured crops that retain the source aspect ratio.
 - Do not copy Kage’s temple, fonts, Japanese writing, source assets, or scene geometry.
 - Use Phosphor Icons for new landing-page controls; do not hand-draw new interface icons.
@@ -46,10 +46,11 @@ Each chapter changes the camera framing and scene lighting while retaining one s
 
 - Mount Three.js only while the landing page is active.
 - Build the pavilion procedurally from reusable geometries and materials.
-- Interpolate a small camera rig from measured section anchors.
+- Use GSAP ScrollTrigger to interpolate a small camera rig from measured section anchors and choreograph chapter handoffs.
 - Add subtle pointer parallax only on fine pointers.
 - Cap device pixel ratio at `1.5` and reduce particle count on narrow or low-power devices.
 - Pause rendering when the document is hidden and dispose all GPU resources on unmount.
+- Scope GSAP with `useGSAP`, revert its context on unmount, and kill all ScrollTriggers when the landing route exits.
 - Respect `prefers-reduced-motion`: render a stable scene, remove scroll interpolation, and keep all content visible.
 - If WebGL initialization fails, keep the complete HTML experience over a static dark festival backdrop.
 
