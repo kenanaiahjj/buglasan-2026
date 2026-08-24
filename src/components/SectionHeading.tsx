@@ -3,16 +3,17 @@ type SectionHeadingProps = {
   title: string;
   action?: string;
   actionHref?: string;
+  onAction?: () => void;
 };
 
-export function SectionHeading({ eyebrow, title, action, actionHref = '#' }: SectionHeadingProps) {
+export function SectionHeading({ eyebrow, title, action, actionHref = '#', onAction }: SectionHeadingProps) {
   return (
     <div className="section-heading">
       <div>
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h2>{title}</h2>
       </div>
-      {action && <a className="text-button" href={actionHref}>{action} <span aria-hidden="true">↗</span></a>}
+      {action && (onAction ? <button className="text-button" onClick={onAction} type="button">{action} <span aria-hidden="true">↗</span></button> : <a className="text-button" href={actionHref}>{action} <span aria-hidden="true">↗</span></a>)}
     </div>
   );
 }
