@@ -162,7 +162,7 @@ export type FestivalWorld = ReturnType<typeof buildFestivalWorld>;
 export function buildFestivalWorld(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
-  quality: { lowPower: boolean; reducedMotion: boolean },
+  quality: { lowPower: boolean; reducedMotion: boolean; onLogoProgress?: (fraction: number) => void },
 ) {
   const world = new THREE.Group();
   scene.add(world);
@@ -494,7 +494,13 @@ export function buildFestivalWorld(
           resolve(false);
         }
       },
-      undefined,
+      (event) => {
+        // Progress is only honest when the server sends a length; otherwise
+        // report indeterminate rather than inventing a number.
+        if (event.lengthComputable && event.total > 0) {
+          quality.onLogoProgress?.(Math.min(1, event.loaded / event.total));
+        }
+      },
       (error) => {
         console.warn('Unable to load the Buglasan hero model.', error);
         resolve(false);
@@ -832,7 +838,15 @@ export function buildFestivalWorld(
 
   const torchPos = new THREE.Vector2();
 
-  const update = (elapsed: number, mouse: THREE.Vector2, pixelRatio: number, torch = 0, quiet = false) => {
+  const update = (
+    elapsed: number,
+    mouse: THREE.Vector2,
+    pixelRatio: number,
+    torch = 0,
+    quiet = false,
+    /** 0..1, eased — the pointer is over the wordmark itself. */
+    markHover = 0,
+  ) => {
     quietMode = quiet;
     backdropUniforms.uTime.value = elapsed;
     backdropUniforms.uMouse.value.copy(mouse);
@@ -922,9 +936,15 @@ export function buildFestivalWorld(
       ? Math.sin(elapsed * BUGLASAN_HERO_SHEEN.autoOrbit * 1.6) * 0.85
       : lightX * 0.85;
     // Quiet mode is the docked header mark; gloss there is just noise.
-    sheenUniforms.uSheenAmt.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.sheen;
-    sheenUniforms.uSheenGlint.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.glint;
-    sheenUniforms.uSheenRim.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.rim;
+    /* Hovering the mark itself is a second, closer register than the
+       page-wide tilt: the light gathers, the edge picks out, and the mark
+       leans in a little. Kept multiplicative on the same three values so the
+       hover state can never look like a different material — it is the same
+       surface catching more of the same light. */
+    const lean = 1 + markHover;
+    sheenUniforms.uSheenAmt.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.sheen * lean;
+    sheenUniforms.uSheenGlint.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.glint * (1 + markHover * 1.5);
+    sheenUniforms.uSheenRim.value = quiet ? 0 : BUGLASAN_HERO_SHEEN.rim * (1 + markHover * 1.35);
 
     orbUniforms.uTime.value = elapsed;
     orbUniforms.uMouse.value.copy(mouse);
@@ -932,8 +952,10 @@ export function buildFestivalWorld(
     particleUniforms.uTime.value = elapsed;
     particleUniforms.uPixelRatio.value = pixelRatio;
 
-    logoGroup.rotation.y = (mouse.x * 0.36 + Math.sin(elapsed * 0.4) * 0.03) * parallax.amount;
-    logoGroup.rotation.x = (-mouse.y * 0.26 + Math.cos(elapsed * 0.3) * 0.02) * parallax.amount;
+    const tilt = 1 + markHover * 0.42;
+    logoGroup.rotation.y = (mouse.x * 0.36 * tilt + Math.sin(elapsed * 0.4) * 0.03) * parallax.amount;
+    logoGroup.rotation.x = (-mouse.y * 0.26 * tilt + Math.cos(elapsed * 0.3) * 0.02) * parallax.amount;
+    logoGroup.scale.setScalar(logoAnchor.scale * (1 + markHover * 0.021));
     // Pointer drift belongs to the hero; a docked header mark must sit still.
     const drift = parallax.amount * logoAnchor.scale;
     logoGroup.position.x = logoAnchor.x + mouse.x * 0.34 * drift;

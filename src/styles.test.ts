@@ -51,7 +51,13 @@ describe('hero arena card treatment', () => {
   });
 
   it('lets the plaque row bridge into the next chapter with an on-brand vote cursor', () => {
-    expect(styles).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?margin-bottom:\s*clamp\(-2\.75rem,\s*-4vh,\s*-1\.25rem\);/);
+    // The bridge is a negative bottom margin, not one particular triple of
+    // values — pinning the literal made a deliberate change to how far the
+    // row sits below the fold read as a regression.
+    expect(styles).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?margin-bottom:\s*clamp\(\s*-[\d.]+rem,\s*-[\d.]+vh,\s*-[\d.]+rem\s*\);/);
+    // The row rests low and climbs on hover; the travel is the peek.
+    expect(styles).toMatch(/\.hero-arena-card\s*\{[\s\S]*?transform:\s*translateY\(var\(--card-rest/);
+    expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?transform:\s*translateY\(-\d+px\);/);
     expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?rgba\(4, 12, 8, \.22\)/);
     expect(styles).toContain('cursor: url("data:image/svg+xml,');
     expect(styles).toContain('VOTE%20NOW');

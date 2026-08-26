@@ -38,6 +38,7 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
   const hostRef = useRef<HTMLDivElement>(null);
   const quietRef = useRef(quiet);
   const [sceneReady, setSceneReady] = useState(false);
+  const [bootProgress, setBootProgress] = useState(0);
   quietRef.current = quiet;
 
   useEffect(() => {
@@ -68,7 +69,11 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 120);
 
-    const stage = buildFestivalWorld(scene, renderer, { lowPower, reducedMotion });
+    const stage = buildFestivalWorld(scene, renderer, {
+      lowPower,
+      reducedMotion,
+      onLogoProgress: setBootProgress,
+    });
     const post = new PostPipeline(renderer);
 
     let tier: Tier = lowPower ? 'low' : 'high';
@@ -85,7 +90,7 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
     let viewHeight = 1;
     let logoLoaded = false;
 
-    const pointerState = { x: 0, y: 0, torch: 0 };
+    const pointerState = { x: 0, y: 0, torch: 0, mark: 0 };
 
     /* ---------------------------------------------- sizing */
     const applySize = () => {
@@ -238,13 +243,36 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
        to give, so they keep the resting wash and never light the torch. */
     const quickTorch = gsap.quickTo(pointerState, 'torch', { duration: 0.55, ease: 'power2.out' });
 
+    /* Is the pointer over the wordmark itself?
+       
+       Tested against the hero anchor box rather than by raycasting the model:
+       the mark is placed from that box every frame, so the box is exactly
+       where it is, and a rect test costs nothing next to a raycast through
+       an 8MB mesh on every pointer move. Padded slightly so the reaction
+       starts just before the cursor crosses the glyphs. */
+    const quickMark = gsap.quickTo(pointerState, 'mark', { duration: 0.4, ease: 'power2.out' });
+    const overWordmark = (clientX: number, clientY: number) => {
+      if (!haveBoxes || lastHandoff > 0.35) return false;
+      const cy = heroBox.cy - window.scrollY;
+      return (
+        Math.abs(clientX - heroBox.cx) < heroBox.w * 0.56 &&
+        Math.abs(clientY - cy) < heroBox.h * 0.62
+      );
+    };
+
     const onPointerMove = (event: PointerEvent) => {
       quickPointerX((event.clientX / window.innerWidth - 0.5) * 2);
       quickPointerY(-(event.clientY / window.innerHeight - 0.5) * 2);
-      if (event.pointerType !== 'touch') quickTorch(1);
+      if (event.pointerType !== 'touch') {
+        quickTorch(1);
+        quickMark(overWordmark(event.clientX, event.clientY) ? 1 : 0);
+      }
     };
     const onPointerDown = () => stage.triggerBurst();
-    const dimTorch = () => quickTorch(0);
+    const dimTorch = () => {
+      quickTorch(0);
+      quickMark(0);
+    };
     // relatedTarget null means the pointer left the window rather than moving
     // between elements inside it.
     const onPointerOut = (event: PointerEvent) => {
@@ -336,7 +364,7 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
       );
       camera.updateProjectionMatrix();
 
-      stage.update(time * 0.001, mouseVec, currentPixelRatio, pointerState.torch, quietRef.current);
+      stage.update(time * 0.001, mouseVec, currentPixelRatio, pointerState.torch, quietRef.current, pointerState.mark);
       stage.world.rotation.y = -smoothProgress * 0.02;
       stage.lockBackdropToCamera(camera);
 
@@ -453,10 +481,25 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
   return (
     <div className={`festival-scene${sceneReady ? ' is-ready' : ''}${quiet ? ' is-quiet' : ''}`} data-scene-mode={quiet ? 'quiet' : 'full'} ref={hostRef}>
       <canvas className="festival-scene__canvas" ref={canvasRef} role="img" aria-label="Crown of Light festival scene" />
-      <picture aria-hidden={quiet} className="festival-scene__fallback-logo" data-centerpiece="official-logo">
-        <source srcSet={BUGLASAN_HERO_LOGO.src} type="image/png" />
-        <img alt="Buglasan Festival 2026" src={BUGLASAN_HERO_LOGO.src} width={BUGLASAN_HERO_LOGO.width} height={BUGLASAN_HERO_LOGO.height} />
-      </picture>
+      {/* Held over the stage until the model resolves, so the wordmark is on
+          screen from the first paint. If the GLB never loads, is-ready never
+          fires and this simply stays — the mark is present either way. */}
+      <div className="hero-boot" aria-hidden={sceneReady || quiet}>
+        <img
+          alt=""
+          className="hero-boot__mark"
+          decoding="async"
+          fetchPriority="high"
+          src={BUGLASAN_HERO_LOGO.src}
+        />
+        <div className="hero-boot__meter">
+          <i style={{ width: `${Math.round(bootProgress * 100)}%` }} />
+        </div>
+        <p className="hero-boot__label">
+          {bootProgress > 0 ? `Loading ${Math.round(bootProgress * 100)}%` : 'Loading'}
+        </p>
+      </div>
+
       <div className="festival-scene__vignette" aria-hidden="true" />
     </div>
   );
