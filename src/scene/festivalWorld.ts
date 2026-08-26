@@ -108,13 +108,35 @@ const LOGO_WIDTH = 5.35;
  * travelling specular band plus a fresnel rim. `autoOrbit` is the speed the
  * light circles on its own where there is no cursor to follow.
  */
+/**
+ * Surface finish for the wordmark.
+ *
+ * Chrome and glass are not a shader effect, they are three properties held
+ * together: a near-mirror roughness, high metalness so the reflection carries
+ * the colour instead of a diffuse layer, and — most of all — an environment
+ * with structure in it. A smooth surface reflecting a smooth gradient returns
+ * a smooth wash, which is exactly what plastic looks like. The horizon line
+ * and the softbox strips below are what the eye reads as "polished".
+ */
+export const BUGLASAN_HERO_FINISH = {
+  /* Just under full metal. The last of the diffuse is what keeps the mark
+     present against a near-black stage, where a true mirror would go dark
+     wherever the studio has nothing to give it. */
+  metalness: 0.82,
+  roughness: 0.12,
+  /** Lacquer layer over the metal. This is the "glassy" half. */
+  clearcoat: 1,
+  clearcoatRoughness: 0.05,
+  envMapIntensity: 1.9,
+} as const;
+
 export const BUGLASAN_HERO_SHEEN = {
   /** Broad sheen — the soft body of the highlight. Kept low. */
-  sheen: 0.11,
+  sheen: 0.05,
   /** The tight specular glint riding inside the sheen. */
-  glint: 0.32,
+  glint: 0.16,
   /** Silhouette rim. Confined to the true edge, not an all-over haze. */
-  rim: 0.13,
+  rim: 0.09,
   /** How far the highlight takes the surface's own colour. 1 = fully tinted. */
   tint: 0.74,
   /** Gaussian falloffs. Higher = tighter. */
@@ -473,11 +495,54 @@ export function buildFestivalWorld(
               }
               if (standardMaterial.isMeshStandardMaterial) {
                 standardMaterial.envMap = logoEnvMap;
-                standardMaterial.envMapIntensity = 0.72;
-                // Exported marks often come back fully rough, which kills any
-                // reflection before it starts.
-                standardMaterial.roughness = Math.min(standardMaterial.roughness, 0.42);
-                standardMaterial.needsUpdate = true;
+                standardMaterial.envMapIntensity = BUGLASAN_HERO_FINISH.envMapIntensity;
+                standardMaterial.roughness = BUGLASAN_HERO_FINISH.roughness;
+                /* Metalness is the actual plastic/chrome switch, and it is a
+                   fork in the shading model rather than a slider on one: a
+                   dielectric keeps a diffuse layer and reflects white, which
+                   is the definition of plastic, while a metal has no diffuse
+                   at all and tints its reflections with the base colour.
+                   Pushing it up turns the mark's own rainbow into the tint of
+                   what it reflects — coloured chrome rather than a shiny
+                   coloured object. Held just under 1 so a little diffuse
+                   survives and the letterforms never go black where the
+                   studio has nothing to give them. */
+                standardMaterial.metalness = BUGLASAN_HERO_FINISH.metalness;
+
+                // Clearcoat is the glass half: a second, smoother specular
+                // lobe sitting over the metal, the way lacquer sits over
+                // paint. MeshStandardMaterial has no such layer, so the
+                // material is rebuilt as physical, carrying its maps across.
+                const physical = new THREE.MeshPhysicalMaterial();
+                /* Copy through the *standard* prototype, not the physical one.
+                   MeshPhysicalMaterial.copy reads fields only a physical
+                   material has — clearcoatNormalScale, sheenColor,
+                   attenuationColor — and a MeshStandardMaterial source has
+                   none of them, so it throws on the first Vector2 and the
+                   whole model fails to load. The standard subset carries the
+                   maps, colour, roughness and metalness across; the physical
+                   extras keep their constructed defaults. */
+                THREE.MeshStandardMaterial.prototype.copy.call(physical, standardMaterial);
+                physical.clearcoat = BUGLASAN_HERO_FINISH.clearcoat;
+                physical.clearcoatRoughness = BUGLASAN_HERO_FINISH.clearcoatRoughness;
+                physical.needsUpdate = true;
+                track(physical);
+
+                logoMaterialState.set(physical, {
+                  transparent: physical.transparent,
+                  depthWrite: physical.depthWrite,
+                  opacity: physical.opacity,
+                });
+                addSheen(physical);
+                logoMaterials.add(physical);
+
+                if (Array.isArray(mesh.material)) {
+                  const idx = mesh.material.indexOf(material);
+                  if (idx >= 0) mesh.material[idx] = physical;
+                } else {
+                  mesh.material = physical;
+                }
+                continue;
               }
               addSheen(material);
 
@@ -517,41 +582,83 @@ export function buildFestivalWorld(
      key light sits — costs one 64x32 texture and gives every curved surface
      something to pick up. */
   const buildLogoEnvironment = () => {
-    const w = 64;
-    const h = 32;
-    const data = new Uint8Array(w * h * 4);
+    /* A small studio, not a gradient.
+       
+       Authored in linear float rather than 8-bit so the softboxes can sit
+       well above 1.0 — that headroom is what makes a reflection read as a
+       light source rather than a pale patch. Three features do the work:
+       a hard horizon, a few bright vertical strips to streak across the
+       curves, and a dark floor for them to sit against. */
+    const w = 256;
+    const h = 128;
+    const data = new Float32Array(w * h * 4);
+
+    // Warm key, neutral fill, cool kicker. Uneven spacing and width, or the
+    // reflections repeat and read as a pattern.
+    const boxes = [
+      { u: 0.13, halfW: 0.055, top: 0.06, bot: 0.46, rgb: [9.0, 7.4, 5.2] },
+      { u: 0.42, halfW: 0.028, top: 0.12, bot: 0.40, rgb: [6.2, 6.4, 6.8] },
+      { u: 0.71, halfW: 0.042, top: 0.04, bot: 0.34, rgb: [4.4, 6.0, 9.5] },
+      { u: 0.93, halfW: 0.018, top: 0.16, bot: 0.30, rgb: [7.0, 5.4, 3.0] },
+    ];
+
     for (let y = 0; y < h; y++) {
       const v = y / (h - 1);
       for (let x = 0; x < w; x++) {
         const u = x / (w - 1);
-        // Vertical ramp: gold sky into deep forest ground.
-        const sky = Math.pow(1 - v, 1.5);
-        let r = 12 + sky * 232;
-        let g = 26 + sky * 180;
-        let b = 20 + sky * 96;
-        // A soft warm lobe where the key light lives, so highlights have a
-        // direction instead of ringing the whole mark evenly.
-        const d = Math.hypot((u - 0.17) * 1.6, v - 0.22);
-        const lobe = Math.exp(-d * d * 22) * 255;
-        r = Math.min(255, r + lobe);
-        g = Math.min(255, g + lobe * 0.86);
-        b = Math.min(255, b + lobe * 0.55);
-        // A cool counter-lobe on the far side to keep the shadows alive.
-        const d2 = Math.hypot((u - 0.72) * 1.6, v - 0.55);
-        const cool = Math.exp(-d2 * d2 * 26) * 120;
-        r = Math.min(255, r + cool * 0.25);
-        g = Math.min(255, g + cool * 0.6);
-        b = Math.min(255, b + cool);
+        let r: number;
+        let g: number;
+        let b: number;
+
+        if (v < 0.5) {
+          // Sky: brightening toward the horizon, warm one side, cool the other.
+          const t = v / 0.5;
+          const lift = 0.18 + t * 0.5;
+          r = lift * (0.9 + 0.35 * (1 - u));
+          g = lift * 0.96;
+          b = lift * (0.9 + 0.4 * u);
+        } else {
+          // Floor: dark, with a short bounce just under the horizon.
+          const t = (v - 0.5) / 0.5;
+          const bounce = Math.exp(-t * 9) * 0.5;
+          const base = 0.028 + bounce;
+          r = base * 1.0;
+          g = base * 1.12;
+          b = base * 0.92;
+        }
+
+        // The horizon itself — a hard bright line. This single edge is the
+        // most recognisable chrome cue there is; without it a mirror surface
+        // has nothing to sweep across it as the object turns.
+        const horizon = Math.exp(-Math.pow((v - 0.5) * 150, 2));
+        r += horizon * 2.4;
+        g += horizon * 2.5;
+        b += horizon * 2.6;
+
+        for (const box of boxes) {
+          // Wrap the azimuth so a box near u=1 does not get clipped.
+          let du = Math.abs(u - box.u);
+          du = Math.min(du, 1 - du);
+          const across = Math.exp(-Math.pow(du / box.halfW, 6));
+          const down =
+            Math.min(1, Math.max(0, (v - box.top) / 0.03)) *
+            Math.min(1, Math.max(0, (box.bot - v) / 0.06));
+          const k = across * down;
+          r += box.rgb[0] * k;
+          g += box.rgb[1] * k;
+          b += box.rgb[2] * k;
+        }
+
         const i = (y * w + x) * 4;
         data[i] = r;
         data[i + 1] = g;
         data[i + 2] = b;
-        data[i + 3] = 255;
+        data[i + 3] = 1;
       }
     }
-    const equirect = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
+
+    const equirect = new THREE.DataTexture(data, w, h, THREE.RGBAFormat, THREE.FloatType);
     equirect.mapping = THREE.EquirectangularReflectionMapping;
-    equirect.colorSpace = THREE.SRGBColorSpace;
     equirect.needsUpdate = true;
 
     const pmrem = new THREE.PMREMGenerator(renderer);
