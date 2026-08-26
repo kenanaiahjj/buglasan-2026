@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Follow the repository's existing card markup and test conventions. Keep unrelated dirty-worktree changes untouched.
 
-**Goal:** Rework the four hero program cards to match the supplied monochrome plaque reference: charcoal/black card bodies, a raised logo chamber, centered stacked titles, a gold structural rim, and colored logos on hover or focus.
+**Goal:** Rework the four hero program cards to match the supplied monochrome plaque reference: charcoal/black card bodies, a contained logo chamber, centered stacked titles, a gold structural rim, and colored logos on hover or focus.
 
 **Architecture:** Preserve `heroContestArenas`, the existing button elements, program assets, click handlers, and mobile carousel. Implement the new composition through the existing hero-card CSS hooks and add contract tests for the default and interactive logo filters.
 
@@ -17,10 +17,10 @@
 
 ### Task 2: Implement the plaque composition
 
-- Give each card a charcoal-to-black surface and persistent gold rim.
-- Add a semicircular upper chamber with a soft gold edge.
+- Give each card a mostly opaque charcoal-to-black surface and persistent gold rim.
+- Add a contained semicircular upper chamber with a soft gold edge; do not let it extend into the hero content.
 - Center and enlarge the logo, applying grayscale at rest and the authored color on hover/focus.
-- Center the title stack and quiet the tagline/action without removing the card's accessible button behavior.
+- Center the title stack, remove the hero-card subheader, and quiet the action without removing the card's accessible button behavior.
 - Preserve the existing accent halo and reduced-motion behavior.
 
 ### Task 3: Verify the interaction and responsive states
