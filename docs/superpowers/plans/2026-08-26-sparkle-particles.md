@@ -4,7 +4,7 @@
 
 **Goal:** Replace square-looking ambient particle sprites with soft four-point sparkles that twinkle independently.
 
-**Architecture:** Keep the existing `THREE.Points` geometry and vertex shader. Change only `particleFragmentShader` so each point sprite combines a faint halo, compact core, and tapered horizontal/vertical rays driven by the existing time and phase inputs.
+**Architecture:** Keep the existing `THREE.Points` geometry and vertex shader. Change `particleFragmentShader` so each point sprite combines a faint halo, compact core, and tapered horizontal/vertical rays. Also update the backdrop star field to use cell-local coordinates and the same smooth sparkle profile instead of a uniform square cell.
 
 **Tech Stack:** TypeScript, Three.js, GLSL, Vitest, Vite.
 
@@ -14,7 +14,7 @@
 - Replace the particle fragment falloff with a faint radial halo, compact luminous core, and thin horizontal and vertical rays.
 - Drive brightness with the existing per-particle phase and time uniform so particles twinkle out of sync.
 - Keep the effect restrained; sparkles must read as small points of light rather than large lens flares or decorative icons.
-- Do not change the 3D logo, background shaders, fireworks, particle count, scene layout, image assets, or DOM.
+- Do not change the 3D logo, fireworks, particle count, scene layout, image assets, or DOM.
 
 ---
 
@@ -133,3 +133,76 @@ Open the local preview at `http://127.0.0.1:5175/` and check:
 - [ ] **Step 5: Commit the shader test and implementation**
 
 Because `src/scene/shaders.ts` is already an untracked user file in this checkout, stage only this file and the new focused test if committing does not include unrelated work. Otherwise, leave the implementation in the working tree and report that it was not staged.
+
+### Task 3: Remove square backdrop star cells
+
+**Files:**
+- Modify: `src/scene/shaders.ts:150-157`
+- Test: `src/scene/shaders.test.ts`
+
+**Interfaces:**
+- Consumes the existing `uTime`, `uv`, and `hash12()` backdrop inputs.
+- Produces soft local star falloffs with no uniform full-cell opacity.
+
+- [ ] **Step 1: Add the failing backdrop contract assertion**
+
+Extend `src/scene/shaders.test.ts` to import `backdropFragmentShader` and assert that the star field computes a local cell coordinate and smooth falloff:
+
+```ts
+import { backdropFragmentShader, particleFragmentShader } from './shaders';
+
+it('uses local smooth coordinates for the backdrop star field', () => {
+  expect(backdropFragmentShader).toContain('vec2 starCell = fract(sp) - 0.5');
+  expect(backdropFragmentShader).toContain('float starDistance');
+  expect(backdropFragmentShader).toContain('float starCore');
+  expect(backdropFragmentShader).toContain('float starRays');
+  expect(backdropFragmentShader).not.toContain('float star = hash12(floor(sp));');
+});
+```
+
+Run:
+
+```bash
+npx vitest run src/scene/shaders.test.ts
+```
+
+Expected: FAIL because the current backdrop uses a uniform value for each `floor(sp)` cell.
+
+- [ ] **Step 2: Replace the cell fill with a local sparkle falloff**
+
+Replace the current `star` assignment block with:
+
+```glsl
+      vec2 starGrid = uv * vec2(160.0, 96.0);
+      vec2 starCell = fract(starGrid) - 0.5;
+      vec2 starId = floor(starGrid);
+      float starSeed = hash12(starId);
+      float starMask = smoothstep(0.9915, 1.0, starSeed);
+      float starDistance = length(starCell);
+      float starCore = exp(-starDistance * starDistance * 46.0);
+      float starRayX = exp(-abs(starCell.y) * 38.0) * exp(-abs(starCell.x) * 4.0);
+      float starRayY = exp(-abs(starCell.x) * 38.0) * exp(-abs(starCell.y) * 4.0);
+      float starRays = max(starRayX, starRayY) * smoothstep(0.48, 0.08, starDistance);
+      float star = (starCore * 0.76 + starRays * 0.24) * smoothstep(0.46, 0.0, starDistance) * starMask;
+      float twinkle = 0.6 + 0.4 * sin(uTime * 1.7 + hash12(starId + 3.3) * 62.8);
+      col += vec3(0.2100, 0.2400, 0.2600) * star * twinkle * smoothstep(0.52, 1.0, uv.y) * 0.55;
+```
+
+Keep the quality guard and the rest of the backdrop shader unchanged.
+
+- [ ] **Step 3: Run focused tests, full tests, and the build**
+
+Run:
+
+```bash
+npx vitest run src/scene/shaders.test.ts
+npm test
+npm run build
+git diff --check
+```
+
+Expected: the focused shader tests pass, all tests pass, the build exits with code 0, and no whitespace errors are reported.
+
+- [ ] **Step 4: Verify the square artifact is gone in the live preview**
+
+At 1280×720 and 390×844, confirm the field contains only soft star points and four-point sparkles, with no gray square cells, no horizontal overflow, and no new console errors.
