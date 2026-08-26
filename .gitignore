@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# macOS
+.DS_Store
+
+# Working files from design/verification passes, not deliverables
+scratch/
+artifacts/

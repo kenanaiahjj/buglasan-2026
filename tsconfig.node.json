@@ -4,7 +4,12 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    /* Type-check the config only. Emitting vite.config.js shadows
+       vite.config.ts in Vite's resolution order, which silently discards
+       every build option set here. */
+    "noEmit": true,
+    "emitDeclarationOnly": false
   },
   "include": ["vite.config.ts"]
 }

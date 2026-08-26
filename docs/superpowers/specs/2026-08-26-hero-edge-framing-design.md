@@ -2,9 +2,16 @@
 
 ## Status
 
-Approved in conversation on August 26, 2026.
+Superseded by user request on August 26, 2026. The current implementation does
+not include a hero edge frame.
 
-## Goal
+## Current implementation
+
+The hero uses the existing WebGL festival scene without additional tree,
+landmark, glow, or horizon overlays. The hero layout, logo, copy, actions, and
+program cards remain unchanged.
+
+## Superseded goal
 
 Frame the desktop and tablet hero with a subtle Buglasan-specific atmosphere
 without competing with the official logo, hero copy, program cards, or voting

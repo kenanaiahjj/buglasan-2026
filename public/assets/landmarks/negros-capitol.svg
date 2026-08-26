@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 400" width="992" height="640"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Provincial Capitol — six-column portico, flanking wings
+       weights  contour 4  structure 2.3  detail 1.3  hair 0.6
+       light from the upper left; density is illumination -->
+  <defs>
+  <linearGradient id="gk" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="620" y2="400">
+    <stop offset="0%" stop-color="#d9f99d" />
+    <stop offset="32%" stop-color="#4ade80" />
+    <stop offset="68%" stop-color="#22d3ee" />
+    <stop offset="100%" stop-color="#0369a1" />
+  </linearGradient>
+  <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="620" y1="0" x2="0" y2="400">
+    <stop offset="0%" stop-color="#0e7490" />
+    <stop offset="60%" stop-color="#155e75" />
+    <stop offset="100%" stop-color="#164e63" />
+  </linearGradient>
+  </defs>
+<g stroke="url(#gk)" stroke-width="0.6" stroke-opacity="0.5">
+    <path d="M210.4 184.6 L351.7 184.6 M223 174.6 L347 174.6 M233.9 166 L349 166 M246.3 156.2 L343.8 156.2 M259.7 145.7 L351.7 145.7 M268.8 138.5 L344.5 138.5 M281.7 128.3 L322 128.3 M291 121 L319.2 121 M305.7 109.4 L312.6 109.4" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.24">
+    <path d="M344.7 183.7 L398.6 183.7 M301.9 172 L384.2 172 M314.9 160.7 L370.2 160.7 M320.3 151.6 L359 151.6 M310 138 L342.1 138 M310.3 126.5 L328 126.5 M311 116.4 L315.4 116.4" />
+    <path d="M238.2 215.7 L359.9 215.7 M238.1 227 L355 227 M238.8 238.3 L369.8 238.3 M238.5 249.7 L361.6 249.7 M254.4 261 L355.4 261 M258.1 272.3 L355.7 272.3 M261.1 283.7 L359.6 283.7 M269.5 295 L368.2 295 M241.1 306.3 L359.6 306.3" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.34">
+    <path d="M49.9 205.3 L180.8 205.3 M51.4 215.8 L184.8 215.8 M51.1 226.4 L180.2 226.4 M56.7 236.9 L179 236.9 M66.4 247.5 L186.2 247.5 M46.3 258 L173.4 258 M58.6 268.5 L186.9 268.5 M48.6 279.1 L175.2 279.1 M59.9 289.6 L180.5 289.6 M58.4 300.2 L176.4 300.2 M54 310.7 L180.5 310.7" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.16">
+    <path d="M434.2 205.3 L556.1 205.3 M440.1 215.8 L558.9 215.8 M425.4 226.4 L571 226.4 M435.5 236.9 L568.4 236.9 M435.6 247.5 L574.1 247.5 M437.5 258 L567.2 258 M431.8 268.5 L574.9 268.5 M438.7 279.1 L565.9 279.1 M430.8 289.6 L574.2 289.6 M427.7 300.2 L572.9 300.2 M431.6 310.7 L556.6 310.7" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="4" stroke-opacity="0.95">
+    <path d="M40 356 L40 190 L198 190 L310 100 L422 190 L580 190 L580 356" />
+  </g>
+  <g stroke="#ffffff" stroke-width="2.3" stroke-opacity="0.7">
+    <path d="M196 194 L310 96 L318 102" />
+    <path d="M34 188 L200 188" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.3" stroke-opacity="0.72">
+    <path d="M206 190 L414 190" />
+    <path d="M210 178 L410 178" />
+    <path d="M420 188 L586 188" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.3" stroke-opacity="0.9">
+    <path d="M237 206 L237 312 M269 206 L269 312 M301 206 L301 312 M333 206 L333 312 M365 206 L365 312 M397 206 L397 312" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.3" stroke-opacity="0.6">
+    <path d="M227 206 L227 312 M259 206 L259 312 M291 206 L291 312 M323 206 L323 312 M355 206 L355 312 M387 206 L387 312" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.32">
+    <path d="M232 210 L232 308 M264 210 L264 308 M296 210 L296 308 M328 210 L328 308 M360 210 L360 308 M392 210 L392 308" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.3" stroke-opacity="0.8">
+    <path d="M225 206 L225 199 L239 199 L239 206 M257 206 L257 199 L271 199 L271 206 M289 206 L289 199 L303 199 L303 206 M321 206 L321 199 L335 199 L335 206 M353 206 L353 199 L367 199 L367 206 M385 206 L385 199 L399 199 L399 206" />
+    <path d="M224 312 L224 320 L240 320 L240 312 M256 312 L256 320 L272 320 L272 312 M288 312 L288 320 L304 320 L304 312 M320 312 L320 320 L336 320 L336 312 M352 312 L352 320 L368 320 L368 312 M384 312 L384 320 L400 320 L400 312" />
+    <path d="M222 320 L402 320" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.3" stroke-opacity="0.62">
+    <path d="M62 214 L62 250 L92 250 L92 214 Z" />
+    <path d="M62 278 L62 320 L92 320 L92 278 Z" />
+    <path d="M110 214 L110 250 L140 250 L140 214 Z" />
+    <path d="M110 278 L110 320 L140 320 L140 278 Z" />
+    <path d="M158 214 L158 250 L188 250 L188 214 Z" />
+    <path d="M158 278 L158 320 L188 320 L188 278 Z" />
+    <path d="M432 214 L432 250 L462 250 L462 214 Z" />
+    <path d="M432 278 L432 320 L462 320 L462 278 Z" />
+    <path d="M480 214 L480 250 L510 250 L510 214 Z" />
+    <path d="M480 278 L480 320 L510 320 L510 278 Z" />
+    <path d="M528 214 L528 250 L558 250 L558 214 Z" />
+    <path d="M528 278 L528 320 L558 320 L558 278 Z" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.4">
+    <path d="M62 214 L92 214" />
+    <path d="M77 214 L77 250" />
+    <path d="M77 278 L77 320" />
+    <path d="M110 214 L140 214" />
+    <path d="M125 214 L125 250" />
+    <path d="M125 278 L125 320" />
+    <path d="M158 214 L188 214" />
+    <path d="M173 214 L173 250" />
+    <path d="M173 278 L173 320" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.32">
+    <path d="M447 214 L447 250" />
+    <path d="M447 278 L447 320" />
+    <path d="M495 214 L495 250" />
+    <path d="M495 278 L495 320" />
+    <path d="M543 214 L543 250" />
+    <path d="M543 278 L543 320" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.3" stroke-opacity="0.8">
+    <path d="M34 320 L586 320" />
+    <path d="M24 338 L596 338" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="4" stroke-opacity="0.9">
+    <path d="M14 356 L606 356" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.3">
+    <path d="M236 320 L236 356 M261.3 320 L261.3 356 M286.7 320 L286.7 356 M312 320 L312 356 M337.3 320 L337.3 356 M362.7 320 L362.7 356 M388 320 L388 356" />
+  </g>
+</svg>

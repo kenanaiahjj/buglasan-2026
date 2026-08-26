@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/icons/MagnifyingGlass';
@@ -14,7 +13,6 @@ type HaraGalleryProps = {
   onVote: (id: ContestArena['id']) => void;
 };
 
-const cardRotations = [-1.2, 1.1, -0.6, 0.8, -1, 1.4, -0.7, 1, -0.9, 0.6, -0.5, 1.2];
 const sortOptions: Array<[HaraSortKey, string]> = [
   ['votes', 'Most votes'],
   ['number', 'Candidate number'],
@@ -137,7 +135,6 @@ export function HaraGallery({ arena, onBackToHub, onVote }: HaraGalleryProps) {
             <article
               className="hara-gallery-card"
               key={candidate.id}
-              style={{ '--hara-card-rotation': `${cardRotations[index]}deg` } as CSSProperties}
             >
               <div className="hara-gallery-card__motion">
                 <div className="hara-gallery-card__media">

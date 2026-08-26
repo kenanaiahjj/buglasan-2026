@@ -23,11 +23,11 @@ export function DashboardNav({ state, dispatch }: { state: VoterState; dispatch:
   return (
     <>
       <div className="mobile-bar">
-        <BrandMark compact />
+        <BrandMark compact official />
         <button aria-controls="dashboard-navigation" aria-expanded={mobileOpen} aria-label={mobileOpen ? 'Close dashboard menu' : 'Open dashboard menu'} className="menu-button" onClick={() => setMobileOpen((open) => !open)} type="button"><Icon name={mobileOpen ? 'x' : 'menu'} size={22} /></button>
       </div>
       <aside className={`dashboard-nav${mobileOpen ? ' is-open' : ''}`} id="dashboard-navigation">
-        <button aria-label="Return to the pageant landing page" className="dashboard-nav__brand" onClick={() => dispatch({ type: 'navigate', view: 'landing' })} type="button"><BrandMark compact /></button>
+        <button aria-label="Return to the pageant landing page" className="dashboard-nav__brand" onClick={() => dispatch({ type: 'navigate', view: 'landing' })} type="button"><BrandMark compact official /></button>
         <nav aria-label="Voter dashboard navigation">
           <span className="dashboard-nav__label">Your voting room</span>
           {items.map(([section, label, icon]) => (

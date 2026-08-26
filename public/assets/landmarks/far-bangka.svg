@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180" width="660" height="198"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Far flotilla — sails only, white on the horizon
+       weights  contour 4.4  structure 2.8  detail 1.9  hair 1.2
+       light from the upper left; density is illumination -->
+  <defs>
+  <linearGradient id="gk" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="180">
+    <stop offset="0%" stop-color="#a5f3fc" />
+    <stop offset="60%" stop-color="#38bdf8" />
+    <stop offset="100%" stop-color="#1d4ed8" />
+  </linearGradient>
+  <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="600" y1="0" x2="0" y2="180">
+    <stop offset="0%" stop-color="#1e3a8a" />
+    <stop offset="100%" stop-color="#172554" />
+  </linearGradient>
+  </defs>
+<g stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.46">
+    <path d="M36 100 Q96 124 156 100" />
+    <path d="M68 100 L68 50" />
+    <path d="M68 50 L122 82 L68 84 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.5" stroke-opacity="0.4">
+    <path d="M12 110 L182 110" />
+  </g>
+  <g stroke="#ffffff" stroke-width="3.1" stroke-opacity="0.46">
+    <path d="M228.4 94.1 Q268 109.9 307.6 94.1" />
+    <path d="M249.5 94.1 L249.5 61.1" />
+    <path d="M249.5 61.1 L285.2 82.2 L249.5 83.5 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.9" stroke-opacity="0.4">
+    <path d="M212.6 100.7 L324.8 100.7" />
+  </g>
+  <g stroke="#ffffff" stroke-width="3.7" stroke-opacity="0.46">
+    <path d="M372.4 89.5 Q400 100.5 427.6 89.5" />
+    <path d="M387.1 89.5 L387.1 66.5" />
+    <path d="M387.1 66.5 L412 81.2 L387.1 82.1 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.2" stroke-opacity="0.4">
+    <path d="M361.4 94.1 L439.6 94.1" />
+  </g>
+  <g stroke="#ffffff" stroke-width="4.4" stroke-opacity="0.46">
+    <path d="M478.8 86.2 Q498 93.8 517.2 86.2" />
+    <path d="M489 86.2 L489 70.2" />
+    <path d="M489 70.2 L506.3 80.4 L489 81 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.6" stroke-opacity="0.4">
+    <path d="M471.1 89.4 L525.5 89.4" />
+  </g>
+  <g stroke="#ffffff" stroke-width="5.3" stroke-opacity="0.46">
+    <path d="M552.8 84.4 Q566 89.6 579.2 84.4" />
+    <path d="M559.8 84.4 L559.8 73.4" />
+    <path d="M559.8 73.4 L571.7 80.4 L559.8 80.8 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="3.2" stroke-opacity="0.4">
+    <path d="M547.5 86.6 L584.9 86.6" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.9" stroke-opacity="0.38">
+    <path d="M7.8 134 Q103.6 138.5 199.3 132 Q295.1 130.2 390.8 135.2 Q486.6 141.4 582.4 132.8 M4.2 157.4 Q86.4 162.8 168.5 156.4 Q250.7 151 332.8 159.7 Q414.9 161.2 497.1 156.2" />
+  </g>
+</svg>

@@ -1,7 +1,9 @@
 import { useState, type Dispatch, type FormEvent } from 'react';
+import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
+import { ArrowUpRight } from '@phosphor-icons/react/dist/icons/ArrowUpRight';
+import { User } from '@phosphor-icons/react/dist/icons/User';
 import type { VoterAction, VoterState } from '../state/voterState';
 import { BrandMark } from './BrandMark';
-import { Icon } from './Icon';
 
 export function LoginScreen({ state, dispatch }: { state: VoterState; dispatch: Dispatch<VoterAction> }) {
   const [identifier, setIdentifier] = useState('');
@@ -13,10 +15,9 @@ export function LoginScreen({ state, dispatch }: { state: VoterState; dispatch: 
 
   return (
     <main className="auth-page">
-      <div className="auth-page__ornament" aria-hidden="true"><span>✦</span><span>✧</span><span>·</span></div>
-      <button className="auth-back" onClick={() => dispatch({ type: 'navigate', view: 'landing' })} type="button">← Back to pageant</button>
+      <button className="auth-back" onClick={() => dispatch({ type: 'navigate', view: 'landing' })} type="button"><ArrowLeft aria-hidden="true" size={15} /> Back to pageant</button>
       <div className="auth-card panel">
-        <BrandMark />
+        <BrandMark official />
         <span className="eyebrow">Your vote carries the story</span>
         <h1>Welcome back,<br /><em>pageant supporter.</em></h1>
         <p className="lede">Log in to choose your candidate and make today’s vote count.</p>
@@ -44,10 +45,10 @@ export function LoginScreen({ state, dispatch }: { state: VoterState; dispatch: 
           />
           {state.loginError && <p className="form-error" id="login-error" role="alert">{state.loginError}</p>}
           <label className="checkbox-row" htmlFor="remember-me"><input id="remember-me" type="checkbox" /> <span>Remember me on this device</span></label>
-          <button className="button button--primary button--full" type="submit"><Icon name="user" size={17} /> Login to vote</button>
+          <button className="button button--primary button--full" type="submit"><User aria-hidden="true" size={17} /> Login to vote</button>
         </form>
         <p className="form-note">Demo mode: use any non-empty email or mobile number and password.</p>
-        <button className="text-button text-button--center" type="button">Create an account <span aria-hidden="true">↗</span></button>
+        <button className="text-button text-button--center" type="button">Create an account <ArrowUpRight aria-hidden="true" size={14} /></button>
       </div>
       <p className="auth-footer-note">Buglasan Festival 2026 · Negros Oriental</p>
     </main>

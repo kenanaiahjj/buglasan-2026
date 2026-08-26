@@ -19,7 +19,7 @@ export function CandidateCard({ candidate, voteCount, selected, disabled, onSele
       type="button"
     >
       <span className="candidate-card__number">{candidate.number}</span>
-      <span className="candidate-card__portrait" aria-hidden="true"><span>{candidate.initials}</span></span>
+      <span className="candidate-card__portrait" aria-hidden="true"><img alt="" src={candidate.image} width={512} height={512} loading="lazy" decoding="async" /></span>
       <span className="candidate-card__copy">
         <small>{candidate.location}</small>
         <strong>{candidate.name}</strong>

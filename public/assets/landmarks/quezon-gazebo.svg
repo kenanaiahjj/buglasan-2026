@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="660" height="660"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Quezon Park gazebo — two roof tiers over an arcaded drum
+       weights  contour 3.6  structure 2.2  detail 1.25  hair 0.6
+       light from the upper left; density is illumination -->
+  <defs>
+  <linearGradient id="gk" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="440" y2="440">
+    <stop offset="0%" stop-color="#fce7f3" />
+    <stop offset="36%" stop-color="#f472b6" />
+    <stop offset="74%" stop-color="#c084fc" />
+    <stop offset="100%" stop-color="#7e22ce" />
+  </linearGradient>
+  <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="440" y1="0" x2="0" y2="440">
+    <stop offset="0%" stop-color="#701a75" />
+    <stop offset="60%" stop-color="#581c87" />
+    <stop offset="100%" stop-color="#3b0764" />
+  </linearGradient>
+  </defs>
+<g stroke="url(#gk)" stroke-width="0.6" stroke-opacity="0.42">
+    <path d="M90 195.6 L184.4 195.6 M106.8 183.2 L215 183.2 M122.1 172 L207.7 172 M134.3 163 L203.6 163 M150.6 151.1 L206.2 151.1 M167.8 138.4 L203.1 138.4 M180.3 129.2 L208 129.2 M196.6 117.2 L219.7 117.2 M210.1 107.3 L218 107.3" />
+    <path d="M124.3 127.4 L211 127.4 M143.7 113.3 L209.1 113.3 M159.8 101.7 L212.6 101.7 M178 88.5 L219.4 88.5 M192.9 77.7 L210 77.7 M210.8 64.7 L219.2 64.7" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.2">
+    <path d="M346.5 192.9 L250.4 192.9 M329.4 180.1 L222.7 180.1 M311.6 166.9 L235.1 166.9 M296.3 155.4 L229.3 155.4 M280.7 143.8 L246.7 143.8 M263.7 131.2 L223.6 131.2 M245.3 117.4 L224.2 117.4 M229.1 105.3 L222.7 105.3" />
+    <path d="M313.5 125.7 L224.4 125.7 M294.6 111.7 L226.2 111.7 M273.2 95.9 L242.2 95.9 M252.2 80.3 L236.7 80.3 M230.3 64.1 L225.5 64.1" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="3.6" stroke-opacity="0.95">
+    <path d="M84 200 L220 100 L356 200" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.2" stroke-opacity="0.92">
+    <path d="M118 132 L220 58 L322 132" />
+  </g>
+  <g stroke="#ffffff" stroke-width="2.2" stroke-opacity="0.72">
+    <path d="M84 200 L220 100 L228 106" />
+    <path d="M118 132 L220 58 L228 64" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.25" stroke-opacity="0.85">
+    <path d="M220 58 L220 26" />
+    <circle cx="220" cy="18" r="8" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="0.6" stroke-opacity="0.5">
+    <circle cx="220" cy="18" r="13" stroke-opacity="0.35" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.25" stroke-opacity="0.85">
+    <path d="M92 200 L348 200" />
+    <path d="M96 210 L344 210" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.25" stroke-opacity="0.9">
+    <path d="M114 212 L114 348 M166 212 L166 348 M224 212 L224 348 M282 212 L282 348 M334 212 L334 348" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.25" stroke-opacity="0.55">
+    <path d="M106 212 L106 348 M158 212 L158 348 M216 212 L216 348 M274 212 L274 348 M326 212 L326 348" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.25" stroke-opacity="0.6">
+    <path d="M110 246 Q136 214 162 246 M162 246 Q191 212 220 246 M220 246 Q249 212 278 246 M278 246 Q304 214 330 246" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.35">
+    <path d="M136 216 L136 224 M191 213 L191 222 M249 213 L249 222 M304 216 L304 224" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.25" stroke-opacity="0.8">
+    <path d="M100 296 L340 296" />
+    <path d="M100 348 L340 348" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.6">
+    <path d="M106 300 L106 344 M120.3 300 L120.3 344 M134.5 300 L134.5 344 M148.8 300 L148.8 344 M163 300 L163 344 M177.3 300 L177.3 344 M191.5 300 L191.5 344 M205.8 300 L205.8 344 M220 300 L220 344 M234.3 300 L234.3 344 M248.5 300 L248.5 344 M262.8 300 L262.8 344 M277 300 L277 344 M291.3 300 L291.3 344 M305.5 300 L305.5 344 M319.8 300 L319.8 344 M334 300 L334 344" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.25" stroke-opacity="0.8">
+    <path d="M88 348 L352 348" />
+    <path d="M78 372 L362 372" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="3.6" stroke-opacity="0.9">
+    <path d="M68 396 L372 396" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.3">
+    <path d="M186 348 L186 396 M220 348 L220 396 M254 348 L254 396" />
+  </g>
+</svg>

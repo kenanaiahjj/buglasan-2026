@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" width="840" height="336"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Bangka — twin bamboo outriggers, lateen sail, four hulls receding
+       weights  contour 3.2  structure 2  detail 1.2  hair 0.58
+       light from the upper left; density is illumination -->
+  <defs>
+  <linearGradient id="gk" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="240">
+    <stop offset="0%" stop-color="#cffafe" />
+    <stop offset="34%" stop-color="#22d3ee" />
+    <stop offset="72%" stop-color="#3b82f6" />
+    <stop offset="100%" stop-color="#5b21b6" />
+  </linearGradient>
+  <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="600" y1="0" x2="0" y2="240">
+    <stop offset="0%" stop-color="#1e40af" />
+    <stop offset="60%" stop-color="#1e3a8a" />
+    <stop offset="100%" stop-color="#172554" />
+  </linearGradient>
+  </defs>
+<g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.5">
+    <path d="M38 95 Q57.4 102 73.2 102 L178.8 102 Q194.6 102 214 95" />
+    <path d="M96 120 L70 103" />
+    <path d="M158 120 L184 103" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2" stroke-opacity="0.92">
+    <path d="M34 102 Q52 117 80 118 L172 118 Q200 117 218 104" />
+    <path d="M34 102 Q74 144 126 147 Q178 144 218 104" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.5">
+    <path d="M80 121 L172 121" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.2" stroke-opacity="0.85">
+    <path d="M98 120 L56 170" />
+    <path d="M156 120 L198 170" />
+    <path d="M14 161 Q38.6 170 58.8 170 L193.2 170 Q213.4 170 238 161" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2" stroke-opacity="0.9">
+    <path d="M92 118 L92 42" />
+    <path d="M92 42 L160 94 L92 96 Z" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.4">
+    <path d="M92 50 L138.5 84.4 M92 58 L126 82.9 M92 65.1 L124.9 88.8 M92 74 L117.9 92.2 M92 83.4 L102.7 90.3 M92 89.5 L101.3 94.6" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.45">
+    <path d="M92 120 L92 142 M109 120 L109 142 M126 120 L126 142 M143 120 L143 142 M160 120 L160 142" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.7" stroke-opacity="0.32">
+    <path d="M287.2 95 Q298.8 99.2 308.3 99.2 L371.7 99.2 Q381.2 99.2 392.8 95" />
+    <path d="M322 110 L306.4 99.8" />
+    <path d="M359.2 110 L374.8 99.8" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="2.6" stroke-opacity="0.6">
+    <path d="M284.8 99.2 Q295.6 108.2 312.4 108.8 L367.6 108.8 Q384.4 108.2 395.2 100.4" />
+    <path d="M284.8 99.2 Q308.8 124.4 340 126.2 Q371.2 124.4 395.2 100.4" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.7" stroke-opacity="0.28">
+    <path d="M312.4 110.6 L367.6 110.6" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="1.5" stroke-opacity="0.5">
+    <path d="M323.2 110 L298 140" />
+    <path d="M358 110 L383.2 140" />
+    <path d="M272.8 134.6 Q287.6 140 299.7 140 L380.3 140 Q392.4 140 407.2 134.6" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="2.6" stroke-opacity="0.55">
+    <path d="M319.6 108.8 L319.6 63.2" />
+    <path d="M319.6 63.2 L360.4 94.4 L319.6 95.6 Z" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.7" stroke-opacity="0.24">
+    <path d="M319.6 68.4 L338.2 82.2 M319.6 73 L347.7 93.5 M319.6 77.6 L340.6 92.7 M319.6 81.7 L336.1 93.3 M319.6 86.9 L329.1 93.2 M319.6 91.2 L323.6 93.5" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.7" stroke-opacity="0.45">
+    <path d="M319.6 110 L319.6 123.2 M329.8 110 L329.8 123.2 M340 110 L340 123.2 M350.2 110 L350.2 123.2 M360.4 110 L360.4 123.2" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.9" stroke-opacity="0.32">
+    <path d="M452.6 92.9 Q459.9 95.6 465.9 95.6 L506.1 95.6 Q512.1 95.6 519.4 92.9" />
+    <path d="M474.6 102.4 L464.7 95.9" />
+    <path d="M498.2 102.4 L508 95.9" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="3.2" stroke-opacity="0.6">
+    <path d="M451 95.6 Q457.9 101.3 468.5 101.6 L503.5 101.6 Q514.1 101.3 521 96.3" />
+    <path d="M451 95.6 Q466.2 111.5 486 112.7 Q505.8 111.5 521 96.3" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.9" stroke-opacity="0.28">
+    <path d="M468.5 102.8 L503.5 102.8" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="1.9" stroke-opacity="0.5">
+    <path d="M475.4 102.4 L459.4 121.4" />
+    <path d="M497.4 102.4 L513.4 121.4" />
+    <path d="M443.4 118 Q452.8 121.4 460.5 121.4 L511.5 121.4 Q519.2 121.4 528.6 118" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="3.2" stroke-opacity="0.55">
+    <path d="M473.1 101.6 L473.1 72.8" />
+    <path d="M473.1 72.8 L498.9 92.5 L473.1 93.3 Z" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="1.2" stroke-opacity="0.32">
+    <path d="M544.9 93.2 Q549.5 94.9 553.3 94.9 L578.7 94.9 Q582.5 94.9 587.1 93.2" />
+    <path d="M558.8 99.2 L552.6 95.1" />
+    <path d="M573.7 99.2 L579.9 95.1" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="4.1" stroke-opacity="0.6">
+    <path d="M543.9 94.9 Q548.2 98.5 555 98.7 L577 98.7 Q583.8 98.5 588.1 95.4" />
+    <path d="M543.9 94.9 Q553.5 105 566 105.7 Q578.5 105 588.1 95.4" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="1.2" stroke-opacity="0.28">
+    <path d="M555 99.4 L577 99.4" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="2.4" stroke-opacity="0.5">
+    <path d="M559.3 99.2 L549.2 111.2" />
+    <path d="M573.2 99.2 L583.3 111.2" />
+    <path d="M539.1 109 Q545 111.2 549.9 111.2 L582.1 111.2 Q587 111.2 592.9 109" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="0.58" stroke-opacity="0.45">
+    <path d="M63.3 178 Q141.8 186 220.3 176 Q298.8 169.2 377.3 179.7 Q455.8 186.6 534.3 176.6 M36.2 192.8 Q129 197.8 221.7 190.5 Q314.5 183.9 407.2 195.4 Q500 198.7 592.7 190.7" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.58" stroke-opacity="0.3">
+    <path d="M93.5 206 Q155.4 209.2 217.3 204 Q279.2 200.9 341.1 207 Q403 211.4 464.9 204.7 M51.8 222.2 Q137.4 226.3 223 220.1 Q308.7 217.5 394.3 223.1 Q480 227.4 565.6 221.3" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.58" stroke-opacity="0.25">
+    <path d="M60.2 172 Q83.4 174.4 106.6 171.3 Q129.8 169.3 153 172.6 Q176.2 174.2 199.4 171.4 M71.2 181.3 Q91.8 184.4 112.3 180.4 Q132.8 178.6 153.4 181.9 Q173.9 185 194.4 180.8 M73.1 192.6 Q93.6 195.3 114.1 192.2 Q134.6 189.4 155.1 193.4 Q175.6 196.3 196.1 192.2" />
+  </g>
+</svg>

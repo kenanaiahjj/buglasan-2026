@@ -24,6 +24,7 @@ describe('ContestSubpageView', () => {
     expect(html).toContain('class="hara-gallery__logo"');
     expect(html).toContain('/assets/program-logos/hara-sa-negros-oriental-2026-transparent.png');
     expect(html.match(/class="hara-gallery-card"/g)).toHaveLength(12);
+    expect(html).not.toContain('--hara-card-rotation');
   });
 
   it('renders Hara sa Dumaguete subpage with candidates and criteria', () => {

@@ -13,19 +13,49 @@ describe('primary CTA geometry', () => {
 });
 
 describe('hero arena card treatment', () => {
-  it('keeps cards black and glassy with a restrained gold source light by default', () => {
+  it('uses a charcoal-to-black plaque surface with a restrained gold source light', () => {
     const cardBlock = styles.match(/\.hero-arena-card\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
-    expect(cardBlock).toContain('rgba(4, 5, 5, .86)');
-    expect(cardBlock).toContain('rgba(0, 2, 2, .98)');
-    expect(cardBlock).toContain('backdrop-filter: blur(36px) saturate(190%)');
+    expect(cardBlock).toContain('min-height: 336px;');
+    expect(cardBlock).toContain('rgba(72, 73, 78, .75)');
+    expect(cardBlock).toContain('rgba(8, 10, 12, .78)');
+    expect(cardBlock).toContain('backdrop-filter: blur(26px) saturate(135%);');
+    expect(cardBlock).toContain('overflow: hidden;');
     expect(styles).toContain('--hero-card-source-light: rgba(247, 211, 119, .28);');
+    expect(styles).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?gap:\s*clamp\(1rem, 1\.8vw, 2rem\);/);
+  });
+
+  it('keeps the logo chamber contained inside the card', () => {
+    const chamberBlock = styles.match(/\.hero-arena-card::before\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(chamberBlock).toContain('top: .8rem;');
+    expect(chamberBlock).toContain('height: 128px;');
+    expect(chamberBlock).not.toContain('top: -');
+    expect(chamberBlock).toContain('border: 1px solid rgba(247, 211, 119, .55);');
+    expect(chamberBlock).toContain('backdrop-filter: blur(18px) saturate(135%);');
+    expect(styles).toMatch(/\.hero-arena-card__logo\s*\{[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/);
+    expect(styles).toMatch(/\.hero-arena-card__name\s*\{[\s\S]*?margin:\s*1\.5rem auto 0;[\s\S]*?text-align:\s*center;[\s\S]*?font-weight:\s*700;/);
+    expect(styles).toMatch(/\.hero-arena-card--hara \.hero-arena-card__name\s*\{[\s\S]*?max-width:\s*14ch;/);
+  });
+
+  it('keeps logos grayscale at rest and restores authored color on hover or focus', () => {
+    expect(styles).toMatch(/\.hero-arena-card__logo\s*\{[\s\S]*?filter:\s*grayscale\(1\) brightness\(\.72\) contrast\(1\.18\);/);
+    expect(styles).toMatch(/\.hero-arena-card:hover \.hero-arena-card__logo,[\s\S]*?\.hero-arena-card:focus-visible \.hero-arena-card__logo[\s\S]*?filter:\s*grayscale\(0\) saturate\(1\.15\) brightness\(1\.05\);/);
   });
 
   it('keeps each program color reserved for hover or focus glow', () => {
     expect(styles).toMatch(/\.hero-arena-card:hover \.hero-arena-card__light-leak,[\s\S]*?var\(--leak-primary/);
     expect(styles).toMatch(/\.hero-arena-card:hover \.hero-arena-card__ray,[\s\S]*?var\(--leak-primary/);
     expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?0 0 12px var\(--arena-accent/);
+    expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?border-color:\s*rgba\(247, 211, 119, \.82\);/);
+  });
+
+  it('lets the plaque row bridge into the next chapter with an on-brand vote cursor', () => {
+    expect(styles).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?margin-bottom:\s*clamp\(-2\.75rem,\s*-4vh,\s*-1\.25rem\);/);
+    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?rgba\(4, 12, 8, \.22\)/);
+    expect(styles).toContain('cursor: url("data:image/svg+xml,');
+    expect(styles).toContain('VOTE%20NOW');
+    expect(styles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.crown-hero\s*\{\s*min-height:\s*1080px;\s*padding:\s*122px 18px 3rem;/);
   });
 });
 
@@ -58,5 +88,25 @@ describe('Hara gallery card sizing', () => {
     expect(styles).toMatch(/\.hara-gallery__sort\s+button\.is-active/);
     expect(styles).toMatch(/\.hara-gallery__empty\s*\{/);
     expect(styles).toMatch(/@media \(max-width:\s*640px\)[\s\S]*?\.hara-gallery__toolbar\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
+  });
+
+  it('uses flat main-page utility controls instead of pills', () => {
+    const utilityBlock = styles.match(/\.hara-gallery__home,\s*\.hara-gallery__how-to summary\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(utilityBlock).toContain('min-height: 44px;');
+    expect(utilityBlock).toContain('border: 0;');
+    expect(utilityBlock).toContain('border-radius: 0;');
+    expect(utilityBlock).toContain('background: transparent;');
+    expect(utilityBlock).toContain('text-transform: uppercase;');
+    expect(styles).toMatch(
+      /\.hara-gallery__home:hover,\s*\.hara-gallery__how-to summary:hover,\s*\.hara-gallery__how-to\[open\] summary\s*\{[\s\S]*?color:\s*var\(--crown-gold-light\);/,
+    );
+  });
+
+  it('keeps candidate cards aligned in a uniform grid', () => {
+    const cardBlock = styles.match(/\.hara-gallery-card\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(cardBlock).not.toMatch(/\brotate:/);
+    expect(styles).not.toMatch(/\.hara-gallery-card:nth-child/);
   });
 });

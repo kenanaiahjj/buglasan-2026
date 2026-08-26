@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 460" width="899" height="713"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- St Catherine of Alexandria — one Baroque frontispiece, no attached towers
+       weights  contour 4.2  structure 2.4  detail 1.35  hair 0.6
+       light from the upper left; density is illumination -->
+  <defs>
+  <linearGradient id="gk" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="580" y2="460">
+    <stop offset="0%" stop-color="#fef3c7" />
+    <stop offset="30%" stop-color="#fdba74" />
+    <stop offset="66%" stop-color="#fb7185" />
+    <stop offset="100%" stop-color="#9f1239" />
+  </linearGradient>
+  <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="580" y1="0" x2="0" y2="460">
+    <stop offset="0%" stop-color="#9a3412" />
+    <stop offset="60%" stop-color="#7c2d12" />
+    <stop offset="100%" stop-color="#431407" />
+  </linearGradient>
+  </defs>
+<g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.36">
+    <path d="M90.1 272.3 L265.2 272.3 M82.9 284.8 L264.1 284.8 M90.1 297.3 L265.8 297.3 M92.2 309.8 L267.4 309.8 M63.9 322.3 L258.6 322.3 M89.4 334.8 L271.1 334.8 M73.3 347.3 L250.4 347.3 M75.4 359.8 L275 359.8 M70.7 372.3 L258.5 372.3 M88.7 384.8 L271.8 384.8 M70.8 397.3 L264.2 397.3 M69.1 409.8 L269.4 409.8" />
+    <path d="M196.7 161.3 L277.5 161.3 M200.3 171.8 L274.4 171.8 M190.5 182.3 L276.4 182.3 M191.9 192.8 L275 192.8 M200.5 203.3 L277.2 203.3 M191.6 213.8 L271.3 213.8 M198.7 224.3 L279.6 224.3 M190.8 234.8 L276.8 234.8" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.17">
+    <path d="M331 272.3 L508.9 272.3 M315.5 284.8 L516 284.8 M300.1 297.3 L493.4 297.3 M299.4 309.8 L516 309.8 M327 322.3 L511.7 322.3 M306.6 334.8 L489.8 334.8 M328.9 347.3 L516.1 347.3 M313.1 359.8 L509 359.8 M310 372.3 L495.1 372.3 M321.1 384.8 L487.1 384.8 M305.9 397.3 L516.1 397.3 M328.9 409.8 L505.2 409.8" />
+    <path d="M308 161.3 L389.7 161.3 M297.2 171.8 L380.5 171.8 M305.2 182.3 L384.9 182.3 M303.6 192.8 L386.6 192.8 M304.7 203.3 L381.1 203.3 M300 213.8 L391.8 213.8 M310 224.3 L380 224.3 M308 234.8 L391.9 234.8" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="0.6" stroke-opacity="0.5">
+    <path d="M181.5 133.4 L394.4 133.4 M202.1 123.7 L353.7 123.7 M216.5 116.8 L346.8 116.8 M230.3 110.3 L342.5 110.3 M249.7 101.1 L326 101.1 M266.4 93.2 L312.8 93.2 M280.9 86.3 L295.5 86.3" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="4.2" stroke-opacity="0.95">
+    <path d="M54 426 L54 254 L182 254 L182 142 L398 142 L398 254 L526 254 L526 426" />
+    <path d="M170 142 L290 74 L410 142" />
+  </g>
+  <g stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.7">
+    <path d="M168 138 L290 68 L302 76" />
+    <path d="M46 254 L290 254" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.4" stroke-opacity="0.9">
+    <path d="M162 142 L418 142" />
+    <path d="M44 254 L536 254" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.7">
+    <path d="M168 153 L412 153" />
+    <path d="M50 267 L530 267" />
+    <path d="M60 300 L112 300" />
+    <path d="M468 300 L520 300" />
+  </g>
+  <g stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.85">
+    <path d="M290 74 L290 18 M277 32 L303 32" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.4" stroke-opacity="0.85">
+    <path d="M182 166 C172 200 142 190 128 220 C118 242 102 236 96 258" />
+    <path d="M398 166 C408 200 438 190 452 220 C462 242 478 236 484 258" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="0.6" stroke-opacity="0.5">
+    <path d="M193 174 C183 208 153 198 139 228 C129 250 113 244 107 266" />
+    <path d="M387 174 C397 208 427 198 441 228 C451 250 467 244 473 266" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.72">
+    <path d="M84 252 L86 239 L110 239 L112 252" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.35" stroke-opacity="0.75">
+    <path d="M87 239 Q88 222 93 209" />
+    <path d="M109 239 Q108 222 103 209" />
+    <path d="M93 209 Q98 205 103 209" />
+    <path d="M90 228 Q98 232 106 228" />
+    <circle cx="98" cy="202" r="6" />
+    <path d="M90 216 Q81 208 80 194" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.72">
+    <path d="M468 252 L470 239 L494 239 L496 252" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.35" stroke-opacity="0.75">
+    <path d="M471 239 Q472 222 477 209" />
+    <path d="M493 239 Q492 222 487 209" />
+    <path d="M477 209 Q482 205 487 209" />
+    <path d="M474 228 Q482 232 490 228" />
+    <circle cx="482" cy="202" r="6" />
+    <path d="M490 216 Q499 208 500 194" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.4" stroke-opacity="0.9">
+    <circle cx="290" cy="196" r="44" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.7">
+    <circle cx="290" cy="196" r="52" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.55">
+    <circle cx="290" cy="196" r="17" />
+    <path d="M307 196 L333 196 M304.7 204.5 L327.2 217.5 M298.5 210.7 L311.5 233.2 M290 213 L290 239 M281.5 210.7 L268.5 233.2 M275.3 204.5 L252.8 217.5 M273 196 L247 196 M275.3 187.5 L252.8 174.5 M281.5 181.3 L268.5 158.8 M290 179 L290 153 M298.5 181.3 L311.5 158.8 M304.7 187.5 L327.2 174.5" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.65">
+    <path d="M206 246 L206 156 M220 246 L220 156 M360 246 L360 156 M374 246 L374 156" />
+    <path d="M200 156 L212 156 M214 156 L226 156 M354 156 L366 156 M368 156 L380 156" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.4">
+    <path d="M203 242 L203 160 M357 242 L357 160" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="2.4" stroke-opacity="0.9">
+    <path d="M222 426 L222 322 A68 68 0 0 1 358 322 L358 426" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.7">
+    <path d="M236 426 L236 326 A54 54 0 0 1 344 326 L344 426" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.35" stroke-opacity="0.6">
+    <path d="M256 426 L256 336 A34 34 0 0 1 324 336 L324 426" />
+    <path d="M256 300 L324 300" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.34">
+    <path d="M266 306 L266 420 M282 306 L282 420 M298 306 L298 420 M314 306 L314 420" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.7">
+    <path d="M281 250 L283 268 L297 268 L299 250 Z" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="1.35" stroke-opacity="0.62">
+    <path d="M84 260 L84 426 M96 260 L96 426 M484 260 L484 426 M496 260 L496 426" />
+    <path d="M126 426 L126 320 A22 22 0 0 1 170 320 L170 426" />
+    <path d="M410 426 L410 320 A22 22 0 0 1 454 320 L454 426" />
+  </g>
+  <g stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.42">
+    <path d="M134 426 L134 324 A14 14 0 0 1 162 324 L162 426" />
+    <path d="M81 264 L81 426" />
+  </g>
+  <g stroke="url(#gk)" stroke-width="4.2" stroke-opacity="0.92">
+    <path d="M34 426 L546 426" />
+  </g>
+  <g stroke="url(#gs)" stroke-width="1.35" stroke-opacity="0.45">
+    <path d="M22 440 L558 440" />
+  </g>
+</svg>

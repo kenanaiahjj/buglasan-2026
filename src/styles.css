@@ -965,7 +965,8 @@ img, svg, video { max-width: 100%; }
   margin-top: auto;
   padding-top: clamp(1.25rem, 3.5vh, 2.75rem);
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(.8rem, 1.1vw, 1.5rem);
+  gap: clamp(1rem, 1.8vw, 2rem);
+  margin-bottom: clamp(-2.75rem, -4vh, -1.25rem);
   pointer-events: auto;
 }
 
@@ -974,26 +975,49 @@ img, svg, video { max-width: 100%; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 218px;
-  overflow: visible;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-bottom: 0;
-  border-radius: 26px 26px 0 0;
-  padding: 1.55rem 1.7rem 1.7rem;
+  min-height: 336px;
+  overflow: hidden;
+  isolation: isolate;
+  --hero-card-source-light: rgba(247, 211, 119, .28);
+  border: 1px solid rgba(247, 211, 119, .55);
+  border-bottom-color: rgba(247, 211, 119, .72);
+  border-radius: 22px 22px 16px 16px;
+  padding: 8.25rem 1.35rem 1.35rem;
   color: #ffffff;
-  background: linear-gradient(180deg, rgba(4, 18, 10, 0.6) 0%, rgba(1, 6, 3, 0.94) 100%);
-  backdrop-filter: blur(36px) saturate(190%);
-  -webkit-backdrop-filter: blur(36px) saturate(190%);
-  text-align: left;
+  background: linear-gradient(180deg, rgba(72, 73, 78, .75) 0%, rgba(8, 10, 12, .78) 100%);
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  text-align: center;
   cursor: pointer;
-  box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.55),
-              inset 0 1px 0 rgba(255, 255, 255, 0.45),
-              inset 0 0 20px rgba(255, 255, 255, 0.02);
-  transform: translateY(58px);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .3),
+              inset 0 1px 0 rgba(255, 244, 210, .36),
+              inset 0 0 28px rgba(247, 211, 119, .06);
+  transform: translateY(0);
   transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.35s ease,
               background 0.35s ease,
               box-shadow 0.35s ease;
+}
+
+/* Raised monochrome logo chamber from the supplied plaque reference. */
+.hero-arena-card::before {
+  content: "";
+  position: absolute;
+  top: .8rem;
+  left: 50%;
+  width: min(70%, 210px);
+  height: 128px;
+  border: 1px solid rgba(247, 211, 119, .55);
+  border-radius: 110px 110px 18px 18px;
+  background: linear-gradient(180deg, rgba(92, 94, 102, .42) 0%, rgba(15, 17, 20, .36) 100%);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, .24),
+              inset 0 -16px 24px rgba(0, 0, 0, .14),
+              0 0 18px rgba(247, 211, 119, .1);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Crisp Top Specular Rim Reflection */
@@ -1004,7 +1028,7 @@ img, svg, video { max-width: 100%; }
   left: 15%;
   right: 15%;
   height: 1.5px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 244, 210, .78) 50%, transparent 100%);
   pointer-events: none;
   z-index: 3;
 }
@@ -1012,13 +1036,13 @@ img, svg, video { max-width: 100%; }
 /* Volumetric Top Light Leak (Reference: Grok & Light Leak Cards) */
 .hero-arena-card__light-leak {
   position: absolute;
-  top: -24px;
+  top: 0;
   left: 10%;
   right: 10%;
   height: 95px;
-  background: radial-gradient(ellipse 65% 55% at 50% 0%, var(--leak-primary, rgba(56, 189, 248, 0.75)) 0%, var(--leak-secondary, rgba(20, 184, 166, 0.35)) 50%, transparent 80%);
+  background: radial-gradient(ellipse 65% 55% at 50% 0%, var(--hero-card-source-light) 0%, rgba(247, 211, 119, .1) 50%, transparent 80%);
   filter: blur(16px);
-  opacity: 0.85;
+  opacity: .42;
   pointer-events: none;
   z-index: 1;
   transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
@@ -1030,10 +1054,10 @@ img, svg, video { max-width: 100%; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 50% 0%, var(--leak-primary, rgba(56, 189, 248, 0.15)), transparent 65%);
+  background: radial-gradient(circle at 50% 0%, rgba(247, 211, 119, .1), transparent 65%);
   pointer-events: none;
   z-index: 1;
-  opacity: 0.6;
+  opacity: .16;
   transition: opacity 0.4s ease;
 }
 
@@ -1071,24 +1095,28 @@ img, svg, video { max-width: 100%; }
 .hero-arena-card--hara {
   --leak-primary: rgba(254, 240, 138, 0.85);
   --leak-secondary: rgba(245, 158, 11, 0.45);
+  --arena-wash: rgba(254, 240, 138, .12);
   --arena-accent: #fde047;
 }
 
 .hero-arena-card--booths {
   --leak-primary: rgba(74, 222, 128, 0.85);
   --leak-secondary: rgba(20, 184, 166, 0.45);
+  --arena-wash: rgba(74, 222, 128, .1);
   --arena-accent: #4ade80;
 }
 
 .hero-arena-card--festival {
   --leak-primary: rgba(251, 146, 60, 0.85);
   --leak-secondary: rgba(225, 29, 72, 0.45);
+  --arena-wash: rgba(251, 146, 60, .1);
   --arena-accent: #fb923c;
 }
 
 .hero-arena-card--gandang {
   --leak-primary: rgba(192, 132, 252, 0.9);
   --leak-secondary: rgba(236, 72, 153, 0.45);
+  --arena-wash: rgba(192, 132, 252, .1);
   --arena-accent: #c084fc;
 }
 
@@ -1096,15 +1124,22 @@ img, svg, video { max-width: 100%; }
 .hero-arena-card:focus-visible {
   z-index: 8;
   transform: translateY(-20px);
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='42' viewBox='0 0 120 42'%3E%3Cpath d='M4 3.5 12 27l5-8 8 8 3-3-8-8 8-2L4 3.5Z' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1.2' stroke-linejoin='round'/%3E%3Crect x='18' y='5' width='98' height='28' rx='14' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1'/%3E%3Ctext x='67' y='23' fill='%231a1204' font-family='Arial,sans-serif' font-size='10' font-weight='700' letter-spacing='1.2' text-anchor='middle'%3EVOTE%20NOW%3C/text%3E%3C/svg%3E") 4 3, pointer;
 }
 
 .hero-arena-card:hover,
 .hero-arena-card:focus-visible {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: linear-gradient(180deg, rgba(22, 42, 34, 0.72) 0%, rgba(6, 18, 14, 0.94) 100%);
-  box-shadow: 0 -22px 48px rgba(0, 0, 0, 0.65),
-              0 0 36px var(--leak-primary, rgba(56, 189, 248, 0.25)),
-              inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
+  border-color: rgba(247, 211, 119, .82);
+  background: linear-gradient(180deg, rgba(88, 89, 98, .82) 0%, rgba(8, 10, 12, .82) 100%);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .38),
+              0 0 12px var(--arena-accent),
+              inset 0 1.5px 0 rgba(255, 244, 210, .82);
+}
+
+.hero-arena-card:hover::before,
+.hero-arena-card:focus-visible::before {
+  border-color: rgba(247, 211, 119, .78);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, .3), 0 0 22px var(--arena-accent);
 }
 
 .hero-arena-card:hover .hero-arena-card__outline,
@@ -1119,82 +1154,58 @@ img, svg, video { max-width: 100%; }
 
 .hero-arena-card:hover .hero-arena-card__light-leak,
 .hero-arena-card:focus-visible .hero-arena-card__light-leak {
-  opacity: 1;
-  transform: scale(1.12);
+  background: radial-gradient(ellipse 65% 55% at 50% 0%, var(--leak-primary) 0%, var(--leak-secondary) 50%, transparent 80%);
+  opacity: .72;
+  transform: scale(1.08);
   filter: blur(14px);
 }
 
 .hero-arena-card:hover .hero-arena-card__ray,
 .hero-arena-card:focus-visible .hero-arena-card__ray {
-  opacity: 0.9;
+  background: radial-gradient(circle at 50% 0%, var(--leak-primary) 0%, transparent 65%);
+  opacity: .55;
+}
+
+.hero-arena-card:hover .hero-arena-card__logo,
+.hero-arena-card:focus-visible .hero-arena-card__logo {
+  opacity: 1;
+  filter: grayscale(0) saturate(1.15) brightness(1.05);
+  transform: translateX(-50%) scale(1.04);
 }
 
 .hero-arena-card__name {
   position: relative;
   z-index: 2;
-  margin-top: 0.85rem;
+  max-width: 11ch;
+  margin: 1.5rem auto 0;
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 400;
-  color: #ffffff;
-  line-height: 1.15;
+  font-size: clamp(1.1rem, 1.65vw, 1.55rem);
+  font-weight: 700;
+  color: #f1f1f2;
+  line-height: 1.03;
+  letter-spacing: -.02em;
+  text-align: center;
+  text-wrap: balance;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hero-arena-card--hara .hero-arena-card__name {
+  max-width: 14ch;
 }
 
 .hero-arena-card__logo {
   position: absolute;
   z-index: 2;
-  top: 1rem;
-  right: 1rem;
-  width: clamp(4.75rem, 6vw, 6.5rem);
-  height: clamp(4.75rem, 6vw, 6.5rem);
-  border-radius: 14px;
+  top: 1.35rem;
+  left: 50%;
+  width: clamp(5.5rem, 6.2vw, 6.7rem);
+  height: clamp(5.5rem, 6.2vw, 6.7rem);
   object-fit: contain;
-  opacity: 0.9;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  opacity: .78;
+  filter: grayscale(1) brightness(.72) contrast(1.18);
+  transform: translateX(-50%);
   pointer-events: none;
-}
-
-.hero-arena-card__tagline {
-  position: relative;
-  z-index: 2;
-  margin-top: 0.32rem;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.76rem;
-  font-style: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.hero-arena-card__action {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.95rem;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 0.32rem 0.85rem;
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hero-arena-card:hover .hero-arena-card__action,
-.hero-arena-card:focus-visible .hero-arena-card__action {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.55);
-  transform: translateX(4px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 0 16px rgba(255, 255, 255, 0.18);
+  transition: filter .35s ease, opacity .35s ease, transform .35s cubic-bezier(.16, 1, .3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1212,13 +1223,14 @@ img, svg, video { max-width: 100%; }
    ---------------------------------------------------- */
 .contests-chapter {
   position: relative;
-  z-index: 4;
+  z-index: 1;
   min-height: 100svh;
   padding: 130px 0 100px;
   scroll-margin-top: 80px;
   background:
-    linear-gradient(180deg, rgba(4, 12, 8, .88) 0%, rgba(5, 14, 9, .95) 14%, rgba(5, 14, 9, .985) 28%, rgba(5, 14, 9, .995) 100%);
-  box-shadow: 0 -24px 48px rgba(0, 0, 0, 0.34);
+    linear-gradient(180deg, rgba(4, 12, 8, .22) 0%, rgba(4, 12, 8, .68) 8%, rgba(5, 14, 9, .95) 24%, rgba(5, 14, 9, .985) 42%, rgba(5, 14, 9, .995) 100%);
+  border-top: 1px solid rgba(247, 211, 119, .08);
+  box-shadow: 0 -24px 48px rgba(0, 0, 0, .2);
 }
 
 .contest-screens-grid {
@@ -1574,24 +1586,27 @@ img, svg, video { max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  min-height: 36px;
-  padding: 0 0.85rem;
-  border: 1px solid rgba(224, 178, 84, 0.35);
-  border-radius: 999px;
-  color: var(--crown-ivory);
+  min-height: 44px;
+  padding: 0.7rem 0.85rem;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.78);
   font: inherit;
-  font-size: 0.76rem;
-  font-weight: 650;
-  background: rgba(2, 12, 7, 0.48);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: transparent;
   cursor: pointer;
-  transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition: color 0.22s ease, background 0.22s ease, transform 0.22s ease;
 }
 
 .hara-gallery__home:hover,
 .hara-gallery__how-to summary:hover,
 .hara-gallery__how-to[open] summary {
-  border-color: rgba(247, 211, 119, 0.72);
-  background: rgba(18, 45, 28, 0.7);
+  color: var(--crown-gold-light);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
 }
 
 .hara-gallery__home:focus-visible,
@@ -1795,16 +1810,7 @@ img, svg, video { max-width: 100%; }
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
   width: 100%;
   max-width: 16rem;
-  rotate: var(--hara-card-rotation, 0deg);
   transition: transform 280ms cubic-bezier(0.2, 0, 0, 1), border-color 180ms ease, box-shadow 280ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.hara-gallery-card:nth-child(3n + 2) {
-  margin-top: clamp(0.75rem, 2vh, 1.5rem);
-}
-
-.hara-gallery-card:nth-child(3n) {
-  margin-top: clamp(-0.5rem, -0.75vh, 0rem);
 }
 
 .hara-gallery-card:hover,
@@ -2972,11 +2978,14 @@ img, svg, video { max-width: 100%; }
   .crown-mobile-nav-shell { display: block; }
   .festival-scene__vignette { background: linear-gradient(180deg, rgba(1, 6, 4, .74) 0%, rgba(1, 6, 4, .16) 32%, rgba(1, 6, 4, .18) 68%, rgba(1, 6, 4, .9) 96%); }
   .festival-scene__fallback-logo { top: 49%; left: 50%; width: min(76vw, 360px); }
-  .crown-hero { min-height: 1080px; padding: 122px 18px 340px; }
+  .crown-hero { min-height: 1080px; padding: 122px 18px 3rem; }
   .crown-hero h1 { margin-top: 1.1rem; font-size: clamp(3.45rem, 16vw, 5rem); }
   .hero-arena-cards { display: flex; gap: 0.85rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; padding-inline: 16px; scrollbar-width: none; }
   .hero-arena-cards::-webkit-scrollbar { display: none; }
-  .hero-arena-card { flex: 0 0 78vw; min-height: 145px; scroll-snap-align: start; }
+  .hero-arena-card { flex: 0 0 78vw; min-height: 320px; padding: 8rem 1.1rem 1.1rem; scroll-snap-align: start; }
+  .hero-arena-card::before { top: .75rem; width: 74%; height: 118px; }
+  .hero-arena-card__logo { top: 1.15rem; width: 5.8rem; height: 5.8rem; }
+  .hero-arena-card__name { max-width: 11ch; margin-top: 1.35rem; font-size: 1.35rem; }
   .chapter-shell, .subpage-shell { width: calc(100% - 36px); }
   .chapter-heading h2 { font-size: clamp(2.2rem, 9.5vw, 3.2rem); }
   .contests-chapter, .candidate-chapter, .vote-chapter, .coronation-chapter, .updates-chapter { padding-top: 104px; }
@@ -3023,7 +3032,6 @@ img, svg, video { max-width: 100%; }
   .hara-gallery__count { text-align: center; }
   .hara-gallery__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .hara-gallery-card { max-width: none; }
-  .hara-gallery-card:nth-child(n) { margin-top: 0; }
   .hara-gallery-card__caption h2 { font-size: clamp(1rem, 5.2vw, 1.3rem); }
 }
 
