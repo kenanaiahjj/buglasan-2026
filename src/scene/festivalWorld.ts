@@ -128,6 +128,23 @@ export const BUGLASAN_HERO_FINISH = {
   clearcoat: 1,
   clearcoatRoughness: 0.05,
   envMapIntensity: 1.9,
+
+  /* Approximating the "Chrome Blue Tint" Substance smart material.
+
+     The .spsm cannot be loaded here — it is a procedural layer stack that
+     Substance Painter evaluates against a mesh's baked maps, not a set of
+     textures. What it is made of is readable though: a Base Metal layer, a
+     blue tint, a micro-detail normal, and cloud/fractal noise breaking up the
+     roughness. Those four are reproducible directly.
+
+     tint stays partial on purpose. A metal's reflection is tinted by its base
+     colour, so pushing this to 1 replaces the wordmark's rainbow with flat
+     blue chrome. */
+  tint: [0.62, 0.78, 1.0] as [number, number, number],
+  tintAmount: 0.34,
+  /** Fine break-up, so the mirror is not optically perfect. */
+  microNormal: 0.5,
+  roughnessBreakup: 0.06,
 } as const;
 
 export const BUGLASAN_HERO_SHEEN = {
@@ -681,6 +698,10 @@ export function buildFestivalWorld(
     uSheenAmt: { value: BUGLASAN_HERO_SHEEN.sheen as number },
     uSheenGlint: { value: BUGLASAN_HERO_SHEEN.glint as number },
     uSheenRim: { value: BUGLASAN_HERO_SHEEN.rim as number },
+    uTintColor: { value: new THREE.Color(...BUGLASAN_HERO_FINISH.tint) },
+    uTintAmount: { value: BUGLASAN_HERO_FINISH.tintAmount as number },
+    uMicroNormal: { value: BUGLASAN_HERO_FINISH.microNormal as number },
+    uRoughBreak: { value: BUGLASAN_HERO_FINISH.roughnessBreakup as number },
   };
 
   /**
@@ -704,7 +725,68 @@ export function buildFestivalWorld(
            uniform float uSheenPos;
            uniform float uSheenAmt;
            uniform float uSheenGlint;
-           uniform float uSheenRim;`,
+           uniform float uSheenRim;
+           uniform vec3  uTintColor;
+           uniform float uTintAmount;
+           uniform float uMicroNormal;
+           uniform float uRoughBreak;
+
+           // Cheap value noise. The smart material uses clouds and a fractal
+           // sum for the same job: stop the surface being optically perfect,
+           // because a flawless mirror reads as CG rather than as metal.
+           float bugHash(vec2 p) {
+             return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+           }
+           float bugNoise(vec2 p) {
+             vec2 i = floor(p); vec2 f = fract(p);
+             f = f * f * (3.0 - 2.0 * f);
+             return mix(mix(bugHash(i), bugHash(i + vec2(1.0, 0.0)), f.x),
+                        mix(bugHash(i + vec2(0.0, 1.0)), bugHash(i + vec2(1.0, 1.0)), f.x), f.y);
+           }
+           float bugFbm(vec2 p) {
+             return 0.5 * bugNoise(p) + 0.25 * bugNoise(p * 2.03) + 0.125 * bugNoise(p * 4.01);
+           }
+
+           /* Three has not had a single vUv since r152 — each map carries its
+              own varying (vMapUv, vRoughnessMapUv...) and a generic vUv is
+              simply not declared, so referencing it fails to compile and the
+              material silently disappears. Fall back to fragment coordinates
+              where a mesh has no base map at all. */
+           vec2 bugSurfaceUv() {
+             #ifdef USE_MAP
+               return vMapUv;
+             #else
+               return gl_FragCoord.xy * 0.006;
+             #endif
+           }`,
+        )
+        .replace(
+          '#include <map_fragment>',
+          `#include <map_fragment>
+           // For a metal, three uses diffuseColor as the reflection tint, so
+           // this colours what the chrome reflects rather than laying a wash
+           // over the top of it.
+           diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * uTintColor * 1.35, uTintAmount);`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
+           roughnessFactor += (bugFbm(bugSurfaceUv() * 34.0) - 0.5) * uRoughBreak;
+           roughnessFactor = clamp(roughnessFactor, 0.015, 1.0);`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+           {
+             // Micro-detail: nudge the shading normal by the gradient of a
+             // fine noise field. Too small to read as texture, but it breaks
+             // the reflections into something that moves like a real surface.
+             float e = 0.0015;
+             vec2 muv = bugSurfaceUv() * 190.0;
+             float nx = bugFbm(muv + vec2(e, 0.0)) - bugFbm(muv - vec2(e, 0.0));
+             float ny = bugFbm(muv + vec2(0.0, e)) - bugFbm(muv - vec2(0.0, e));
+             normal = normalize(normal + vec3(nx, ny, 0.0) * uMicroNormal);
+           }`,
         )
         .replace(
           '#include <opaque_fragment>',
