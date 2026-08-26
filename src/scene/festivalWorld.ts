@@ -110,11 +110,13 @@ const LOGO_WIDTH = 5.35;
  */
 export const BUGLASAN_HERO_SHEEN = {
   /** Broad sheen — the soft body of the highlight. Kept low. */
-  sheen: 0.3,
-  /** The tight specular glint riding inside the sheen. This is the expensive one. */
-  glint: 1.45,
+  sheen: 0.11,
+  /** The tight specular glint riding inside the sheen. */
+  glint: 0.32,
   /** Silhouette rim. Confined to the true edge, not an all-over haze. */
-  rim: 0.26,
+  rim: 0.13,
+  /** How far the highlight takes the surface's own colour. 1 = fully tinted. */
+  tint: 0.74,
   /** Gaussian falloffs. Higher = tighter. */
   sheenFalloff: 5.0,
   glintFalloff: 90.0,
@@ -471,7 +473,7 @@ export function buildFestivalWorld(
               }
               if (standardMaterial.isMeshStandardMaterial) {
                 standardMaterial.envMap = logoEnvMap;
-                standardMaterial.envMapIntensity = 1.15;
+                standardMaterial.envMapIntensity = 0.72;
                 // Exported marks often come back fully rough, which kills any
                 // reflection before it starts.
                 standardMaterial.roughness = Math.min(standardMaterial.roughness, 0.42);
@@ -612,21 +614,28 @@ export function buildFestivalWorld(
              float sheen = exp(-d * d * ${BUGLASAN_HERO_SHEEN.sheenFalloff.toFixed(1)});
              float glint = exp(-d * d * ${BUGLASAN_HERO_SHEEN.glintFalloff.toFixed(1)});
 
-             // Light is light-coloured.
+             // Tint the highlight with the surface's own colour.
              //
-             // The earlier version cycled the full hue wheel here, on a mark
-             // that is already rainbow brush lettering — colour on top of
-             // colour, which is exactly what reads as a holographic sticker
-             // rather than a finished object. The artwork supplies the hue;
-             // the specular supplies value. Champagne to platinum across the
-             // sweep is the only shift, and it stays under ten percent
-             // saturation.
-             vec3 warm = vec3(1.00, 0.94, 0.80);
-             vec3 cool = vec3(0.84, 0.91, 1.00);
+             // This is the whole difference between metal and plastic, and it
+             // is a physical one: a dielectric reflects white regardless of
+             // what colour it is, which is why a white highlight sitting on
+             // top of colour reads as cheap moulded plastic every time.
+             // Metals and lacquers tint their reflections. Carrying the
+             // albedo into the specular keeps the brush colours saturated
+             // through the highlight instead of bleaching them out.
+             vec3 warm = vec3(1.00, 0.95, 0.86);
+             vec3 cool = vec3(0.88, 0.93, 1.00);
              vec3 spec = mix(warm, cool, clamp(d * 1.6 + 0.5, 0.0, 1.0));
+             spec = mix(spec, spec * diffuseColor.rgb * 1.8, ${BUGLASAN_HERO_SHEEN.tint.toFixed(2)});
 
-             outgoingLight += spec * (sheen * uSheenAmt + glint * uSheenGlint);
-             outgoingLight += spec * rim * uSheenRim;
+             vec3 add = spec * (sheen * uSheenAmt + glint * uSheenGlint)
+                      + spec * rim * uSheenRim;
+
+             // Roll off rather than clip. Adding straight into outgoingLight
+             // drives the bright strokes past 1.0, where every hue lands on
+             // the same flat white and the mark loses its own colour exactly
+             // where it is meant to look richest.
+             outgoingLight += add / (1.0 + add);
            }
            #include <opaque_fragment>`,
         );
