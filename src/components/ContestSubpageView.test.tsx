@@ -40,6 +40,17 @@ describe('ContestSubpageView', () => {
 
     expect(html).toContain('class="hara-gallery"');
     expect(html).toContain('aria-label="Hara sa Dumaguete contestants"');
+    expect(html).toContain('Back to home');
+    expect(html).toContain('How to vote');
+    expect(html).toContain('Sign in');
+    expect(html).toContain('Voting is open');
+    expect(html).toContain('June 10, 2026 · 11:59 PM PHT');
+    expect(html).toContain('aria-label="Search candidates or town"');
+    expect(html).toContain('Most votes');
+    expect(html).toContain('Candidate number');
+    expect(html).toContain('Name');
+    expect(html).toContain('12 of 12 candidates');
+    expect(html).toContain('aria-live="polite"');
     expect(html).not.toContain('id="hara-gallery-title"');
     expect(html).not.toContain('class="subpage-header');
     expect(html).not.toContain('Festival Hub');
