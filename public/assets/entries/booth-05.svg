@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" width="640" height="800"
+     fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- LGU pavilion 05 — generated placeholder, not photography -->
+  <defs>
+    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="640" y2="800">
+      <stop offset="0%" stop-color="#ddd6fe" />
+      <stop offset="52%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="#6d28d9" />
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="46%" r="52%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="640" height="800" fill="#071409" />
+  <rect width="640" height="800" fill="url(#halo)" />
+  <g stroke="url(#k)" stroke-width="3.4" stroke-opacity="0.95">
+    <path d="M133.9 430 L320 329.2 L506.1 430" />
+    <path d="M160.9 413.2 L314 413.2 M191.9 396.4 L314 396.4 M223 379.6 L314 379.6 M254 362.8 L314 362.8 M285 346 L314 346" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M204.3 348.4 L320 233.5 L435.7 348.4" />
+    <path d="M219.6 329.3 L314 329.3 M238.9 310.1 L314 310.1 M258.2 291 L314 291 M277.4 271.8 L314 271.8 M296.7 252.7 L314 252.7" stroke-opacity=".34" stroke-width="1.1" />
+  </g>
+  <g stroke="url(#k)" stroke-width="2.4" stroke-opacity="0.8">
+    <path d="M119.9 430 L520.1 430" />
+    <path d="M190.3 348.4 L449.7 348.4" />
+  </g>
+  <g stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.75">
+    <path d="M320 229.4 L320 195.4" />
+    <circle cx="320" cy="185.4" r="9" />
+  </g>
+  <g stroke="url(#k)" stroke-width="2.6" stroke-opacity="0.85">
+    <path d="M167.9 438 L167.9 700 M160.9 503.5 L174.9 503.5 M160.9 569 L174.9 569 M160.9 634.5 L174.9 634.5 M244 438 L244 700 M237 503.5 L251 503.5 M237 569 L251 569 M237 634.5 L251 634.5 M320 438 L320 700 M313 503.5 L327 503.5 M313 569 L327 569 M313 634.5 L327 634.5 M396 438 L396 700 M389 503.5 L403 503.5 M389 569 L403 569 M389 634.5 L403 634.5 M472.1 438 L472.1 700 M465.1 503.5 L479.1 503.5 M465.1 569 L479.1 569 M465.1 634.5 L479.1 634.5" />
+  </g>
+  <g stroke="url(#k)" stroke-width="3.8" stroke-opacity="0.9">
+    <path d="M107.9 700 L532.1 700" />
+  </g>
+  <g stroke="url(#k)" stroke-width="1.6" stroke-opacity="0.45">
+    <path d="M125.9 722 L514.1 722" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.8" stroke-opacity="0.62">
+    <path d="M210.8 438 L210.8 465.7" />
+    <ellipse cx="210.8" cy="481.7" rx="15" ry="19" />
+    <path d="M210.8 500.7 L210.8 511.7" />
+    <path d="M320 438 L320 461.4" />
+    <ellipse cx="320" cy="477.4" rx="15" ry="19" />
+    <path d="M320 496.4 L320 507.4" />
+    <path d="M422.7 438 L422.7 475.3" />
+    <ellipse cx="422.7" cy="491.3" rx="15" ry="19" />
+    <path d="M422.7 510.3 L422.7 521.3" />
+  </g>
+  <g stroke="url(#k)" stroke-width="2.2" stroke-opacity="0.8">
+    <path d="M224 568 L224 622 L416 622 L416 568 Z" />
+  </g>
+  <g stroke="#ffffff" stroke-width="1.4" stroke-opacity="0.4">
+    <path d="M248 582 L392 582 M248 596 L362 596 M248 610 L332 610" />
+  </g>
+  <g stroke="url(#k)" stroke-width="1.8" stroke-opacity="0.6">
+    <path d="M151.9 700 q18 -30 40 0 Z" />
+    <path d="M448.1 700 q22 -36 46 0 Z" />
+  </g>
+</svg>

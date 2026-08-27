@@ -358,7 +358,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Dumaguete Silvanas', 'Budbud Kabog', 'Artisan Pottery', 'Roasted Arabica Coffee'],
     votes: 2430,
     highlights: 'Multi-level pavilion inspired by the historic Dumaguete Watchtower (Campanario) with a functioning café counter.',
-    image: '/assets/candidates/candidate-02.webp',
+    image: '/assets/entries/booth-01.svg',
     tagline: 'Where Heritage Meets the Gentle Breeze.',
   },
   {
@@ -371,7 +371,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Sweet Highland Lanzones', 'Organic Robusta Coffee', 'Wild Raw Honey', 'Cut Orchids'],
     votes: 2185,
     highlights: 'Features a cascading micro-waterfall mimicking Casaroro Falls with ambient mist and cold-brew tasting lounge.',
-    image: '/assets/candidates/candidate-01.webp',
+    image: '/assets/entries/booth-02.svg',
     tagline: 'Negros Oriental’s Cool Mountain Crown.',
   },
   {
@@ -384,7 +384,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Raw Muscovado Sugar', 'Crispy Dried Squid', 'Crab Paste (Taba ng Talangka)', 'Heritage Rum'],
     votes: 1890,
     highlights: 'Detailed replica of the Manjuyod White Sandbar stilt cottages with interactive marine sanctuary screens.',
-    image: '/assets/candidates/candidate-06.webp',
+    image: '/assets/entries/booth-03.svg',
     tagline: 'Sweet Waters and Playful Depths.',
   },
   {
@@ -397,7 +397,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Authentic Tanjay Budbud Pilit', 'Budbud Moron', 'Caramelized Yema', 'Native Woven Baskets'],
     votes: 1740,
     highlights: 'Towering golden archway with live budbud wrapping demonstrations and historic Spanish-era photo gallery.',
-    image: '/assets/candidates/candidate-03.webp',
+    image: '/assets/entries/booth-04.svg',
     tagline: 'The Heartland of Festivity and Flavors.',
   },
   {
@@ -410,7 +410,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Organic Black Rice', 'Bayawan Buko Pie', 'Freshwater Tilapia Crackers', 'Carabao Milk Cheese'],
     votes: 1610,
     highlights: 'Sculptural giant Tawo-Tawo scarecrows flanking an automated mini-rice mill display with fresh grain samples.',
-    image: '/assets/candidates/candidate-04.webp',
+    image: '/assets/entries/booth-05.svg',
     tagline: 'Negros Oriental’s Agricultural Capital.',
   },
   {
@@ -423,7 +423,7 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Smoked Sea Salt', 'Fresh Tuna Loin', 'Artisanal Shell Jewellery', 'Hand-dyed Dive Towels'],
     votes: 1540,
     highlights: 'Luminous underwater-themed dome with projection mapping of sea turtles grazing across coral reefs.',
-    image: '/assets/candidates/candidate-05.webp',
+    image: '/assets/entries/booth-06.svg',
     tagline: 'World-Class Diving and Marine Guardianship.',
   },
 ];
@@ -440,7 +440,7 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Silk-embroidered mantones, bamboo headdresses with mother-of-pearl accents, and flowing marine fabrics.',
     votes: 3120,
     performanceTime: 'June 08 · 2:00 PM (Perdices St.)',
-    image: '/assets/candidates/candidate-02.webp',
+    image: '/assets/entries/festival-01.svg',
   },
   {
     id: 'sd-02',
@@ -453,7 +453,7 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Vibrant crimson carapace armor, movable claw props with kinetic joints, and glowing mangrove leaf backdrops.',
     votes: 2840,
     performanceTime: 'June 08 · 2:45 PM (Perdices St.)',
-    image: '/assets/candidates/candidate-01.webp',
+    image: '/assets/entries/festival-02.svg',
   },
   {
     id: 'sd-03',
@@ -466,7 +466,7 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Straw-woven helmets, golden burlap smocks lined with LED-infused golden grain fronds, and giant kinetic scarecrow towers.',
     votes: 2690,
     performanceTime: 'June 08 · 3:30 PM (Perdices St.)',
-    image: '/assets/candidates/candidate-04.webp',
+    image: '/assets/entries/festival-03.svg',
   },
   {
     id: 'sd-04',
@@ -479,7 +479,7 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Velvet tunics with brass breastplates, ornate morion helmets, and red-and-gold battle capes.',
     votes: 2310,
     performanceTime: 'June 08 · 4:15 PM (Perdices St.)',
-    image: '/assets/candidates/candidate-03.webp',
+    image: '/assets/entries/festival-04.svg',
   },
 ];
 
