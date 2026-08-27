@@ -1042,7 +1042,9 @@ img, svg, video { max-width: 100%; }
   padding-top: clamp(1.25rem, 3.5vh, 2.75rem);
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(1rem, 1.8vw, 2rem);
-  margin-bottom: clamp(-7rem, -8.5vh, -4.5rem);
+  /* Bridges into the next chapter without landing on it. The row also
+     rests 66px low, so the visual overlap is this plus that. */
+  margin-bottom: clamp(-3rem, -4.5vh, -1.5rem);
   pointer-events: auto;
 }
 
@@ -1304,11 +1306,22 @@ img, svg, video { max-width: 100%; }
   position: relative;
   z-index: 1;
   min-height: 100svh;
-  padding: 130px 0 100px;
+  /* Clears the lowered programme row above. */
+  padding: 210px 0 100px;
   scroll-margin-top: 80px;
+  /* No border. A hairline across the full width reads as a seam between two
+     pages rather than one continuous stage, and against this palette it
+     catches the eye more than anything it separates. The section instead
+     starts fully transparent and darkens down, so the hero simply runs out
+     of light. */
   background:
-    linear-gradient(180deg, rgba(4, 12, 8, .22) 0%, rgba(4, 12, 8, .68) 8%, rgba(5, 14, 9, .95) 24%, rgba(5, 14, 9, .985) 42%, rgba(5, 14, 9, .995) 100%);
-  border-top: 1px solid rgba(247, 211, 119, .08);
+    linear-gradient(180deg,
+      rgba(4, 12, 8, 0) 0%,
+      rgba(4, 12, 8, .38) 6%,
+      rgba(4, 12, 8, .74) 14%,
+      rgba(5, 14, 9, .95) 26%,
+      rgba(5, 14, 9, .985) 44%,
+      rgba(5, 14, 9, .995) 100%);
   box-shadow: 0 -24px 48px rgba(0, 0, 0, .2);
 }
 

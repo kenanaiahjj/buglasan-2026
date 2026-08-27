@@ -58,7 +58,11 @@ describe('hero arena card treatment', () => {
     // The row rests low and climbs on hover; the travel is the peek.
     expect(styles).toMatch(/\.hero-arena-card\s*\{[\s\S]*?transform:\s*translateY\(var\(--card-rest/);
     expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?transform:\s*translateY\(-\d+px\);/);
-    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?rgba\(4, 12, 8, \.22\)/);
+    // The chapter blends out of the hero with a top-down darkening ramp and
+    // no dividing rule — the literal first stop is a tuning value, not the
+    // contract.
+    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?linear-gradient\(180deg,[\s\S]*?rgba\(4, 12, 8, 0\)/);
+    expect(styles).not.toMatch(/\.contests-chapter\s*\{[^}]*border-top:[^}]*rgba\(247, 211, 119/);
     expect(styles).toContain('cursor: url("data:image/svg+xml,');
     expect(styles).toContain('VOTE%20NOW');
     expect(styles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.crown-hero\s*\{\s*min-height:\s*1080px;\s*padding:\s*122px 18px 3rem;/);
