@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { contestArenas, haraCandidates, pageantContent } from '../data/pageant';
+import { ARENA_VOTING, entriesForArena } from '../lib/arenaEntries';
 import { VotingOverviewPage } from './VotingOverviewPage';
 
 function getHaraArena() {
@@ -60,10 +61,15 @@ describe('VotingOverviewPage', () => {
     );
 
     expect(html).toContain('Hara sa Negros Oriental');
-    expect(html).toContain('Public voting overview');
+    expect(html).toContain(ARENA_VOTING.hara.prompt);
     expect(html).toContain('Live simulation');
-    expect(html).toContain('Currently leading');
-    expect(html).toContain('Total votes');
+    expect(html).toContain('Leading');
+    expect(html).toContain('Total votes cast');
+    expect(html).toContain('Votes per minute');
+    expect(html).toContain('Lead margin');
+    expect(html).toContain('Towns represented');
+    expect(html).toContain('Biggest climb');
+    expect(html).toContain('Tightest race');
     expect(html).toContain(pageantContent.votingDeadline);
     expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(12);
     expect(html).toContain('aria-live="polite"');
@@ -73,6 +79,75 @@ describe('VotingOverviewPage', () => {
     expect(html).toContain('class="vote-overview__hero vote-overview__animate"');
     expect(html).not.toContain('class="vote-overview__utility-button" style=');
     expect(html).not.toContain('class="vote-overview__hero vote-overview__animate" style=');
+  });
+
+  it('shows the top three entries in the podium and keeps fourth place in the full ranking', () => {
+    const html = renderToStaticMarkup(
+      <VotingOverviewPage
+        arena={getHaraArena()}
+        onBackToProgram={() => undefined}
+        onBackToHub={() => undefined}
+        tallies={getTallies()}
+      />,
+    );
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    const podium = document.querySelector('.vote-overview__podium');
+
+    expect(podium).not.toBeNull();
+    expect(podium!.querySelectorAll('.vote-overview__podium-entry')).toHaveLength(3);
+    expect(podium!.textContent).toContain('Leading');
+    expect(podium!.textContent).toContain('Rank 2');
+    expect(podium!.textContent).toContain('Rank 3');
+    expect(podium!.textContent).toContain('Jessa Mae');
+    expect(podium!.textContent).toContain('Maria Angela');
+    expect(podium!.textContent).toContain('Charmine');
+    expect(podium!.textContent).not.toContain('Shaira');
+    expect(html).toContain('Shaira');
+  });
+
+  /* The whole point of the rebuild: the board is composed at wall proportions
+     and never scrolls, so anything that would push content out of the frame
+     is a defect rather than a scrollbar. */
+  it('composes every programme inside one fixed 16:9 frame', () => {
+    for (const arena of contestArenas) {
+      const html = renderToStaticMarkup(
+        <VotingOverviewPage
+          arena={arena}
+          onBackToProgram={() => undefined}
+          onBackToHub={() => undefined}
+          tallies={{}}
+        />,
+      );
+
+      const entries = entriesForArena(arena.id);
+      expect(html).toContain('class="vote-overview__frame"');
+      expect(html).toContain('class="vote-overview__board"');
+      // The row count is handed to CSS so the rows divide the panel evenly.
+      expect(html).toContain(`--rows:${entries.length}`);
+      expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(entries.length);
+      expect(html).toContain(ARENA_VOTING[arena.id].originLabel);
+    }
+  });
+
+  it('counts down to the deadline, or declares the standings final', () => {
+    const closed = Date.parse(pageantContent.votingDeadlineISO) < Date.now();
+    const html = renderToStaticMarkup(
+      <VotingOverviewPage
+        arena={getHaraArena()}
+        onBackToProgram={() => undefined}
+        onBackToHub={() => undefined}
+        tallies={getTallies()}
+      />,
+    );
+
+    if (closed) {
+      expect(html).toContain('Final standings');
+      expect(html).not.toContain('class="vote-overview__countdown"');
+    } else {
+      expect(html).toContain('class="vote-overview__countdown"');
+      expect(html).toContain('Voting closes in');
+      expect(html).not.toContain('Final standings');
+    }
   });
 
   it('adds and clears update markers only for rows whose vote totals changed', () => {
@@ -97,9 +172,15 @@ describe('VotingOverviewPage', () => {
       vi.advanceTimersByTime(6000);
     });
 
+    /* A tick moves one to three entries — a single-target tick makes a wall
+       board look stalled — so the marker count is a range, not a number. */
     const updatedRows = container.querySelectorAll('.vote-overview__rank-row.vote-overview__update');
-    expect(updatedRows).toHaveLength(1);
-    expect(updatedRows[0]?.getAttribute('data-candidate-id')).toBe('c-01');
+    expect(updatedRows.length).toBeGreaterThanOrEqual(1);
+    expect(updatedRows.length).toBeLessThanOrEqual(3);
+    const rosterIds = new Set(haraCandidates.map((candidate) => candidate.id));
+    for (const row of updatedRows) {
+      expect(rosterIds.has(row.getAttribute('data-candidate-id') ?? '')).toBe(true);
+    }
 
     act(() => {
       vi.advanceTimersByTime(1400);

@@ -78,15 +78,57 @@ export const pageantContent = {
   tagline: 'Support your favorite candidate.',
   heroTitle: 'Beauty with purpose.\nA crown with roots.',
   heroDateline: 'Online voting open · Negros Oriental · 2026',
-  heroLede:
-    'Twenty-five town festivals converge on Dumaguete for the Festival of Festivals. Four programs, one province, one shared celebration — and one verified vote from you each day.',
   eventLabel: 'Official online voting is open',
-  votingWindow: 'May 20, 2026 — June 10, 2026',
-  votingDeadline: 'June 10, 2026 · 11:59 PM PHT',
+  votingWindow: 'October 1, 2026 — October 24, 2026',
+  votingDeadline: 'October 24, 2026 · 11:59 PM PHT',
+  /* The machine-readable twin of votingDeadline, in Philippine time. The
+     overview board counts down against this; when it passes, the board
+     switches itself to final standings. Move both lines together. */
+  votingDeadlineISO: '2026-10-24T23:59:00+08:00',
   countdown: { days: '06', hours: '12', minutes: '45' },
   totalVotes: 12846,
   footerHashtags: '#BuglasanFestival2026 #FestivalOfFestivals #GandangNegOrense #DumagueteCity',
 };
+
+/**
+ * Every city and municipality of Negros Oriental, alphabetically.
+ *
+ * The vote flow asks where a supporter is from, and a free-text box there is
+ * worthless: "Dgte", "dumaguete city" and "DUMAGUETE" are three rows in any
+ * report built on it. Six cities and nineteen municipalities — the twenty-five
+ * town festivals the hero copy is counting.
+ */
+export const NEGROS_ORIENTAL_LGUS = [
+  'Amlan',
+  'Ayungon',
+  'Bacong',
+  'Bais City',
+  'Basay',
+  'Bayawan City',
+  'Bindoy',
+  'Canlaon City',
+  'Dauin',
+  'Dumaguete City',
+  'Guihulngan City',
+  'Jimalalud',
+  'La Libertad',
+  'Mabinay',
+  'Manjuyod',
+  'Pamplona',
+  'San Jose',
+  'Santa Catalina',
+  'Siaton',
+  'Sibulan',
+  'Tanjay City',
+  'Tayasan',
+  'Valencia',
+  'Vallehermoso',
+  'Zamboanguita',
+] as const;
+
+/* Supporters abroad and from other provinces vote too, and dropping them into
+   a Negros Oriental town would quietly corrupt the same report. */
+export const OUTSIDE_PROVINCE = 'Outside Negros Oriental';
 
 export const contestArenas: ContestArena[] = [
   {
@@ -100,8 +142,8 @@ export const contestArenas: ContestArena[] = [
     // Temporary supplied placeholder until the official Hara logo arrives.
     logo: '/assets/program-logos/hara-sa-negros-oriental-2026-transparent.png',
     venue: 'Silliman University Gym & L.F. Macias Sports Complex',
-    dateRange: 'May 20 – June 10, 2026',
-    totalEntries: 12,
+    dateRange: 'October 1 – 24, 2026',
+    totalEntries: 22,
     votesOpen: true,
     accentColor: '#f7d377',
     description:
@@ -122,12 +164,12 @@ export const contestArenas: ContestArena[] = [
     icon: 'buildings',
     badge: 'Architectural Expo',
     venue: 'Freedom Park Provincial Capitol Grounds',
-    dateRange: 'May 22 – June 10, 2026',
-    totalEntries: 8,
+    dateRange: 'October 3 – 24, 2026',
+    totalEntries: 23,
     votesOpen: true,
-    accentColor: '#4ade80',
+    accentColor: '#c084fc',
     description:
-      'Freedom Park transforms into a living architectural wonderland as 25 LGUs craft breathtaking multi-story pavilions from bamboo, nipa, hardwood, and abaca, showcasing local delicacies, organic produce, and craft exports.',
+      'Freedom Park transforms into a living architectural wonderland as 23 LGUs craft breathtaking multi-story pavilions from bamboo, nipa, hardwood, and abaca, showcasing local delicacies, organic produce, and craft exports.',
     criteria: [
       { name: 'Indigenous Architecture & Design', percentage: 35, description: 'Use of natural native materials, structural creativity, and cultural motifs.' },
       { name: 'Agri-Tourism & Trade Showcase', percentage: 30, description: 'Diversity and presentation of local agricultural goods, handicrafts, and tourism offerings.' },
@@ -143,9 +185,11 @@ export const contestArenas: ContestArena[] = [
     tagline: 'Many hometowns. One provincial story.',
     icon: 'sparkle',
     badge: 'Province-Wide Showdown',
+    // Supplied Festival of Festivals logo with its background removed.
+    logo: '/assets/program-logos/festival-of-festivals-transparent.png',
     venue: 'Dumaguete City Streets & Lamberto Macias Sports Complex',
-    dateRange: 'June 08 – June 09, 2026',
-    totalEntries: 4,
+    dateRange: 'October 20 – 21, 2026',
+    totalEntries: 10,
     votesOpen: true,
     accentColor: '#f97316',
     description:
@@ -169,9 +213,9 @@ export const contestArenas: ContestArena[] = [
     logo: '/assets/program-logos/gandang-negorense-queen-size.webp',
     venue: 'Official venue to be announced',
     dateRange: 'Official schedule to be announced',
-    totalEntries: 6,
+    totalEntries: 16,
     votesOpen: true,
-    accentColor: '#c084fc',
+    accentColor: '#38bdf8',
     description:
       'A pageant celebrating the people, confidence, identity, and hometown stories carried by the next Gandang NegOrense titleholder.',
     criteria: [
@@ -485,25 +529,25 @@ export const festivalContingents: FestivalContingent[] = [
 
 export const announcements: Announcement[] = [
   {
-    date: 'MAY 20',
+    date: 'OCT 01',
     title: 'Official online voting is now live across all 4 programs',
     description: 'Cast your daily verified vote for Hara, LGU Booths, Festival of Festivals, and Gandang NegOrense.',
     type: 'live',
   },
   {
-    date: 'MAY 22',
+    date: 'OCT 03',
     title: 'Freedom Park LGU Booth Expo opens to the public',
-    description: 'Explore 25 municipal pavilions featuring native architecture, crafts, and farm harvest.',
+    description: 'Explore 23 municipal pavilions featuring native architecture, crafts, and farm harvest.',
     type: 'event',
   },
   {
-    date: 'JUN 08',
+    date: 'OCT 20',
     title: 'Festival of Festivals program begins',
     description: 'Festival contingents gather in Dumaguete for the province-wide presentation.',
     type: 'event',
   },
   {
-    date: 'JUN 10',
+    date: 'OCT 24',
     title: 'Gandang NegOrense Pageant Night',
     description: 'The Queen Size pageant celebrates identity, confidence, and provincial pride.',
     type: 'notice',

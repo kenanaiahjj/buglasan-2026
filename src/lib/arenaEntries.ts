@@ -45,6 +45,9 @@ export type ArenaVoteConfig = {
   action: string;
   /** What the person is being asked to do, in one line. */
   prompt: string;
+  /* `origin` is a town on three programmes and a district on booths. The
+     standings board counts distinct origins, so it needs the right word. */
+  originLabel: string;
 };
 
 /**
@@ -66,6 +69,7 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     nounSingular: 'candidate',
     action: 'Vote',
     prompt: 'One vote per person. Choose the queen who carries your town.',
+    originLabel: 'Towns represented',
   },
   // Booths are the one arena where backing several is fair: a visitor walks
   // the whole park in an evening and genuinely has three favourites.
@@ -75,6 +79,7 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     nounSingular: 'booth',
     action: 'Vote',
     prompt: 'Back up to three booths. Spend them however you like.',
+    originLabel: 'Districts represented',
   },
   festival: {
     allowance: 1,
@@ -82,6 +87,7 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     nounSingular: 'contingent',
     action: 'Vote',
     prompt: 'One vote per person. Choose the festival contingent that represents its hometown best.',
+    originLabel: 'Towns represented',
   },
   gandang: {
     allowance: 1,
@@ -89,6 +95,7 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     nounSingular: 'candidate',
     action: 'Vote',
     prompt: 'One vote per person. Choose the titleholder whose story stays with you.',
+    originLabel: 'Towns represented',
   },
 };
 

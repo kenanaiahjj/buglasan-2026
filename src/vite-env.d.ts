@@ -10,3 +10,18 @@
  * is only valid inside a module.
  */
 declare var IS_REACT_ACT_ENVIRONMENT: boolean;
+
+/**
+ * The one switch that points the app at a real backend.
+ *
+ * Unset, `resolveVotingApi()` hands back the in-memory demo client and the
+ * prototype keeps working. Set it and every vote order and tally read goes to
+ * that server instead — see VOTING_API.md for the endpoints it must answer.
+ */
+interface ImportMetaEnv {
+  readonly VITE_VOTING_API_URL?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
