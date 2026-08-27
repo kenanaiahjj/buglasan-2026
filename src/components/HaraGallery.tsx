@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
+import { ChartBar } from '@phosphor-icons/react/dist/icons/ChartBar';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/icons/MagnifyingGlass';
 import { MapPin } from '@phosphor-icons/react/dist/icons/MapPin';
 import { enter } from '../lib/enter';
@@ -10,6 +11,7 @@ import { haraCandidates, pageantContent, type ContestArena } from '../data/pagea
 type HaraGalleryProps = {
   arena: ContestArena;
   onBackToHub: () => void;
+  onOpenOverview: () => void;
   onVote: (id: ContestArena['id']) => void;
 };
 
@@ -19,7 +21,7 @@ const sortOptions: Array<[HaraSortKey, string]> = [
   ['name', 'Name'],
 ];
 
-export function HaraGallery({ arena, onBackToHub, onVote }: HaraGalleryProps) {
+export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: HaraGalleryProps) {
   const galleryRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<HaraSortKey>('number');
@@ -78,6 +80,16 @@ export function HaraGallery({ arena, onBackToHub, onVote }: HaraGalleryProps) {
                 <li><strong>Confirm</strong> your vote in the voting room.</li>
               </ol>
             </details>
+
+            <button
+              aria-label="Open Hara voting overview"
+              className="hara-gallery__overview"
+              onClick={onOpenOverview}
+              type="button"
+            >
+              <ChartBar aria-hidden="true" size={15} weight="bold" />
+              <span>Overview</span>
+            </button>
           </div>
 
           <p className="hara-gallery__status" role="status">

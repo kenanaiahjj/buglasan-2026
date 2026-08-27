@@ -1,5 +1,7 @@
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { initialVoterState } from '../state/voterState';
 import * as festivalWorld from '../scene/festivalWorld';
 import { getRenderPixelRatios } from '../scene/renderQuality';
@@ -7,6 +9,37 @@ import * as festivalScene from './FestivalScene';
 import { LandingPage } from './LandingPage';
 
 describe('LandingPage Crown of Light contract', () => {
+  let previousHash = '';
+  const originalMatchMedia = window.matchMedia;
+
+  beforeEach(() => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    previousHash = window.location.hash;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)' ? false : query === '(pointer: fine)',
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+    window.scrollTo = vi.fn();
+  });
+
+  afterEach(() => {
+    window.location.hash = previousHash;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: originalMatchMedia,
+    });
+    globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+  });
+
   it('renders the official logo, scene, primary action, and five narrative chapters', () => {
     const html = renderToStaticMarkup(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
 
@@ -69,6 +102,27 @@ describe('LandingPage Crown of Light contract', () => {
 
     expect(order.every((index) => index >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
+  });
+
+  it('renders the Hara voting overview for the #hara/overview hash route', async () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    window.location.hash = '#hara/overview';
+
+    await act(async () => {
+      root.render(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
+    });
+
+    expect(container.innerHTML).toContain('Hara sa Negros Oriental');
+    expect(container.innerHTML).toContain('Live simulation');
+    expect(container.innerHTML).not.toContain('class="hara-gallery"');
+
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
   });
 
   it('keeps the supplied low-poly logo model as the hero source', () => {

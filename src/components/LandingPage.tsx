@@ -21,6 +21,7 @@ import { BrandMark } from './BrandMark';
 import { ContestCard } from './ContestCard';
 import { ArenaVotingPage } from './ArenaVotingPage';
 import { ContestSubpageView } from './ContestSubpageView';
+import { VotingOverviewPage } from './VotingOverviewPage';
 import { enter } from '../lib/enter';
 
 gsap.registerPlugin(useGSAP);
@@ -65,21 +66,30 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSubpage, setActiveSubpage] = useState<ContestArena['id'] | null>(null);
   const [activeVote, setActiveVote] = useState<ContestArena['id'] | null>(null);
+  const [activeOverview, setActiveOverview] = useState(false);
 
   // Synchronize hash with subpages if present
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       const arenaIds = ['hara', 'booths', 'festival', 'gandang'];
-      if (hash.startsWith('vote-') && arenaIds.includes(hash.slice(5))) {
+      if (hash === 'hara/overview') {
+        setActiveOverview(true);
+        setActiveSubpage('hara');
+        setActiveVote(null);
+        window.scrollTo(0, 0);
+      } else if (hash.startsWith('vote-') && arenaIds.includes(hash.slice(5))) {
+        setActiveOverview(false);
         setActiveVote(hash.slice(5) as ContestArena['id']);
         setActiveSubpage(null);
         window.scrollTo(0, 0);
       } else if (arenaIds.includes(hash)) {
+        setActiveOverview(false);
         setActiveSubpage(hash as ContestArena['id']);
         setActiveVote(null);
         window.scrollTo(0, 0);
       } else if (hash === 'festival' || hash === 'contests' || hash === 'candidates' || hash === '') {
+        setActiveOverview(false);
         setActiveSubpage(null);
         setActiveVote(null);
       }
@@ -90,6 +100,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   }, []);
 
   const openSubpage = (id: ContestArena['id']) => {
+    setActiveOverview(false);
     setActiveSubpage(id);
     setActiveVote(null);
     window.location.hash = id;
@@ -97,6 +108,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   };
 
   const openVoting = (id: ContestArena['id']) => {
+    setActiveOverview(false);
     setActiveVote(id);
     setActiveSubpage(null);
     window.location.hash = `vote-${id}`;
@@ -104,9 +116,26 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   };
 
   const closeSubpage = () => {
+    setActiveOverview(false);
     setActiveSubpage(null);
     setActiveVote(null);
     window.location.hash = 'contests';
+    window.scrollTo(0, 0);
+  };
+
+  const openOverview = () => {
+    setActiveOverview(true);
+    setActiveSubpage('hara');
+    setActiveVote(null);
+    window.location.hash = 'hara/overview';
+    window.scrollTo(0, 0);
+  };
+
+  const closeOverview = () => {
+    setActiveOverview(false);
+    setActiveSubpage('hara');
+    setActiveVote(null);
+    window.location.hash = 'hara';
     window.scrollTo(0, 0);
   };
 
@@ -135,7 +164,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
 
   useGSAP(
     () => {
-      if (activeSubpage || activeVote) return undefined;
+      if (activeSubpage || activeVote || activeOverview) return undefined;
       const root = rootRef.current;
       if (!root) return undefined;
 
@@ -171,7 +200,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         sceneTrigger.kill();
       };
     },
-    { scope: rootRef, dependencies: [activeSubpage, activeVote] },
+    { scope: rootRef, dependencies: [activeOverview, activeSubpage, activeVote] },
   );
 
   /**
@@ -185,7 +214,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
    */
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || activeSubpage || activeVote) return undefined;
+    if (!root || activeSubpage || activeVote || activeOverview) return undefined;
     if (typeof window.matchMedia !== 'function') return undefined;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
 
@@ -217,17 +246,17 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
       observer?.disconnect();
       root.removeAttribute('data-reveal-armed');
     };
-  }, [activeSubpage, activeVote]);
+  }, [activeOverview, activeSubpage, activeVote]);
 
   const closeMenu = () => setMenuOpen(false);
 
   const scene = (
-    <Suspense fallback={<SceneFallback quiet={Boolean(activeSubpage || activeVote)} />}>
-      <FestivalScene progressRef={sceneProgressRef} quiet={Boolean(activeSubpage || activeVote)} />
+    <Suspense fallback={<SceneFallback quiet={Boolean(activeOverview || activeSubpage || activeVote)} />}>
+      <FestivalScene progressRef={sceneProgressRef} quiet={Boolean(activeOverview || activeSubpage || activeVote)} />
     </Suspense>
   );
 
-  const activeArena = contestArenas.find((a) => a.id === (activeVote ?? activeSubpage)) ?? contestArenas[0];
+  const activeArena = contestArenas.find((a) => a.id === (activeVote ?? activeSubpage ?? (activeOverview ? 'hara' : null))) ?? contestArenas[0];
 
   return (
     <>
@@ -241,11 +270,19 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           onSwitchArena={openVoting}
           state={state}
         />
+      ) : activeOverview ? (
+        <VotingOverviewPage
+          arena={activeArena}
+          onBackToHara={closeOverview}
+          onBackToHub={closeSubpage}
+          tallies={state.arenaTallies.hara}
+        />
       ) : activeSubpage ? (
         <ContestSubpageView
           arena={activeArena}
           dispatch={dispatch}
           onBackToHub={closeSubpage}
+          onOpenOverview={openOverview}
           onSwitchArena={(id) => openSubpage(id)}
           onVote={openVoting}
         />

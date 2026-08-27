@@ -15,6 +15,7 @@ describe('ContestSubpageView', () => {
         arena={hara}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         onVote={() => undefined}
       />,
@@ -34,6 +35,7 @@ describe('ContestSubpageView', () => {
         arena={hara}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         onVote={() => undefined}
       />,
@@ -43,6 +45,8 @@ describe('ContestSubpageView', () => {
     expect(html).toContain('aria-label="Hara sa Dumaguete contestants"');
     expect(html).toContain('Back to home');
     expect(html).toContain('How to vote');
+    expect(html).toContain('Overview');
+    expect(html).toContain('aria-label="Open Hara voting overview"');
     expect(html).toContain('Sign in');
     expect(html).toContain('Voting is open');
     expect(html).toContain('June 10, 2026 · 11:59 PM PHT');
@@ -76,6 +80,7 @@ describe('ContestSubpageView', () => {
         arena={booths}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         onVote={() => undefined}
       />,
@@ -95,6 +100,7 @@ describe('ContestSubpageView', () => {
         arena={festival!}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         onVote={() => undefined}
       />,
@@ -109,6 +115,7 @@ describe('ContestSubpageView', () => {
         arena={gandang!}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         onVote={() => undefined}
       />,

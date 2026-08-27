@@ -26,6 +26,7 @@ import { HaraGallery } from './HaraGallery';
 type ContestSubpageViewProps = {
   arena: ContestArena;
   onBackToHub: () => void;
+  onOpenOverview: () => void;
   onSwitchArena: (id: ContestArena['id']) => void;
   onVote: (id: ContestArena['id']) => void;
   dispatch: Dispatch<VoterAction>;
@@ -34,6 +35,7 @@ type ContestSubpageViewProps = {
 export function ContestSubpageView({
   arena,
   onBackToHub,
+  onOpenOverview,
   onSwitchArena,
   onVote,
   dispatch,
@@ -96,6 +98,7 @@ export function ContestSubpageView({
         <HaraGallery
           arena={arena}
           onBackToHub={onBackToHub}
+          onOpenOverview={onOpenOverview}
           onVote={onVote}
         />
       </div>
