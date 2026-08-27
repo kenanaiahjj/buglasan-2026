@@ -1305,24 +1305,42 @@ img, svg, video { max-width: 100%; }
 .contests-chapter {
   position: relative;
   z-index: 1;
+  isolation: isolate;
   min-height: 100svh;
   /* Clears the lowered programme row above. */
   padding: 210px 0 100px;
   scroll-margin-top: 80px;
-  /* No border. A hairline across the full width reads as a seam between two
-     pages rather than one continuous stage, and against this palette it
-     catches the eye more than anything it separates. The section instead
-     starts fully transparent and darkens down, so the hero simply runs out
-     of light. */
+  /* No border. The section should feel like one continuous stage with the
+     hero, but with a darker, calmer atmosphere under the programme copy. */
   background:
     linear-gradient(180deg,
-      rgba(4, 12, 8, 0) 0%,
-      rgba(4, 12, 8, .38) 6%,
-      rgba(4, 12, 8, .74) 14%,
-      rgba(5, 14, 9, .95) 26%,
-      rgba(5, 14, 9, .985) 44%,
-      rgba(5, 14, 9, .995) 100%);
-  box-shadow: 0 -24px 48px rgba(0, 0, 0, .2);
+      rgba(1, 7, 4, .66) 0%,
+      rgba(2, 10, 6, .82) 8%,
+      rgba(3, 12, 8, .93) 18%,
+      rgba(4, 13, 9, .975) 34%,
+      rgba(4, 13, 9, .995) 100%);
+  box-shadow: 0 -24px 48px rgba(0, 0, 0, .32);
+}
+
+/* Frost the fixed scene behind this chapter without blurring its heading or
+   the programme cards. The low-opacity veil keeps intentional sparkles and
+   color accents present as soft points of light. */
+.contests-chapter::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .03), transparent 36%),
+    rgba(1, 7, 4, .14);
+  backdrop-filter: blur(18px) saturate(78%);
+  -webkit-backdrop-filter: blur(18px) saturate(78%);
+  pointer-events: none;
+}
+
+.contests-chapter > .chapter-shell {
+  position: relative;
+  z-index: 1;
 }
 
 .contest-screens-grid {
@@ -1674,6 +1692,7 @@ img, svg, video { max-width: 100%; }
 }
 
 .hara-gallery__home,
+.hara-gallery__overview,
 .hara-gallery__how-to summary {
   display: inline-flex;
   align-items: center;
@@ -1694,6 +1713,7 @@ img, svg, video { max-width: 100%; }
 }
 
 .hara-gallery__home:hover,
+.hara-gallery__overview:hover,
 .hara-gallery__how-to summary:hover,
 .hara-gallery__how-to[open] summary {
   color: var(--crown-gold-light);
@@ -1702,6 +1722,7 @@ img, svg, video { max-width: 100%; }
 }
 
 .hara-gallery__home:focus-visible,
+.hara-gallery__overview:focus-visible,
 .hara-gallery__how-to summary:focus-visible,
 .hara-gallery__sort button:focus-visible,
 .hara-gallery__empty button:focus-visible,
@@ -3567,4 +3588,182 @@ img, svg, video { max-width: 100%; }
   .vote-card__cta { width: 100%; margin-left: 0; }
   .vote-toast { left: 1rem; right: 1rem; bottom: 1rem; transform: none; }
   @keyframes voteToast { from { opacity: 0; transform: translateY(12px); } }
+}
+
+/* ----------------------------------------------------
+   PROGRAMME VOTING OVERVIEW
+   ----------------------------------------------------
+   Built for a projector as much as a phone: this is the board shown on the
+   hall screen while voting runs, so the leader has to be readable across a
+   room and the ranking has to stay scannable as numbers move under it.
+
+   Serves all four programmes. `--arena` tints state only — bars, the leader
+   frame — while the surfaces stay on the site's green ramp.
+   ---------------------------------------------------- */
+.vote-overview {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: 100vh;
+  width: min(1280px, calc(100% - clamp(2rem, 7vw, 5rem)));
+  margin-inline: auto;
+  padding: clamp(1rem, 3vh, 2rem) 0 clamp(4rem, 8vh, 7rem);
+  color: var(--ink);
+}
+
+.vote-overview__utility { display: flex; gap: .5rem; padding-block: .75rem 1.75rem; }
+.vote-overview__utility-button {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--ink-muted);
+  font-family: inherit;
+  font-size: .78rem;
+  font-weight: 560;
+  background: color-mix(in oklch, var(--ground) 72%, transparent);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
+}
+.vote-overview__utility-button:hover { color: var(--ink); border-color: var(--line); background: color-mix(in oklch, var(--ink) 8%, transparent); }
+.vote-overview__utility-button:active { transform: scale(.97); }
+
+/* --- hero ------------------------------------------------------------ */
+.vote-overview__hero { padding-bottom: clamp(1.5rem, 3vh, 2.25rem); border-bottom: 1px solid var(--line-soft); }
+.vote-overview__eyebrow {
+  display: inline-flex; align-items: center; gap: .45rem;
+  color: var(--mint); font-size: .64rem; font-weight: 660;
+  letter-spacing: .14em; text-transform: uppercase;
+}
+.vote-overview__eyebrow::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--mint); box-shadow: 0 0 0 3px color-mix(in oklch, var(--mint) 22%, transparent);
+}
+.vote-overview__title {
+  margin-top: .6rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+  font-weight: 400; line-height: .97; letter-spacing: -.022em; text-wrap: balance;
+}
+.vote-overview__supporting { margin-top: .5rem; color: var(--ink-muted); font-size: 1.02rem; }
+.vote-overview__note { margin-top: .35rem; color: var(--ink-dim); font-size: .78rem; }
+.vote-overview__live-status {
+  margin-top: .9rem; color: var(--ink-dim); font-size: .7rem;
+  font-variant-numeric: tabular-nums; letter-spacing: .04em;
+}
+
+/* --- metrics --------------------------------------------------------- */
+.vote-overview__metrics {
+  display: grid; gap: clamp(.6rem, 1.4vw, 1rem);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin-block: clamp(1.5rem, 3vh, 2.25rem);
+}
+.vote-overview__metric {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line-soft); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-panel);
+}
+.vote-overview__metric-label {
+  color: var(--ink-dim); font-size: .63rem; font-weight: 620;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.vote-overview__metric-value {
+  display: block; margin-top: .35rem;
+  font-size: 1.4rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+}
+
+/* --- podium ---------------------------------------------------------- */
+.vote-overview__standings {
+  display: grid; gap: clamp(.7rem, 1.5vw, 1.1rem);
+  grid-template-columns: 1.55fr 1fr 1fr;
+  align-items: stretch;
+}
+.vote-overview__leader, .vote-overview__podium {
+  display: flex; flex-direction: column;
+  padding: 1.15rem;
+  border: 1px solid var(--line-soft); border-radius: var(--radius-xl);
+  background: var(--surface); box-shadow: var(--shadow-panel);
+}
+/* The leader is the one thing that must read across a room. */
+.vote-overview__leader { border-color: color-mix(in oklch, var(--arena, var(--gold)) 42%, transparent); }
+.vote-overview__leader-portrait, .vote-overview__podium-portrait {
+  width: 100%; margin-block: .8rem;
+  aspect-ratio: 4 / 5; object-fit: cover;
+  border-radius: var(--radius-md);
+  outline: 1px solid rgba(255, 255, 255, .1); outline-offset: -1px;
+  background: var(--surface-2);
+}
+.vote-overview__leader-portrait { aspect-ratio: 5 / 4; }
+.vote-overview__candidate-number {
+  color: var(--arena, var(--gold)); font-size: .66rem; font-weight: 660;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.vote-overview__candidate-name {
+  margin-top: .2rem; font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.2vw, 1.9rem); font-weight: 400; line-height: 1.1;
+}
+.vote-overview__leader .vote-overview__candidate-name { font-size: clamp(1.7rem, 3.2vw, 2.6rem); }
+.vote-overview__candidate-location { margin-top: .15rem; color: var(--ink-muted); font-size: .8rem; }
+.vote-overview__candidate-votes {
+  margin-top: .55rem; font-size: 1.1rem; font-weight: 620; font-variant-numeric: tabular-nums;
+}
+.vote-overview__leader .vote-overview__candidate-votes { font-size: 1.55rem; }
+.vote-overview__candidate-share, .vote-overview__candidate-gap {
+  color: var(--ink-dim); font-size: .74rem; font-variant-numeric: tabular-nums;
+}
+.vote-overview__candidate-gap { margin-top: .1rem; color: var(--mint); }
+
+/* --- ranking --------------------------------------------------------- */
+.vote-overview__ranking { margin-top: clamp(1.5rem, 3vh, 2.25rem); }
+.vote-overview__ranking-list { display: flex; flex-direction: column; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.vote-overview__rank-row {
+  display: grid;
+  grid-template-columns: 2.1rem 2.6rem 46px minmax(0, 1fr) auto;
+  align-items: center; gap: .5rem .8rem;
+  padding: .55rem .8rem;
+  border: 1px solid transparent; border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--surface) 62%, transparent);
+  transition: background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.vote-overview__rank { font-size: 1rem; font-weight: 640; font-variant-numeric: tabular-nums; color: var(--ink-muted); }
+.vote-overview__number { color: var(--ink-dim); font-size: .74rem; font-variant-numeric: tabular-nums; }
+.vote-overview__rank-portrait {
+  width: 46px; height: 46px; object-fit: cover; border-radius: 50%;
+  outline: 1px solid rgba(255, 255, 255, .1); outline-offset: -1px; background: var(--surface-2);
+}
+.vote-overview__rank-name { font-size: .92rem; font-weight: 560; }
+.vote-overview__rank-location { color: var(--ink-dim); font-size: .72rem; }
+.vote-overview__rank-vote-group { text-align: right; }
+.vote-overview__rank-votes { font-size: .9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.vote-overview__rank-share { color: var(--ink-dim); font-size: .7rem; font-variant-numeric: tabular-nums; }
+.vote-overview__rank-bar {
+  grid-column: 3 / -1; height: 3px; border-radius: 999px;
+  background: color-mix(in oklch, var(--ink) 9%, transparent); overflow: hidden;
+}
+.vote-overview__rank-bar-fill {
+  display: block; height: 100%; border-radius: inherit;
+  background: var(--arena, var(--gold));
+  transition: width var(--dur-3) var(--ease-out);
+}
+
+/* A row whose tally just moved. Brief, and colour-only so nothing reflows
+   under a reader mid-scan. */
+.vote-overview__update {
+  border-color: color-mix(in oklch, var(--arena, var(--gold)) 48%, transparent);
+  background: color-mix(in oklch, var(--arena, var(--gold)) 11%, transparent);
+}
+
+@media (max-width: 900px) {
+  .vote-overview__standings { grid-template-columns: 1fr; }
+  .vote-overview__leader-portrait { aspect-ratio: 16 / 10; }
+}
+@media (max-width: 620px) {
+  .vote-overview__rank-row { grid-template-columns: 1.8rem 40px minmax(0, 1fr) auto; }
+  .vote-overview__number { display: none; }
+  .vote-overview__rank-portrait { width: 40px; height: 40px; }
+  .vote-overview__rank-bar { grid-column: 2 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vote-overview__rank-bar-fill, .vote-overview__rank-row { transition: none; }
 }

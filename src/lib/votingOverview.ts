@@ -1,4 +1,5 @@
-import { type Candidate, type ContestArena } from '../data/pageant';
+import { type ContestArena } from '../data/pageant';
+import { entriesForArena, type VoteEntry } from './arenaEntries';
 
 export type VotingOverviewEntry = {
   id: string;
@@ -31,25 +32,29 @@ export type VotingOverviewSource = {
 const SIMULATION_TARGETS = [0, 1, 2, 0, 2, 1] as const;
 const SIMULATION_INCREMENTS = [2, 1, 3, 1, 2, 1] as const;
 
-function createEntry(candidate: Candidate, votes: number): VotingOverviewEntry {
+/* The four programmes hold different records — a candidate, a booth, a
+   contingent — but arenaEntries already flattens all of them to one shape, so
+   the overview reads from that rather than from Candidate directly. `origin`
+   is the town or district in every case, which is what the standings show. */
+function createEntry(entry: VoteEntry, votes: number): VotingOverviewEntry {
   return {
-    id: candidate.id,
-    number: candidate.number,
-    name: candidate.name,
-    location: candidate.location,
-    image: candidate.image,
+    id: entry.id,
+    number: entry.number,
+    name: entry.name,
+    location: entry.origin,
+    image: entry.image ?? '',
     votes,
   };
 }
 
 export function createVotingOverviewSnapshot(
   arenaId: ContestArena['id'],
-  candidates: Candidate[],
+  source_entries: VoteEntry[],
   tallies: Record<string, number>,
   source: VotingOverviewSnapshot['source'],
   updatedAt = Date.now(),
 ): VotingOverviewSnapshot {
-  const entries = candidates.map((candidate) => createEntry(candidate, tallies[candidate.id] ?? candidate.votes));
+  const entries = source_entries.map((entry) => createEntry(entry, tallies[entry.id] ?? entry.votes));
   const totalVotes = entries.reduce((sum, entry) => sum + entry.votes, 0);
 
   return {
@@ -81,19 +86,22 @@ export function rankVotingOverviewEntries(snapshot: VotingOverviewSnapshot): Ran
 }
 
 export function createSimulatedVotingSource(
-  candidates: Candidate[],
+  arenaId: ContestArena['id'],
   initialTallies: Record<string, number>,
   intervalMs = 6000,
+  /* Defaults to the whole programme. Overridable so the deterministic tick
+     can be tested against a small, fixed set rather than the live roster. */
+  candidates: VoteEntry[] = entriesForArena(arenaId),
 ): VotingOverviewSource {
   let tallies = { ...initialTallies };
   let updatedAt = Date.now();
-  let snapshot = createVotingOverviewSnapshot('hara', candidates, tallies, 'simulation', updatedAt);
+  let snapshot = createVotingOverviewSnapshot(arenaId, candidates, tallies, 'simulation', updatedAt);
   const listeners = new Set<(snapshot: VotingOverviewSnapshot) => void>();
   let timer: ReturnType<typeof setInterval> | null = null;
   let sequenceIndex = 0;
 
   const emit = () => {
-    snapshot = createVotingOverviewSnapshot('hara', candidates, tallies, 'simulation', updatedAt);
+    snapshot = createVotingOverviewSnapshot(arenaId, candidates, tallies, 'simulation', updatedAt);
     for (const listener of listeners) {
       listener(snapshot);
     }

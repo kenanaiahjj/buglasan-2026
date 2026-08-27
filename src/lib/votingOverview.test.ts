@@ -1,3 +1,4 @@
+import { entriesForArena } from './arenaEntries';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { haraCandidates } from '../data/pageant';
 import {
@@ -10,7 +11,7 @@ describe('voting overview calculations', () => {
   it('builds totals and deterministic ranking from the Hara tally', () => {
     const snapshot = createVotingOverviewSnapshot(
       'hara',
-      haraCandidates.slice(0, 3),
+      entriesForArena('hara').slice(0, 3),
       { 'c-01': 10, 'c-02': 10, 'c-03': 3 },
       'simulation',
       123,
@@ -41,9 +42,10 @@ describe('simulated voting overview source', () => {
 
   it('emits one deterministic update and stops after unsubscribe', () => {
     const source = createSimulatedVotingSource(
-      haraCandidates.slice(0, 3),
+      'hara',
       { 'c-01': 10, 'c-02': 8, 'c-03': 3 },
       6000,
+      entriesForArena('hara').slice(0, 3),
     );
     const listener = vi.fn();
     const unsubscribe = source.subscribe(listener);

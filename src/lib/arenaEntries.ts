@@ -47,6 +47,18 @@ export type ArenaVoteConfig = {
   prompt: string;
 };
 
+/**
+ * What each programme is called on screen.
+ *
+ * `shortTitle` is "Hara sa Dumaguete" in the data, but the programme is
+ * presented province-wide, so every surface shows "Hara sa Negros Oriental".
+ * That override lived privately inside LandingPage; sharing it here keeps the
+ * hero cards, the ballot and the overview from disagreeing about the name.
+ */
+export function arenaDisplayName(arena: ContestArena): string {
+  return arena.id === 'hara' ? 'Hara sa Negros Oriental' : arena.shortTitle;
+}
+
 export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
   hara: {
     allowance: 1,

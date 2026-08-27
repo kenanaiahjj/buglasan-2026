@@ -58,10 +58,12 @@ describe('hero arena card treatment', () => {
     // The row rests low and climbs on hover; the travel is the peek.
     expect(styles).toMatch(/\.hero-arena-card\s*\{[\s\S]*?transform:\s*translateY\(var\(--card-rest/);
     expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?transform:\s*translateY\(-\d+px\);/);
-    // The chapter blends out of the hero with a top-down darkening ramp and
-    // no dividing rule — the literal first stop is a tuning value, not the
-    // contract.
-    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?linear-gradient\(180deg,[\s\S]*?rgba\(4, 12, 8, 0\)/);
+    // The chapter blends out of the hero with a dark, top-down ramp and no
+    // dividing rule. Its frost veil sits behind the content, so the scene
+    // remains present without competing with the copy.
+    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?isolation:\s*isolate;[\s\S]*?linear-gradient\(180deg,[\s\S]*?rgba\(1, 7, 4, \.66\)/);
+    expect(styles).toMatch(/\.contests-chapter::before\s*\{[\s\S]*?backdrop-filter:\s*blur\(18px\) saturate\(78%\);/);
+    expect(styles).toMatch(/\.contests-chapter\s*>\s*\.chapter-shell\s*\{[\s\S]*?position:\s*relative;[\s\S]*?z-index:\s*1;/);
     expect(styles).not.toMatch(/\.contests-chapter\s*\{[^}]*border-top:[^}]*rgba\(247, 211, 119/);
     expect(styles).toContain('cursor: url("data:image/svg+xml,');
     expect(styles).toContain('VOTE%20NOW');
@@ -101,7 +103,9 @@ describe('Hara gallery card sizing', () => {
   });
 
   it('uses flat main-page utility controls instead of pills', () => {
-    const utilityBlock = styles.match(/\.hara-gallery__home,\s*\.hara-gallery__how-to summary\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    // Tolerates extra selectors sharing the rule (e.g. __overview) — the
+    // contract is the declarations, not the exact selector list.
+    const utilityBlock = styles.match(/\.hara-gallery__home,[\s\S]*?\.hara-gallery__how-to summary\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
     expect(utilityBlock).toContain('min-height: 44px;');
     expect(utilityBlock).toContain('border: 0;');
@@ -109,7 +113,7 @@ describe('Hara gallery card sizing', () => {
     expect(utilityBlock).toContain('background: transparent;');
     expect(utilityBlock).toContain('text-transform: uppercase;');
     expect(styles).toMatch(
-      /\.hara-gallery__home:hover,\s*\.hara-gallery__how-to summary:hover,\s*\.hara-gallery__how-to\[open\] summary\s*\{[\s\S]*?color:\s*var\(--crown-gold-light\);/,
+      /\.hara-gallery__home:hover,[\s\S]*?\.hara-gallery__how-to summary:hover,\s*\.hara-gallery__how-to\[open\] summary\s*\{[\s\S]*?color:\s*var\(--crown-gold-light\);/,
     );
   });
 

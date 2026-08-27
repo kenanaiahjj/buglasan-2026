@@ -53,7 +53,7 @@ describe('VotingOverviewPage', () => {
     const html = renderToStaticMarkup(
       <VotingOverviewPage
         arena={hara}
-        onBackToHara={() => undefined}
+        onBackToProgram={() => undefined}
         onBackToHub={() => undefined}
         tallies={getTallies()}
       />,
@@ -65,14 +65,14 @@ describe('VotingOverviewPage', () => {
     expect(html).toContain('Currently leading');
     expect(html).toContain('Total votes');
     expect(html).toContain(pageantContent.votingDeadline);
-    expect(html.match(/class="hara-overview__rank-row"/g)).toHaveLength(12);
+    expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(12);
     expect(html).toContain('aria-live="polite"');
-    expect(html).toContain('Back to Hara');
+    expect(html).toContain('Back to Hara sa Negros Oriental');
     expect(html).toContain('Festival Hub');
-    expect(html).toContain('class="hara-overview__utility-button"');
-    expect(html).toContain('class="hara-overview__hero hara-overview__animate"');
-    expect(html).not.toContain('class="hara-overview__utility-button" style=');
-    expect(html).not.toContain('class="hara-overview__hero hara-overview__animate" style=');
+    expect(html).toContain('class="vote-overview__utility-button"');
+    expect(html).toContain('class="vote-overview__hero vote-overview__animate"');
+    expect(html).not.toContain('class="vote-overview__utility-button" style=');
+    expect(html).not.toContain('class="vote-overview__hero vote-overview__animate" style=');
   });
 
   it('adds and clears update markers only for rows whose vote totals changed', () => {
@@ -84,20 +84,20 @@ describe('VotingOverviewPage', () => {
       root.render(
         <VotingOverviewPage
           arena={getHaraArena()}
-          onBackToHara={() => undefined}
+          onBackToProgram={() => undefined}
           onBackToHub={() => undefined}
           tallies={getTallies()}
         />,
       );
     });
 
-    expect(container.querySelectorAll('.hara-overview__rank-row.hara-overview__update')).toHaveLength(0);
+    expect(container.querySelectorAll('.vote-overview__rank-row.vote-overview__update')).toHaveLength(0);
 
     act(() => {
       vi.advanceTimersByTime(6000);
     });
 
-    const updatedRows = container.querySelectorAll('.hara-overview__rank-row.hara-overview__update');
+    const updatedRows = container.querySelectorAll('.vote-overview__rank-row.vote-overview__update');
     expect(updatedRows).toHaveLength(1);
     expect(updatedRows[0]?.getAttribute('data-candidate-id')).toBe('c-01');
 
@@ -105,7 +105,7 @@ describe('VotingOverviewPage', () => {
       vi.advanceTimersByTime(1400);
     });
 
-    expect(container.querySelectorAll('.hara-overview__rank-row.hara-overview__update')).toHaveLength(0);
+    expect(container.querySelectorAll('.vote-overview__rank-row.vote-overview__update')).toHaveLength(0);
 
     act(() => {
       root.unmount();
@@ -124,7 +124,7 @@ describe('VotingOverviewPage', () => {
       root.render(
         <VotingOverviewPage
           arena={getHaraArena()}
-          onBackToHara={() => undefined}
+          onBackToProgram={() => undefined}
           onBackToHub={() => undefined}
           tallies={getTallies()}
         />,
@@ -135,7 +135,7 @@ describe('VotingOverviewPage', () => {
       vi.advanceTimersByTime(6000);
     });
 
-    expect(container.querySelectorAll('.hara-overview__rank-row.hara-overview__update')).toHaveLength(0);
+    expect(container.querySelectorAll('.vote-overview__rank-row.vote-overview__update')).toHaveLength(0);
 
     act(() => {
       root.unmount();
