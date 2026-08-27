@@ -13,11 +13,13 @@ function getTallies() {
   return Object.fromEntries(haraCandidates.map((candidate) => [candidate.id, candidate.votes]));
 }
 
-function setMatchMedia(matches: boolean) {
+const originalMatchMedia = window.matchMedia;
+
+function setReducedMotion(enabled: boolean) {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: vi.fn().mockImplementation((query: string) => ({
-      matches,
+      matches: query === '(prefers-reduced-motion: reduce)' ? enabled : false,
       media: query,
       onchange: null,
       addEventListener: vi.fn(),
@@ -33,13 +35,17 @@ describe('VotingOverviewPage', () => {
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     vi.useFakeTimers();
-    setMatchMedia(true);
+    setReducedMotion(false);
   });
 
   afterEach(() => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: originalMatchMedia,
+    });
   });
 
   it('renders the simulated Hara standings for event display', () => {
@@ -97,6 +103,36 @@ describe('VotingOverviewPage', () => {
 
     act(() => {
       vi.advanceTimersByTime(1400);
+    });
+
+    expect(container.querySelectorAll('.hara-overview__rank-row.hara-overview__update')).toHaveLength(0);
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it('suppresses update markers in reduced-motion mode', () => {
+    setReducedMotion(true);
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <VotingOverviewPage
+          arena={getHaraArena()}
+          onBackToHara={() => undefined}
+          onBackToHub={() => undefined}
+          tallies={getTallies()}
+        />,
+      );
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(6000);
     });
 
     expect(container.querySelectorAll('.hara-overview__rank-row.hara-overview__update')).toHaveLength(0);

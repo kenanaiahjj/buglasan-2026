@@ -24,6 +24,10 @@ const timeFormatter = new Intl.DateTimeFormat('en-US', {
   second: '2-digit',
 });
 
+function prefersReducedMotion(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 function formatShare(value: number): string {
   return `${percentFormatter.format(value * 100)}%`;
 }
@@ -53,7 +57,7 @@ export function VotingOverviewPage({
 
   useEffect(() => {
     const shell = shellRef.current;
-    if (!shell || typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!shell || prefersReducedMotion()) {
       return undefined;
     }
 
@@ -67,6 +71,18 @@ export function VotingOverviewPage({
   useEffect(() => {
     const currentVotes = Object.fromEntries(snapshot.entries.map((entry) => [entry.id, entry.votes]));
     const previousVotes = previousVotesRef.current;
+
+    if (prefersReducedMotion()) {
+      if (clearUpdatesTimeoutRef.current !== null) {
+        clearTimeout(clearUpdatesTimeoutRef.current);
+        clearUpdatesTimeoutRef.current = null;
+      }
+      if (updatedEntryIds.length > 0) {
+        setUpdatedEntryIds([]);
+      }
+      previousVotesRef.current = currentVotes;
+      return;
+    }
 
     if (previousVotes) {
       const changedEntryIds = snapshot.entries
@@ -86,7 +102,7 @@ export function VotingOverviewPage({
     }
 
     previousVotesRef.current = currentVotes;
-  }, [snapshot]);
+  }, [snapshot, updatedEntryIds.length]);
 
   useEffect(() => () => {
     if (clearUpdatesTimeoutRef.current !== null) {
