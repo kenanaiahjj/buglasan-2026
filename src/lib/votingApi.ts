@@ -15,6 +15,9 @@
  *  - **Every order carries an idempotency key.** A retried request, a double
  *    tap, a flaky network — all of them must settle to one charge and one set
  *    of votes. The key is derived from the order, not generated per attempt.
+ *  - **Hosted checkout owns payment details.** The optional return URL is only
+ *    a navigation hint; the backend must allowlist it and confirm payment from
+ *    its gateway webhook.
  *
  * The tally is deliberately server-owned. A client that can add to a public
  * count is a client that can invent one, so `getTally` reads and nothing here
@@ -22,14 +25,16 @@
  */
 
 import type { ContestArena } from '../data/pageant';
+import { entriesForArena } from './arenaEntries';
 import type { PaymentMethodId } from './voteFlow';
+import { isLiveVoting, votingApiBaseUrl, votingReturnUrl } from './votingConfig';
 
 export type ArenaId = ContestArena['id'];
 
 export type VoteOrderRequest = {
   arenaId: ArenaId;
   entryId: string;
-  /** How many votes are being bought. The server prices them; see below. */
+  /** How many positive whole-number votes are being bought. The server prices them. */
   quantity: number;
   /** Ten-digit national significant number, no leading zero, no country code. */
   mobile: string;
@@ -40,12 +45,17 @@ export type VoteOrderRequest = {
    * Expected charge in centavos, as the client computed it.
    *
    * Sent so a mismatch can be caught, never trusted: the server prices the
-   * order from its own table and rejects with `price_mismatch` if the two
+   * order from its own one-vote price and rejects with `price_mismatch` if the two
    * disagree. A client that sets the price is a client that sets it to zero.
    */
   expectedAmountCentavos: number;
   /** Stable across retries of the same order. See the note above. */
   idempotencyKey: string;
+  /**
+   * Where the hosted checkout can send the supporter back after payment.
+   * Treat this as an allowlisted navigation hint, never as proof of payment.
+   */
+  returnUrl?: string;
 };
 
 export type VoteOrderStatus = 'pending' | 'confirmed' | 'failed' | 'expired';
@@ -117,6 +127,20 @@ export type VotingApi = {
    */
   openTallyStream?(arenaId: ArenaId, onSnapshot: (snapshot: TallySnapshot) => void): () => void;
 };
+
+/**
+ * Resolve the browser destination for a hosted checkout return.
+ *
+ * A deployment can provide one canonical route with `VITE_VOTING_RETURN_URL`.
+ * Otherwise the current page preserves the programme the supporter started
+ * from. The backend must still validate the value against its own allowlist.
+ */
+export function resolveVotingReturnUrl(currentUrl?: string): string | undefined {
+  const configured = votingReturnUrl();
+  if (configured !== '') return configured;
+  if (currentUrl !== undefined) return currentUrl;
+  return typeof window !== 'undefined' ? window.location.href : undefined;
+}
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
@@ -285,7 +309,20 @@ export function createDemoVotingApi({ latencyMs = 650, tallies = {} }: DemoVotin
   };
 }
 
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]', '']);
+
 let resolved: VotingApi | null = null;
+
+const DEMO_ARENA_IDS: ArenaId[] = ['hara', 'booths', 'festival', 'gandang'];
+
+function seedDemoTallies(): Partial<Record<ArenaId, Record<string, number>>> {
+  return Object.fromEntries(
+    DEMO_ARENA_IDS.map((arenaId) => [
+      arenaId,
+      Object.fromEntries(entriesForArena(arenaId).map((entry) => [entry.id, entry.votes])),
+    ]),
+  ) as Partial<Record<ArenaId, Record<string, number>>>;
+}
 
 /**
  * The client the app uses.
@@ -297,11 +334,24 @@ let resolved: VotingApi | null = null;
 export function resolveVotingApi(): VotingApi {
   if (resolved !== null) return resolved;
 
-  const baseUrl = import.meta.env?.VITE_VOTING_API_URL;
-  resolved = typeof baseUrl === 'string' && baseUrl !== ''
-    ? createHttpVotingApi({ baseUrl })
-    : createDemoVotingApi();
+  if (isLiveVoting()) {
+    resolved = createHttpVotingApi({ baseUrl: votingApiBaseUrl() });
+    return resolved;
+  }
 
+  /* The demo client charges nothing and counts nothing. That is correct for a
+     prototype and catastrophic in production, and an unset environment
+     variable is a quiet way to arrive there — so say so, loudly, anywhere
+     that is not a developer's own machine. */
+  if (typeof window !== 'undefined' && !LOCAL_HOSTS.has(window.location.hostname)) {
+    console.error(
+      '[voting] VITE_VOTING_API_URL is not set, so votes are being settled by the '
+      + 'in-memory demo client: nothing is charged and no tally is recorded. '
+      + 'Set it to the voting service before taking real votes. See VOTING_API.md.',
+    );
+  }
+
+  resolved = createDemoVotingApi();
   return resolved;
 }
 

@@ -11,6 +11,28 @@ describe('primary CTA geometry', () => {
     expect(styles).toMatch(/\.crown-floating-dots-button::after\s*\{[^}]*border-radius:\s*999px;/);
   });
 });
+describe('scrolled landing header', () => {
+  it('adds a dark blurred surface behind the fixed navigation', () => {
+    const headerBlock = styles.match(/\.crown-header\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const scrolledBlock = styles.match(/\.crown-header\.is-scrolled\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(headerBlock).toContain('backdrop-filter: blur(0) saturate(100%);');
+    expect(headerBlock).toContain('transition:');
+    expect(scrolledBlock).toContain('background-color: rgba(1, 8, 5, .78);');
+    expect(scrolledBlock).toContain('backdrop-filter: blur(16px) saturate(125%);');
+    expect(scrolledBlock).toContain('box-shadow:');
+    expect(scrolledBlock).not.toContain('inset 0 -1px 0 rgba(255, 255, 255, .06)');
+  });
+});
+describe('mobile landing footer', () => {
+  it('removes the footer from the mobile composition', () => {
+    const mobileBlock = styles.match(/@media \(max-width:\s*760px\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    /* The footer is gone at every width, not hidden at some of them — no
+       element, no rules, nothing to override. */
+    expect(styles).not.toContain('crown-footer');
+  });
+});
 describe('voting overview podium', () => {
   it('keeps first place featured and stacks the podium at narrow frame sizes', () => {
     const podiumName = styles.match(/\.vote-overview__podium-card-name\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
@@ -31,6 +53,16 @@ describe('voting overview podium', () => {
     );
     expect(podiumName).toContain('white-space: normal;');
   });
+
+  it('gives secondary portraits a full-width square media slot', () => {
+    const cardBlock = styles.match(/\.vote-overview__podium-card\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const mediaBlock = styles.match(/\.vote-overview__podium-card-media\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(cardBlock).toContain('grid-template-columns: minmax(0, 1fr);');
+    expect(cardBlock).toContain('grid-template-rows: minmax(0, 1fr) auto;');
+    expect(cardBlock).not.toContain('grid-template-columns: 4.2cqw minmax(0, 1fr);');
+    expect(mediaBlock).toContain('aspect-ratio: 1 / 1;');
+  });
 });
 
 describe('shared quiet control hover treatment', () => {
@@ -44,6 +76,22 @@ describe('shared quiet control hover treatment', () => {
     expect(styles).toMatch(/\.crown-nav__link\s*\{[\s\S]*?border-radius:\s*0;/);
     expect(styles).not.toMatch(/\.crown-nav__link:hover\s*\{/);
     expect(styles).not.toMatch(/\.hara-gallery__home:hover,/);
+  });
+
+  it('keeps the how-to-vote button on the shared nav type scale', () => {
+    const navButtonBlock = styles.match(/\.crown-nav button\.crown-nav__link\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(navButtonBlock).not.toContain('font: inherit;');
+  });
+});
+
+describe('native voting location select', () => {
+  it('keeps the opened option list readable against the dark modal', () => {
+    const optionBlock = styles.match(/\.vote-flow__field select option\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(styles).toContain('.vote-flow__field select { color-scheme: dark; }');
+    expect(optionBlock).toContain('color: var(--ink);');
+    expect(optionBlock).toContain('background: var(--surface-2);');
   });
 });
 
@@ -66,27 +114,53 @@ describe('official mark pair sizing', () => {
   });
 });
 
+describe('landing header mark utility', () => {
+  it('keeps the official marks compact and aligned to the right header track', () => {
+    const headerMarks = styles.match(/\.crown-header__marks\.hero-official-marks\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(headerMarks).toContain('--hero-mark-size: clamp(2.5rem, 3.8vw, 3.5rem);');
+    expect(headerMarks).toContain('width: auto;');
+    expect(headerMarks).toContain('justify-self: end;');
+    expect(headerMarks).toContain('margin: 0;');
+    expect(styles).toMatch(
+      /\.crown-header__marks\.hero-official-marks \.hero-official-marks__seal\s*\{[\s\S]*?transform:\s*scale\(1\.22\);/,
+    );
+    expect(styles).toMatch(
+      /\.crown-header__marks\.hero-official-marks \.hero-official-marks__tourism\s*\{[\s\S]*?transform:\s*scale\(\.78\);/,
+    );
+  });
+});
+
 describe('hero arena card treatment', () => {
   it('builds each plaque as an arched niche over a name plate', () => {
-    const cardBlock = styles.match(/\.hero-arena-card\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    /* Anchored on the base rule, not the first `.hero-arena-card {` in the
+       file — the breakpoint overrides now sit above it. */
+    const cardBlock = styles.match(/\.hero-arena-card \{\n  position: relative;([\s\S]*?)\n\}/)?.[1] ?? '';
 
-    expect(cardBlock).toContain('min-height: 336px;');
+    expect(cardBlock).toContain('min-height: 300px;');
     expect(cardBlock).toContain('overflow: hidden;');
     expect(styles).toContain('--hero-card-source-light: rgba(247, 211, 119, .28);');
     expect(styles).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?gap:\s*clamp\(1rem, 1\.8vw, 2rem\);/);
-    // The glass chamber it replaced is gone, not merely hidden.
-    expect(styles).not.toContain('.hero-arena-card::before');
+    /* The glass logo chamber it replaced is gone. `::before` is reused on
+       mobile as the highlight overlay, so check for the chamber's own
+       giveaway rather than the pseudo-element. */
+    expect(styles).not.toMatch(/\.hero-arena-card::before \{[^}]*border-radius: 110px/);
     expect(styles).toContain('.hero-arena-card__arch-edge');
     expect(styles).toContain('.hero-arena-card__plate');
   });
 
-  /* The arch is drawn in a 100x128 viewBox and scaled with
-     preserveAspectRatio="none". That is only safe while the box it scales
-     into carries the same ratio — otherwise the apex skews. */
-  it('matches the niche box to the arch viewBox so the apex cannot skew', () => {
+  it('uses a compact niche ratio without changing the supplied programme marks', () => {
     const niche = styles.match(/\.hero-arena-card__niche\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
-    expect(niche).toMatch(/aspect-ratio:\s*100\s*\/\s*128;/);
+    expect(niche).toMatch(/aspect-ratio:\s*100\s*\/\s*116;/);
+    expect(niche).toContain('min-height: 0;');
+  });
+
+  it('keeps the plaque compact without shrinking its readable title', () => {
+    const plate = styles.match(/\.hero-arena-card__plate\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(plate).toContain('gap: .85rem;');
+    expect(plate).toContain('padding: 1.4rem 1rem 1.6rem;');
   });
 
   it('fits the programme mark inside the niche rather than clamping its axes', () => {
@@ -133,28 +207,65 @@ describe('hero arena card treatment', () => {
     // The row rests low and climbs on hover; the travel is the peek.
     expect(styles).toMatch(/\.hero-arena-card\s*\{[\s\S]*?transform:\s*translateY\(var\(--card-rest/);
     expect(styles).toMatch(/\.hero-arena-card:hover,[\s\S]*?transform:\s*translateY\(-\d+px\);/);
-    // The chapter blends out of the hero with a dark, top-down ramp and no
-    // dividing rule. Its frost veil sits behind the content, so the scene
-    // remains present without competing with the copy.
-    expect(styles).toMatch(/\.contests-chapter\s*\{[\s\S]*?z-index:\s*1;[\s\S]*?isolation:\s*isolate;[\s\S]*?linear-gradient\(180deg,[\s\S]*?rgba\(1, 7, 4, \.66\)/);
-    expect(styles).toMatch(/\.contests-chapter::before\s*\{[\s\S]*?backdrop-filter:\s*blur\(18px\) saturate\(78%\);/);
-    expect(styles).toMatch(/\.contests-chapter\s*>\s*\.chapter-shell\s*\{[\s\S]*?position:\s*relative;[\s\S]*?z-index:\s*1;/);
-    expect(styles).not.toMatch(/\.contests-chapter\s*\{[^}]*border-top:[^}]*rgba\(247, 211, 119/);
     expect(styles).toContain('cursor: url("data:image/svg+xml,');
     expect(styles).toContain('VOTE%20NOW');
-    expect(styles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.crown-hero\s*\{\s*min-height:\s*1080px;\s*padding:\s*122px 18px 3rem;/);
+    /* The hero used to be pinned to 1080px on a phone, which guaranteed a
+       scroll on a page whose only content is the hero. It is one viewport
+       now, and the landing root clips so nothing can grow it back. */
+    expect(styles).toMatch(
+      /@media \(max-width:\s*1180px\)[\s\S]*?\.crown-landing \{\s*height: 100dvh;\s*overflow: hidden;/,
+    );
+    expect(styles).toMatch(/@media \(max-width:\s*1180px\)[\s\S]*?\.crown-hero \{[\s\S]*?height: 100dvh;/);
+    expect(styles).not.toContain('min-height: 1080px');
   });
 
-  it('stacks the hero arena cards on mobile and defines sequential appearance rules', () => {
-    const mobileBlock = styles.match(/@media \(max-width:\s*760px\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  /* The plaques are a desktop affordance. Stacked on a phone each one is
+     most of a screen, so below 1180px they come out and a single CTA opens
+     the contest picker instead. The cut is 1180px, not 1024: below that the
+     four fell to a 2x2 grid 1300px tall, taller than any laptop screen. */
+  it('swaps the plaques for one CTA below 1180px', () => {
+    expect(styles).toContain('.hero-actions { display: none; }');
+    expect(styles).toMatch(
+      /@media \(max-width:\s*1180px\)[\s\S]*?\.crown-hero \.hero-arena-cards \{ display: none; \}[\s\S]*?\.hero-actions \{\s*display: flex;/,
+    );
+  });
 
-    expect(mobileBlock).toMatch(/\.hero-arena-cards\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
-    expect(mobileBlock).not.toMatch(/\.hero-arena-cards\s*\{[\s\S]*?scroll-snap-type:/);
-    expect(mobileBlock).toMatch(/\.hero-arena-card\s*\{[\s\S]*?width:\s*100%;/);
-    expect(mobileBlock).toMatch(/\.hero-arena-card\s*\{[\s\S]*?--card-rest:\s*0px;/);
-    expect(mobileBlock).toMatch(/animation:\s*mobileCardSequence 12s ease-in-out infinite;/);
-    expect(mobileBlock).toMatch(/@keyframes mobileCardSequence/);
-    expect(mobileBlock).toMatch(/@keyframes mobileOutlineSequence/);
+  it('carries no per-card animation for a surface that no longer renders', () => {
+    // The cards used to cycle a highlight on touch — four cards repainting
+    // forever next to a WebGL scene, at widths where they are now hidden.
+    for (const gone of [
+      'mobileCardSequence',
+      'mobileHighlight',
+      'mobileLogoSequence',
+      'mobileOutlineSequence',
+      'mobileLeakSequence',
+    ]) {
+      expect(styles).not.toContain(gone);
+    }
+  });
+});
+
+describe('entry card shape', () => {
+  /* Two of the four programmes photograph one person standing; the other two
+     photograph a building and a line of dancers. A tall crop of either throws
+     away the thing being judged. */
+  it('widens the cell, the card and the frame together for the wide programmes', () => {
+    expect(styles).toMatch(
+      /\.hara-gallery--landscape \.hara-gallery__grid \{\s*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 23rem\), 27rem\)\);/,
+    );
+    expect(styles).toContain('.hara-gallery--landscape .hara-gallery-card { max-width: 27rem; }');
+    expect(styles).toContain('.hara-gallery--landscape .hara-gallery-card__media { aspect-ratio: 4 / 3; }');
+    // Portrait stays the default, so nothing had to change for Hara.
+    expect(styles).toMatch(/\.hara-gallery-card__media \{[\s\S]*?aspect-ratio: 1 \/ 1\.12;/);
+  });
+
+  it('drops a column at the breakpoints rather than crushing the wide cards', () => {
+    expect(styles).toMatch(
+      /@media \(max-width:\s*900px\)[\s\S]*?\.hara-gallery--landscape \.hara-gallery__grid \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hara-gallery--landscape \.hara-gallery__grid \{ grid-template-columns: minmax\(0, 1fr\); \}/,
+    );
   });
 });
 
@@ -243,32 +354,18 @@ describe('Hara gallery card sizing', () => {
   });
 });
 
-describe('programme index treatment', () => {
-  it('sets the programmes as a bill rather than a grid of cards', () => {
-    // Cards, and everything that had to be invented to fill them, are gone.
+describe('landing programme index removal', () => {
+  it('keeps the redundant lower programme surface out of the stylesheet', () => {
     for (const gone of [
+      '.contests-chapter',
+      '.programme-index',
+      '.programme-row',
       '.contest-screen-card',
       '.contest-screens-grid',
       '.contests-footer-callout',
     ]) {
       expect(styles).not.toContain(gone);
     }
-
-    const row = styles.match(/\.programme-row\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
-
-    // Hairline rules, no box: a row is not a card and must not grow one.
-    expect(row).toContain('border-bottom: 1px solid var(--line-soft);');
-    expect(row).toContain('background: none;');
-    expect(row).not.toMatch(/box-shadow/);
-    expect(row).not.toMatch(/border-radius/);
-  });
-
-  it('keeps the row reachable and legible on a phone', () => {
-    expect(styles).toMatch(/\.programme-row:focus-visible \{[\s\S]*?outline:\s*2px solid/);
-    // Facts drop under the name rather than squeezing the column.
-    expect(styles).toMatch(
-      /@media \(max-width:\s*720px\)[\s\S]*?\.programme-row__facts \{[\s\S]*?grid-row:\s*3;/,
-    );
   });
 });
 
@@ -307,5 +404,13 @@ describe('subpage color themes', () => {
     // Hara: Kept 100% as is (no filter, no tint)
     expect(styles).toMatch(/\.festival-scene--hara\s+\.festival-scene__canvas\s*\{[\s\S]*?filter:\s*none;/);
     expect(styles).toMatch(/\.festival-scene--hara\s+\.festival-scene__tint\s*\{[\s\S]*?display:\s*none;/);
+  });
+
+  it('gives the home scene a warm gold wash that fades into the dark edge', () => {
+    const homeBlock = styles.match(/\.festival-scene--home\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(homeBlock).toContain('var(--gold-deep)');
+    expect(homeBlock).toContain('var(--gold-bright)');
+    expect(homeBlock).toContain('#020B06');
   });
 });

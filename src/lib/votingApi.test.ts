@@ -14,8 +14,9 @@ const order: VoteOrderRequest = {
   mobile: '9171234567',
   origin: 'Bais City',
   method: 'gcash',
-  expectedAmountCentavos: 50_000,
+  expectedAmountCentavos: 2_500,
   idempotencyKey: 'BF26-HA-0DURU50',
+  returnUrl: 'https://app.test/#hara',
 };
 
 function jsonResponse(body: unknown, status = 200) {
@@ -41,7 +42,8 @@ describe('HTTP voting client', () => {
     expect((init.headers as Record<string, string>)['Idempotency-Key']).toBe(order.idempotencyKey);
     expect(JSON.parse(String(init.body))).toMatchObject({
       idempotencyKey: order.idempotencyKey,
-      expectedAmountCentavos: 50_000,
+      expectedAmountCentavos: 2_500,
+      returnUrl: order.returnUrl,
     });
     expect(result.checkoutUrl).toBe('https://pay/1');
   });

@@ -10,7 +10,8 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "fix:logo": "node scripts/fix-logo-matte.mjs",
     "art:landmarks": "node scripts/build-landmarks.mjs",
-    "art:entries": "node scripts/build-entry-art.mjs"
+    "art:entries": "node scripts/build-entry-art.mjs",
+    "art:logos": "node scripts/build-logo-variants.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

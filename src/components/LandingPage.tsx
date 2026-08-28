@@ -2,11 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { Dispatch } from 'react';
 import { useGSAP } from '@gsap/react';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
-import { CalendarBlank } from '@phosphor-icons/react/dist/icons/CalendarBlank';
-import { CheckCircle } from '@phosphor-icons/react/dist/icons/CheckCircle';
-import { Heart } from '@phosphor-icons/react/dist/icons/Heart';
 import { List } from '@phosphor-icons/react/dist/icons/List';
-import { UserCircle } from '@phosphor-icons/react/dist/icons/UserCircle';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -18,9 +14,11 @@ import {
 } from '../data/pageant';
 import type { VoterAction, VoterState } from '../state/voterState';
 import { BrandMark } from './BrandMark';
-import { ContestCard } from './ContestCard';
-import { ArenaVotingPage } from './ArenaVotingPage';
 import { ContestSubpageView } from './ContestSubpageView';
+import { ContestPickerModal } from './ContestPickerModal';
+import { ArchNiche } from './ArchNiche';
+import { VoteCursor } from './VoteCursor';
+import { VoteFlowModal } from './VoteFlowModal';
 import { VotingOverviewPage } from './VotingOverviewPage';
 import { arenaDisplayName } from '../lib/arenaEntries';
 import { enter } from '../lib/enter';
@@ -38,21 +36,27 @@ const SCENE_STOPS = 2;
 const HERO_ARENA_ORDER = ['hara', 'gandang', 'booths', 'festival'] as const satisfies readonly ContestArena['id'][];
 const heroContestArenas = HERO_ARENA_ORDER.map((id) => contestArenas.find((arena) => arena.id === id)!);
 const heroArenaLabel = (arena: ContestArena) => arenaDisplayName(arena);
+const defaultGuideArena = contestArenas.find((arena) => arena.id === 'hara') ?? contestArenas[0];
 
-const VOTE_STEPS = [
-  { title: 'Enter', copy: 'Log in with your email or mobile number.', Icon: UserCircle },
-  { title: 'Choose', copy: 'Meet the official candidates and choose your favorite.', Icon: Heart },
-  { title: 'Confirm', copy: 'Review your choice before sending today’s verified vote.', Icon: CheckCircle },
-  { title: 'Return', copy: 'Come back tomorrow and keep the provincial journey moving.', Icon: CalendarBlank },
-] as const;
-
-function SceneFallback({ quiet = false }: { quiet?: boolean }) {
+function SceneFallback({ quiet = false, arenaId }: { quiet?: boolean; arenaId?: string }) {
   return (
-    <div className={`festival-scene festival-scene--fallback${quiet ? ' is-quiet' : ''}`} data-scene-mode={quiet ? 'quiet' : 'full'}>
+    <div
+      className={`festival-scene festival-scene--fallback${quiet ? ' is-quiet' : ''}${arenaId ? ` festival-scene--${arenaId}` : ' festival-scene--home'}`}
+      data-arena={arenaId ?? 'hub'}
+      data-scene-mode={quiet ? 'quiet' : 'full'}
+    >
       <canvas className="festival-scene__canvas" role="img" aria-label="Crown of Light festival scene" />
+      <div className="festival-scene__tint" aria-hidden="true" />
       <picture aria-hidden={quiet} className="festival-scene__fallback-logo" data-centerpiece="official-logo">
-        <source srcSet={BUGLASAN_HERO_LOGO.src} type="image/png" />
-        <img alt="Buglasan Festival 2026" src={BUGLASAN_HERO_LOGO.src} width={BUGLASAN_HERO_LOGO.width} height={BUGLASAN_HERO_LOGO.height} />
+        {/* WebP variants first, the 3198px original as the fallback. A phone
+            picking the original decodes ~21 MB for a mark drawn at 54vw. */}
+        <source sizes={BUGLASAN_HERO_LOGO.sizes} srcSet={BUGLASAN_HERO_LOGO.srcSet} type="image/webp" />
+        <img
+          alt="Buglasan Festival 2026"
+          height={BUGLASAN_HERO_LOGO.height}
+          src={BUGLASAN_HERO_LOGO.src}
+          width={BUGLASAN_HERO_LOGO.width}
+        />
       </picture>
       <div className="festival-scene__vignette" aria-hidden="true" />
     </div>
@@ -66,8 +70,21 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const sceneProgressRef = useRef(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSubpage, setActiveSubpage] = useState<ContestArena['id'] | null>(null);
-  const [activeVote, setActiveVote] = useState<ContestArena['id'] | null>(null);
   const [activeOverview, setActiveOverview] = useState<ContestArena['id'] | null>(null);
+  const [showHowToVote, setShowHowToVote] = useState(false);
+  const [showContestPicker, setShowContestPicker] = useState(false);
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateHeaderScroll = () => {
+      setIsHeaderScrolled(window.scrollY > 24);
+    };
+
+    updateHeaderScroll();
+    window.addEventListener('scroll', updateHeaderScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', updateHeaderScroll);
+  }, []);
 
   // Synchronize hash with subpages if present
   useEffect(() => {
@@ -79,22 +96,29 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         const id = overviewMatch[1] as ContestArena['id'];
         setActiveOverview(id);
         setActiveSubpage(id);
-        setActiveVote(null);
-        window.scrollTo(0, 0);
-      } else if (hash.startsWith('vote-') && arenaIds.includes(hash.slice(5))) {
-        setActiveOverview(null);
-        setActiveVote(hash.slice(5) as ContestArena['id']);
-        setActiveSubpage(null);
         window.scrollTo(0, 0);
       } else if (arenaIds.includes(hash)) {
         setActiveOverview(null);
         setActiveSubpage(hash as ContestArena['id']);
-        setActiveVote(null);
         window.scrollTo(0, 0);
-      } else if (hash === 'festival' || hash === 'contests' || hash === 'candidates' || hash === '') {
+      } else if (hash === 'home' || hash === 'contests') {
+        /* The hero's own anchor, and what Home points at. It used to be
+           `#festival`, which is also an arena id — the arena test above always
+           won, so Home opened the Festival of Festivals page. One string, two
+           meanings; the hero got its own name. `#contests` remains a safe
+           legacy bookmark and now lands on the hero's four contest cards. */
         setActiveOverview(null);
         setActiveSubpage(null);
-        setActiveVote(null);
+        window.scrollTo(0, 0);
+      } else {
+        /* Anything else is a landing-page anchor (#vote), an empty hash, or a
+           stale link — `#vote-<arena>` used to be a route here and bookmarks
+           of it will still arrive. Falling through without clearing state left
+           whatever view was already up, so an unrecognised hash quietly did
+           nothing. It goes home instead, without stealing the scroll from a
+           real in-page anchor. */
+        setActiveOverview(null);
+        setActiveSubpage(null);
       }
     };
     handleHash();
@@ -105,31 +129,20 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const openSubpage = (id: ContestArena['id']) => {
     setActiveOverview(null);
     setActiveSubpage(id);
-    setActiveVote(null);
     window.location.hash = id;
-    window.scrollTo(0, 0);
-  };
-
-  const openVoting = (id: ContestArena['id']) => {
-    setActiveOverview(null);
-    setActiveVote(id);
-    setActiveSubpage(null);
-    window.location.hash = `vote-${id}`;
     window.scrollTo(0, 0);
   };
 
   const closeSubpage = () => {
     setActiveOverview(null);
     setActiveSubpage(null);
-    setActiveVote(null);
-    window.location.hash = 'contests';
+    window.location.hash = 'home';
     window.scrollTo(0, 0);
   };
 
   const openOverview = (id: ContestArena['id']) => {
     setActiveOverview(id);
     setActiveSubpage(id);
-    setActiveVote(null);
     window.location.hash = `${id}/overview`;
     window.scrollTo(0, 0);
   };
@@ -142,9 +155,19 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
     window.scrollTo(0, 0);
   };
 
-  const goLogin = () => {
+  const openContestPicker = () => {
     setMenuOpen(false);
-    dispatch({ type: 'navigate', view: 'login' });
+    setShowContestPicker(true);
+  };
+
+  const selectContest = (id: ContestArena['id']) => {
+    setShowContestPicker(false);
+    openSubpage(id);
+  };
+
+  const openHowToVote = () => {
+    setMenuOpen(false);
+    setShowHowToVote(true);
   };
 
   useEffect(() => {
@@ -167,7 +190,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
 
   useGSAP(
     () => {
-      if (activeSubpage || activeVote || activeOverview) return undefined;
+      if (activeSubpage || activeOverview) return undefined;
       const root = rootRef.current;
       if (!root) return undefined;
 
@@ -203,7 +226,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         sceneTrigger.kill();
       };
     },
-    { scope: rootRef, dependencies: [activeOverview, activeSubpage, activeVote] },
+    { scope: rootRef, dependencies: [activeOverview, activeSubpage] },
   );
 
   /**
@@ -217,7 +240,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
    */
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || activeSubpage || activeVote || activeOverview) return undefined;
+    if (!root || activeSubpage || activeOverview) return undefined;
     if (typeof window.matchMedia !== 'function') return undefined;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
 
@@ -249,31 +272,28 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
       observer?.disconnect();
       root.removeAttribute('data-reveal-armed');
     };
-  }, [activeOverview, activeSubpage, activeVote]);
+  }, [activeOverview, activeSubpage]);
 
   const closeMenu = () => setMenuOpen(false);
 
+  const currentArenaId = activeSubpage ?? activeOverview ?? undefined;
+
   const scene = (
-    <Suspense fallback={<SceneFallback quiet={Boolean(activeOverview || activeSubpage || activeVote)} />}>
-      <FestivalScene progressRef={sceneProgressRef} quiet={Boolean(activeOverview || activeSubpage || activeVote)} />
+    <Suspense fallback={<SceneFallback arenaId={currentArenaId} quiet={Boolean(activeOverview || activeSubpage)} />}>
+      <FestivalScene
+        arenaId={currentArenaId}
+        progressRef={sceneProgressRef}
+        quiet={Boolean(activeOverview || activeSubpage)}
+      />
     </Suspense>
   );
 
-  const activeArena = contestArenas.find((a) => a.id === (activeVote ?? activeOverview ?? activeSubpage)) ?? contestArenas[0];
+  const activeArena = contestArenas.find((a) => a.id === (activeOverview ?? activeSubpage)) ?? contestArenas[0];
 
   return (
     <>
       {scene}
-      {activeVote ? (
-        <ArenaVotingPage
-          arena={activeArena}
-          arenas={contestArenas}
-          dispatch={dispatch}
-          onBack={closeSubpage}
-          onSwitchArena={openVoting}
-          state={state}
-        />
-      ) : activeOverview ? (
+      {activeOverview ? (
         <VotingOverviewPage
           arena={activeArena}
           onBackToHub={closeSubpage}
@@ -287,13 +307,17 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           onBackToHub={closeSubpage}
           onOpenOverview={() => openOverview(activeArena.id)}
           onSwitchArena={(id) => openSubpage(id)}
-          onVote={openVoting}
+          tallies={state.arenaTallies[activeArena.id]}
         />
       ) : (
       <main className="crown-landing" ref={rootRef}>
 
+      {/* Follows the pointer across the plaque row. Mounted here rather than
+          inside the row so it can outlive any one card's hover. */}
+      <VoteCursor />
+
       {/* Ultra-Premium Glass Floating Header */}
-      <header className="crown-header" aria-label="Buglasan Festival header">
+      <header className={`crown-header${isHeaderScrolled ? ' is-scrolled' : ''}`} aria-label="Buglasan Festival header">
         <div className="crown-header__container">
           {/* The WebGL wordmark flies into this slot as the hero scrolls away.
               The DOM mark stays hidden until the flight lands, then takes over
@@ -301,29 +325,38 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           <a
             className="crown-header__brand"
             data-scene-dock
-            href="#festival"
+            href="#home"
             aria-label="Buglasan Festival home"
           >
             <BrandMark compact official />
           </a>
 
           <nav className="crown-nav" aria-label="Main navigation">
-            <a className="crown-nav__link" href="#festival">
-              <span>Festival</span>
+            <a className="crown-nav__link crown-quiet-control" href="#home">
+              <span>Home</span>
             </a>
-            <a className="crown-nav__link" href="#contests">
-              <span>Contests</span>
-            </a>
-            <a className="crown-nav__link" href="#vote">
+            <button className="crown-nav__link crown-quiet-control" onClick={openHowToVote} type="button">
               <span>How to vote</span>
-            </a>
+            </button>
           </nav>
 
-          <div className="crown-header__actions">
-            <button className="crown-header__cta-button crown-floating-dots-button" onClick={goLogin} type="button">
-              <span>Vote now</span>
-              <ArrowRight aria-hidden="true" size={15} weight="bold" />
-            </button>
+          <div aria-label="Official provincial marks" className="crown-header__marks hero-official-marks hero-official-marks--header" role="group">
+            <img
+              alt="Negros Oriental Tourism logo"
+              className="hero-official-marks__tourism"
+              decoding="async"
+              height={2048}
+              src="/assets/official-marks/negros-oriental-tourism-logo.png"
+              width={2048}
+            />
+            <img
+              alt="Province of Negros Oriental official seal"
+              className="hero-official-marks__seal"
+              decoding="async"
+              height={2460}
+              src="/assets/official-marks/province-of-negros-oriental-seal-transparent.png"
+              width={2480}
+            />
           </div>
 
           <button
@@ -345,18 +378,14 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         <div className="crown-mobile-nav-shell" id="crown-mobile-nav">
           <nav aria-label="Mobile navigation" className="crown-mobile-nav" ref={mobileNavRef}>
             <div className="mobile-nav-group-label">Navigation</div>
-            <a href="#festival" onClick={closeMenu}>
-              <strong>Festival</strong>
+            <a href="#home" onClick={closeMenu}>
+              <strong>Home</strong>
               <ArrowRight aria-hidden="true" size={19} weight="light" />
             </a>
-            <a href="#contests" onClick={closeMenu}>
-              <strong>Contests</strong>
-              <ArrowRight aria-hidden="true" size={19} weight="light" />
-            </a>
-            <a href="#vote" onClick={closeMenu}>
+            <button className="mobile-nav-action" onClick={openHowToVote} type="button">
               <strong>How to vote</strong>
               <ArrowRight aria-hidden="true" size={19} weight="light" />
-            </a>
+            </button>
 
             <div className="mobile-nav-group-label" style={{ marginTop: '1.2rem' }}>Programs</div>
             {contestArenas.map((arena) => (
@@ -374,15 +403,15 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
               </button>
             ))}
 
-            <button className="crown-button crown-floating-dots-button" onClick={goLogin} style={{ marginTop: '1.5rem' }} type="button">
-              <span>Enter the voting room</span> <ArrowRight aria-hidden="true" size={18} weight="bold" />
+            <button className="crown-button crown-floating-dots-button" onClick={openContestPicker} style={{ marginTop: '1.5rem' }} type="button">
+              <span>Choose a contest</span> <ArrowRight aria-hidden="true" size={18} weight="bold" />
             </button>
           </nav>
         </div>
       ) : null}
 
       {/* CHAPTER 1: FESTIVAL HERO — type framing the WebGL centrepiece */}
-      <section className="crown-hero crown-hero--living-green" data-scene-chapter id="festival" aria-labelledby="crown-hero-title">
+      <section className="crown-hero crown-hero--living-green" data-scene-chapter id="home" aria-labelledby="crown-hero-title">
         {/* The wordmark itself lives on the WebGL stage behind this column;
             the spacer reserves its optical footprint so type never collides. */}
         <div className="hero-stage-reserve" data-scene-anchor aria-hidden="true" />
@@ -393,23 +422,38 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
               on screen — and without promoting any single arena above the
               festival itself. */}
           <h1 className="visually-hidden" id="crown-hero-title">{pageantContent.title}</h1>
-          <p className="hero-lede" data-hero-reveal>{pageantContent.heroLede}</p>
+          <p className="hero-intro" data-hero-reveal>
+            Celebrate Buglasan 2026 and the people, places, and traditions of Negros Oriental.
+            {/* Not "select a contest below": below is four cards on a desktop
+                and a single button on a phone. The sentence has to be true at
+                both widths. */}
+            <span>To vote, choose a contest.</span>
+          </p>
+
+          {/* Phone and tablet only. Four plaques do not survive being stacked
+              — each one becomes a full screen of scrolling for one name — so
+              there the four become one button and a picker. CSS decides which
+              affordance shows, not a JS breakpoint, so the two can never both
+              be missing. */}
           <div className="hero-actions" data-hero-reveal>
-            <button className="crown-button crown-floating-dots-button" onClick={goLogin} type="button">
-              <span>Enter the voting room</span> <ArrowRight aria-hidden="true" size={17} weight="bold" />
+            <button
+              className="crown-button crown-floating-dots-button"
+              onClick={openContestPicker}
+              type="button"
+            >
+              <span>Choose a contest</span>
+              <ArrowRight aria-hidden="true" size={17} weight="bold" />
             </button>
-            <a className="crown-button crown-button--quiet" href="#contests">
-              See the four programs
-            </a>
           </div>
         </div>
 
-        {/* Four program cards integrated directly into the hero. */}
+        {/* Desktop only; see .hero-actions above. */}
         <div className="hero-arena-cards" data-hero-reveal>
           {heroContestArenas.map((arena) => (
             <button
               aria-label={`Open ${heroArenaLabel(arena)} program`}
               className={`hero-arena-card hero-arena-card--${arena.id}`}
+              data-vote-cursor
               key={arena.id}
               onClick={() => openSubpage(arena.id)}
               type="button"
@@ -417,96 +461,27 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
               <span className="hero-arena-card__light-leak" aria-hidden="true" />
               <span className="hero-arena-card__ray" aria-hidden="true" />
               <span className="hero-arena-card__outline" aria-hidden="true" />
-              {arena.logo && (
-                <img
-                  alt=""
-                  aria-hidden="true"
-                  className="hero-arena-card__logo"
-                  height={96}
-                  loading="lazy"
-                  src={arena.logo}
-                  width={96}
-                />
-              )}
-              <strong className="hero-arena-card__name">{heroArenaLabel(arena)}</strong>
+              <ArchNiche arena={arena} blockClass="hero-arena-card" />
+              <span className="hero-arena-card__plate">
+                <strong className="hero-arena-card__name">{heroArenaLabel(arena)}</strong>
+                <span aria-hidden="true" className="hero-arena-card__rule" />
+              </span>
             </button>
           ))}
         </div>
       </section>
 
-      {/* CHAPTER 2: THE 4 CONTEST SCREENS */}
-      <section className="contests-chapter" data-scene-chapter id="contests" aria-labelledby="contests-chapter-title">
-        <div className="chapter-shell">
-          <div className="chapter-heading" data-reveal>
-            <h2 id="contests-chapter-title">Four Grand Programs.<br />One Celebrated Province.</h2>
-            <p className="chapter-heading__copy">
-              Buglasan unites Negros Oriental across four signature programs. Click any screen below to enter its dedicated interactive subpage with pageant rosters, architectural booths, festival contingents, criteria, and voting.
-            </p>
-          </div>
-
-          <div className="contest-screens-grid">
-            {contestArenas.map((arena, index) => (
-              <ContestCard
-                arena={arena}
-                index={index}
-                key={arena.id}
-                onEnter={(id) => openSubpage(id)}
-                onVote={() => openVoting(arena.id)}
-              />
-            ))}
-          </div>
-
-          <div className="contests-footer-callout" data-reveal>
-            <div>
-              <h3>Ready to explore all candidates and pavilions?</h3>
-              <p>Every subpage features complete contestant bios, high-res photos, score criteria, and live leaderboards.</p>
-            </div>
-            <button
-              className="crown-button crown-button--ivory"
-              onClick={() => openSubpage('hara')}
-              type="button"
-            >
-              <span>Explore Hara sa Dumaguete</span> <ArrowRight size={18} weight="bold" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* CHAPTER 3: VOTING STEPS */}
-      <section className="vote-chapter" data-scene-chapter id="vote" aria-labelledby="vote-chapter-title">
-        <div className="chapter-shell vote-chapter__layout">
-          <div className="chapter-heading" data-reveal>
-            <h2 id="vote-chapter-title">One clear choice.<br />Made in four steps.</h2>
-            <p className="chapter-heading__copy">The voting room keeps the process focused, reviewable, and easy to repeat each day.</p>
-            <button className="crown-button crown-floating-dots-button" onClick={goLogin} type="button">
-              <span>Start voting</span> <ArrowRight aria-hidden="true" size={18} weight="bold" />
-            </button>
-          </div>
-          <ol className="vote-sequence" data-reveal>
-            {VOTE_STEPS.map(({ title, copy, Icon }, index) => (
-              <li key={title}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <Icon aria-hidden="true" size={25} weight="light" />
-                <div><h3>{title}</h3><p>{copy}</p></div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="closing-call" data-reveal style={{ marginTop: '5rem' }}>
-          <BrandMark compact official />
-          <h2>Your vote belongs in the story.</h2>
-          <button className="crown-button crown-floating-dots-button" onClick={goLogin} type="button">
-            <span>Enter the voting room</span> <ArrowRight aria-hidden="true" size={18} weight="bold" />
-          </button>
-        </div>
-      </section>
-
-      <footer className="crown-footer">
-        <span>© 2026 Buglasan Festival</span>
-        <span>Province of Negros Oriental</span>
-        <span>{pageantContent.footerHashtags}</span>
-      </footer>
+      {showHowToVote && (
+        <VoteFlowModal
+          arena={defaultGuideArena}
+          dispatch={dispatch}
+          mode="guide"
+          onClose={() => setShowHowToVote(false)}
+        />
+      )}
+      {showContestPicker && (
+        <ContestPickerModal arenas={contestArenas} onClose={() => setShowContestPicker(false)} onSelect={selectContest} />
+      )}
       </main>
       )}
     </>

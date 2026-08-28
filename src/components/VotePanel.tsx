@@ -1,3 +1,14 @@
+/**
+ * The dashboard's one-vote-a-day panel.
+ *
+ * Predates the paid flow and is a separate mechanism: it drives
+ * `selectedCandidateId` / `voteConfirmed` / `votesRemaining` in the reducer,
+ * not `arenaVotes` / `arenaTallies`, and it charges nothing. Merging the two
+ * would break the dashboard, so they were deliberately left apart.
+ *
+ * If the festival only ever sells votes, this panel and its reducer branch are
+ * the next things to delete. See VOTING_API.md.
+ */
 import type { Dispatch } from 'react';
 import { candidates } from '../data/pageant';
 import type { VoterAction, VoterState } from '../state/voterState';

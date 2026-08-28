@@ -86,6 +86,7 @@ export const backdropFragmentShader = /* glsl */ `
   uniform float uTime;
   uniform vec2 uMouse;
   uniform float uIntensity;
+  uniform float uHomeWarmth;
 
   ${NOISE}
   ${DITHER}
@@ -118,6 +119,20 @@ export const backdropFragmentShader = /* glsl */ `
     vec3 seaHot     = vec3(0.0137, 0.0595, 0.0352);
     vec3 floorAnchor= vec3(0.0022, 0.0048, 0.0039);
 
+    // The home page gets a restrained amber stage wash. Keep this in the
+    // backdrop palette so the authored GLB and its lighting stay untouched;
+    // contest subpages pass zero and retain the emerald palette above.
+    vec3 homeSkyDeep     = vec3(0.0058, 0.0048, 0.0019);
+    vec3 homeSkyMid      = vec3(0.0125, 0.0100, 0.0033);
+    vec3 homeSeaGlow     = vec3(0.0280, 0.0220, 0.0055);
+    vec3 homeSeaHot      = vec3(0.0680, 0.0560, 0.0105);
+    vec3 homeFloorAnchor = vec3(0.0036, 0.0030, 0.0012);
+    skyDeep = mix(skyDeep, homeSkyDeep, uHomeWarmth);
+    skyMid = mix(skyMid, homeSkyMid, uHomeWarmth);
+    seaGlow = mix(seaGlow, homeSeaGlow, uHomeWarmth);
+    seaHot = mix(seaHot, homeSeaHot, uHomeWarmth);
+    floorAnchor = mix(floorAnchor, homeFloorAnchor, uHomeWarmth);
+
     // Slow fluid undulation on the horizon pool.
     float swell = fbm(vec2(uv.x * 2.4 + uTime * 0.035, uv.y * 1.6 - uTime * 0.02)) - 0.5;
 
@@ -137,15 +152,15 @@ export const backdropFragmentShader = /* glsl */ `
     float ribbon = fbm(ap);
     ribbon = smoothstep(0.52, 0.86, ribbon);
     float ribbonBand = smoothstep(0.32, 0.75, uv.y) * smoothstep(1.02, 0.78, uv.y);
-    col += vec3(0.0221, 0.0746, 0.0457) * ribbon * ribbonBand * 0.42;
+    col += mix(vec3(0.0221, 0.0746, 0.0457), vec3(0.0460, 0.0380, 0.0090), uHomeWarmth) * ribbon * ribbonBand * 0.42;
 
     // --- the crown's light shafts ---
     vec2 crownP = (uv - vec2(0.5, 0.565)) * vec2(1.35, 1.0);
     float shafts = crownShafts(crownP, uTime);
     // Break the fan with drifting noise so it reads as haze, not geometry.
     shafts *= 0.45 + 0.55 * fbm(crownP * 3.1 + vec2(uTime * 0.05, -uTime * 0.03));
-    col += vec3(0.0577, 0.0395, 0.0164) * shafts * 0.62;
-    col += vec3(0.0153, 0.0441, 0.0290) * shafts * 0.26;
+    col += mix(vec3(0.0577, 0.0395, 0.0164), vec3(0.0780, 0.0650, 0.0150), uHomeWarmth) * shafts * 0.62;
+    col += mix(vec3(0.0153, 0.0441, 0.0290), vec3(0.0300, 0.0260, 0.0070), uHomeWarmth) * shafts * 0.26;
 
     // --- a faint high star field, fading out toward the sea ---
     #ifndef QUALITY_LOW

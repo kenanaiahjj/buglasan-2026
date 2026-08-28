@@ -23,6 +23,12 @@ describe('ambient sparkle particle shader', () => {
     expect(backdropFragmentShader).not.toContain('float star = hash12(floor(sp));');
   });
 
+  it('supports a gold home palette without changing the shared subpage palette', () => {
+    expect(backdropFragmentShader).toContain('uniform float uHomeWarmth;');
+    expect(backdropFragmentShader).toContain('vec3 homeSkyDeep');
+    expect(backdropFragmentShader).toContain('mix(skyDeep, homeSkyDeep, uHomeWarmth)');
+  });
+
   it('keeps sparkle positions anchored while preserving an in-place pulse', () => {
     expect(particleVertexShader).toContain('float pulse');
     expect(particleVertexShader).not.toContain('float angle = uTime');

@@ -32,6 +32,31 @@ describe('voting overview calculations', () => {
   });
 });
 
+describe('missing counts', () => {
+  /* VOTING_API.md promises that an entry the server did not mention has zero
+     votes. Falling back to the seeded placeholder there would mix real counts
+     with invented ones, and the board would look right while being wrong. */
+  it('reads an entry the server omitted as zero, not as its seed', () => {
+    const roster = entriesForArena('hara').slice(0, 3);
+    const seeded = roster[2].votes;
+    expect(seeded).toBeGreaterThan(0);
+
+    const fromApi = createVotingOverviewSnapshot('hara', roster, { 'c-01': 10, 'c-02': 4 }, 'api', 1);
+    expect(fromApi.entries.map((entry) => entry.votes)).toEqual([10, 4, 0]);
+    expect(fromApi.totalVotes).toBe(14);
+  });
+
+  /* The simulation has no server to omit anything, so the seed is its
+     starting point and must survive. */
+  it('keeps the seed for the simulation', () => {
+    const roster = entriesForArena('hara').slice(0, 3);
+    const simulated = createVotingOverviewSnapshot('hara', roster, { 'c-01': 10 }, 'simulation', 1);
+
+    expect(simulated.entries[0].votes).toBe(10);
+    expect(simulated.entries[2].votes).toBe(roster[2].votes);
+  });
+});
+
 describe('simulated voting overview source', () => {
   beforeEach(() => {
     vi.useFakeTimers();

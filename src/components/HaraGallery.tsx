@@ -3,32 +3,57 @@ import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { ChartBar } from '@phosphor-icons/react/dist/icons/ChartBar';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/icons/MagnifyingGlass';
+import { Question } from '@phosphor-icons/react/dist/icons/Question';
 import { MapPin } from '@phosphor-icons/react/dist/icons/MapPin';
+import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
+import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
 import { filterAndSortHaraCandidates, type HaraSortKey } from '../lib/haraGallery';
-import { haraCandidates, pageantContent, type ContestArena } from '../data/pageant';
+import { pageantContent, type ContestArena } from '../data/pageant';
 
 type HaraGalleryProps = {
   arena: ContestArena;
   onBackToHub: () => void;
   onOpenOverview: () => void;
-  onVote: (id: ContestArena['id']) => void;
+  onHowToVote: () => void;
+  /**
+   * Live counts, entryId → votes.
+   *
+   * Seeded from the same `votes` fields these cards used to read directly, so
+   * the numbers are identical today — and correct once a server owns them,
+   * which the static fields never will be.
+   */
+  tallies: Record<string, number>;
+  /* The entry being backed, not the programme: on a subpage the vote starts
+     in a dialog against one candidate rather than routing to a ballot. */
+  onVote: (entryId: string) => void;
 };
 
 const sortOptions: Array<[HaraSortKey, string]> = [
-  ['votes', 'Most votes'],
-  ['number', 'Candidate number'],
+  ['number', 'Entry number'],
   ['name', 'Name'],
 ];
 
-export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: HaraGalleryProps) {
+const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
+
+export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, onVote, tallies }: HaraGalleryProps) {
   const galleryRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<HaraSortKey>('number');
+  const cfg = ARENA_VOTING[arena.id];
+  const programName = arenaDisplayName(arena);
+  const roster = useMemo(() => entriesForArena(arena.id), [arena.id]);
   const visibleCandidates = useMemo(
-    () => filterAndSortHaraCandidates(haraCandidates, query, sort),
-    [query, sort],
+    () => filterAndSortHaraCandidates(roster, query, sort),
+    [roster, query, sort],
   );
+
+  // Search and sort are per-programme state; switching programmes should not
+  // carry one roster's query onto another.
+  useEffect(() => {
+    setQuery('');
+    setSort('number');
+  }, [arena.id]);
 
   useEffect(() => {
     const gallery = galleryRef.current;
@@ -50,11 +75,18 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
   }, []);
 
   return (
-    <main className="hara-gallery" ref={galleryRef} aria-label="Hara sa Dumaguete contestants">
+    <main
+      className={`hara-gallery hara-gallery--${cfg.cardShape}`}
+      ref={galleryRef}
+      aria-label={`${programName} entries`}
+    >
       <div className="hara-gallery__intro">
-        {arena.logo && (
+        {/* Two programmes have a supplied logo, two do not. The lockup is not a
+            placeholder for the missing art — it is what those programmes get
+            until real art exists, so the intro never renders as a bare toolbar. */}
+        {arena.logo ? (
           <img
-            alt="Hara sa Negros Oriental 2026"
+            alt={`${programName} 2026`}
             className="hara-gallery__logo"
             decoding="async"
             height={447}
@@ -62,28 +94,31 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
             src={arena.logo}
             width={447}
           />
+        ) : (
+          <div className="hara-gallery__lockup">
+            <h1>{programName}</h1>
+            <p>{arena.subtitle}</p>
+          </div>
         )}
 
         <div className="hara-gallery__support">
           <div className="hara-gallery__actions">
-            <button className="hara-gallery__home" onClick={onBackToHub} type="button">
+            <button className="hara-gallery__home crown-quiet-control" onClick={onBackToHub} type="button">
               <ArrowLeft aria-hidden="true" size={15} weight="bold" />
               <span>Back to home</span>
             </button>
 
-            <details className="hara-gallery__how-to">
-              <summary>How to vote</summary>
-              <ol>
-                <li><strong>Sign in</strong> with your email or mobile number.</li>
-                <li><strong>Choose</strong> the candidate you want to support.</li>
-                <li><strong>Review</strong> your selection before submitting.</li>
-                <li><strong>Confirm</strong> your vote in the voting room.</li>
-              </ol>
-            </details>
+            {/* A disclosure buried the steps under a click and then pushed
+                the whole toolbar down when it opened. On a subpage the same
+                click can open the dialog the steps describe. */}
+            <button className="hara-gallery__how-to crown-quiet-control" onClick={onHowToVote} type="button">
+              <Question aria-hidden="true" size={15} weight="bold" />
+              <span>How to vote</span>
+            </button>
 
             <button
-              aria-label="Open Hara voting overview"
-              className="hara-gallery__overview"
+              aria-label={`Open the ${programName} voting overview`}
+              className="hara-gallery__overview crown-quiet-control"
               onClick={onOpenOverview}
               type="button"
             >
@@ -104,18 +139,28 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
 
       <div className="hara-gallery__toolbar">
         <label className="hara-gallery__search">
-          <MagnifyingGlass aria-hidden="true" size={16} />
-          <span className="visually-hidden">Search candidates or town</span>
+          <MagnifyingGlass aria-hidden="true" className="hara-gallery__search-icon" size={16} weight="bold" />
+          <span className="visually-hidden">{`Search ${cfg.noun} or town`}</span>
           <input
-            aria-label="Search candidates or town"
+            aria-label={`Search ${cfg.noun} or town`}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search candidates or town"
+            placeholder={`Search ${cfg.noun} or town`}
             type="search"
             value={query}
           />
+          {query.length > 0 && (
+            <button
+              aria-label="Clear search query"
+              className="hara-gallery__search-clear"
+              onClick={() => setQuery('')}
+              type="button"
+            >
+              <X aria-hidden="true" size={13} weight="bold" />
+            </button>
+          )}
         </label>
 
-        <div className="hara-gallery__sort" aria-label="Sort candidates" role="group">
+        <div className="hara-gallery__sort" aria-label={`Sort ${cfg.noun}`} role="group">
           {sortOptions.map(([key, label]) => (
             <button
               aria-pressed={sort === key}
@@ -130,19 +175,21 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
         </div>
 
         <p className="hara-gallery__count" aria-live="polite">
-          {visibleCandidates.length} of {haraCandidates.length} candidates
+          <span className="hara-gallery__count-chip">
+            {visibleCandidates.length} of {arena.totalEntries} {cfg.noun}
+          </span>
         </p>
       </div>
 
       {visibleCandidates.length === 0 ? (
         <p className="hara-gallery__empty" role="status">
-          No candidates match <strong>&ldquo;{query}&rdquo;</strong>.{' '}
+          No {cfg.noun} match <strong>&ldquo;{query}&rdquo;</strong>.{' '}
           <button onClick={() => setQuery('')} type="button">
             Clear search
           </button>
         </p>
       ) : (
-        <div className="hara-gallery__grid" aria-label="Hara sa Dumaguete contestants">
+        <div className="hara-gallery__grid" aria-label={`${programName} entries`}>
           {visibleCandidates.map((candidate, index) => (
             <article
               className="hara-gallery-card"
@@ -151,15 +198,15 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
               <div className="hara-gallery-card__motion">
                 <div className="hara-gallery-card__media">
                   <img
-                    alt={`${candidate.name} representing ${candidate.location}`}
+                    alt={`${candidate.name} representing ${candidate.origin}`}
                     decoding="async"
                     height={512}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    src={candidate.image}
+                    src={candidate.image ?? undefined}
                     width={512}
                   />
                   <span
-                    aria-label={`Candidate ${candidate.number}`}
+                    aria-label={`${titleCase(cfg.nounSingular)} ${candidate.number}`}
                     className="hara-gallery-card__number"
                   >
                     {candidate.number}
@@ -167,23 +214,23 @@ export function HaraGallery({ arena, onBackToHub, onOpenOverview, onVote }: Hara
                   <div className="hara-gallery-card__caption">
                     <span className="hara-gallery-card__location">
                       <MapPin aria-hidden="true" size={13} weight="fill" />
-                      {candidate.location}
+                      {candidate.origin}
                     </span>
                     <h2>{candidate.name}</h2>
                   </div>
                 </div>
 
                 <div className="hara-gallery-card__body">
-                  {candidate.advocacy && <p>{candidate.advocacy}</p>}
+                  {candidate.blurb && <p>{candidate.blurb}</p>}
                   <div className="hara-gallery-card__footer">
-                    <span>{candidate.votes.toLocaleString()} votes</span>
+                    <span>{(tallies[candidate.id] ?? candidate.votes).toLocaleString()} votes</span>
                     <button
                       aria-label={`Vote for ${candidate.name}`}
-                      className="subpage-vote-btn"
-                      onClick={() => onVote(arena.id)}
+                      className="crown-button crown-floating-dots-button subpage-vote-btn"
+                      onClick={() => onVote(candidate.id)}
                       type="button"
                     >
-                      Vote for {candidate.name}
+                      <span>Vote for {candidate.name}</span>
                       <ArrowRight aria-hidden="true" size={14} />
                     </button>
                   </div>

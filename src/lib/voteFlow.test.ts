@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { NEGROS_ORIENTAL_LGUS, OUTSIDE_PROVINCE } from '../data/pageant';
 import {
-  MAX_VOTE_QUANTITY,
   SUPPORTER_ORIGINS,
-  VOTE_PRICE_CENTAVOS,
   canLeaveStep,
-  clampQuantity,
   emptyVoteFlowDraft,
   formatPeso,
   formatPhMobile,
+  isValidVoteQuantity,
   isValidPhMobile,
   nextVoteFlowStep,
   normalisePhMobile,
@@ -24,7 +22,7 @@ const complete = (over: Partial<VoteFlowDraft> = {}): VoteFlowDraft => ({
   entryId: 'c-01',
   mobile: '9171234567',
   origin: 'Dumaguete City',
-  quantity: 10,
+  quantity: 20,
   method: 'gcash',
   ...over,
 });
@@ -58,22 +56,28 @@ describe('Philippine mobile numbers', () => {
 });
 
 describe('vote pricing', () => {
-  it('counts in centavos so a total never lands between two of them', () => {
-    expect(voteTotalCentavos(10)).toBe(10 * VOTE_PRICE_CENTAVOS);
-    expect(Number.isInteger(voteTotalCentavos(37))).toBe(true);
+  it('prices any positive whole-number quantity at one peso per vote', () => {
+    expect(emptyVoteFlowDraft().quantity).toBe(1);
+    expect(voteTotalCentavos(1)).toBe(100);
+    expect(voteTotalCentavos(20)).toBe(2_000);
+    expect(voteTotalCentavos(55)).toBe(5_500);
+    expect(voteTotalCentavos(537)).toBe(53_700);
   });
 
-  it('holds the quantity inside a range a payment page can honour', () => {
-    expect(clampQuantity(0)).toBe(1);
-    expect(clampQuantity(-4)).toBe(1);
-    expect(clampQuantity(9999)).toBe(MAX_VOTE_QUANTITY);
-    expect(clampQuantity(12.7)).toBe(12);
-    expect(clampQuantity(Number.NaN)).toBe(1);
+  it('rejects quantities that cannot be charged as whole votes', () => {
+    expect(isValidVoteQuantity(1)).toBe(true);
+    expect(isValidVoteQuantity(500)).toBe(true);
+    expect(isValidVoteQuantity(0)).toBe(false);
+    expect(isValidVoteQuantity(-1)).toBe(false);
+    expect(isValidVoteQuantity(1.5)).toBe(false);
+    expect(isValidVoteQuantity(Number.MAX_SAFE_INTEGER + 1)).toBe(false);
+    expect(voteTotalCentavos(0)).toBe(0);
+    expect(voteTotalCentavos(1.5)).toBe(0);
   });
 
   it('renders pesos with both centavos, always', () => {
     expect(formatPeso(2000)).toBe('₱20.00');
-    expect(formatPeso(voteTotalCentavos(50))).toBe('₱1,000.00');
+    expect(formatPeso(voteTotalCentavos(55))).toBe('₱55.00');
   });
 });
 
@@ -90,6 +94,8 @@ describe('step gating', () => {
     expect(voteFlowIssues('supporter', badPhone)[0]).toMatch(/09XX/);
 
     expect(voteFlowIssues('pay', complete({ method: null }))).toHaveLength(1);
+    expect(voteFlowIssues('pay', complete({ quantity: 10 }))).not.toContain('Enter a whole number of votes.');
+    expect(voteFlowIssues('pay', complete({ quantity: 0 }))).toContain('Enter a whole number of votes.');
     expect(canLeaveStep('pay', complete())).toBe(true);
   });
 
@@ -139,8 +145,6 @@ describe('the guide', () => {
     expect(booths[0].copy).toMatch(/on this page/);
     expect(booths[1].copy).toMatch(/mobile number/);
     expect(booths[1].copy).toMatch(/town/);
-    // The price in the instructions comes from the same constant the pay
-    // step charges, so the two cannot quote different numbers.
-    expect(booths[2].copy).toContain(formatPeso(VOTE_PRICE_CENTAVOS));
+    expect(booths[2].copy).toMatch(/how many votes/);
   });
 });

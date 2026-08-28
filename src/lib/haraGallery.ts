@@ -1,18 +1,25 @@
-import type { Candidate } from '../data/pageant';
+import type { VoteEntry } from './arenaEntries';
 
 export type HaraSortKey = 'votes' | 'number' | 'name';
 
-const candidateNumber = (candidate: Candidate) => Number.parseInt(candidate.number, 10);
+const candidateNumber = (candidate: VoteEntry) => Number.parseInt(candidate.number, 10);
 
+/**
+ * Filter and sort a programme's entries for the gallery.
+ *
+ * Takes the normalised VoteEntry rather than Candidate so booths and
+ * contingents sort through the same path as candidates — `origin` is the town
+ * or district, `blurb` the advocacy or tagline, whichever the programme has.
+ */
 export function filterAndSortHaraCandidates(
-  source: Candidate[],
+  source: VoteEntry[],
   query: string,
   sort: HaraSortKey,
-): Candidate[] {
+): VoteEntry[] {
   const needle = query.trim().toLocaleLowerCase();
   const matched = needle
     ? source.filter((candidate) =>
-        [candidate.name, candidate.location, candidate.advocacy ?? '']
+        [candidate.name, candidate.origin, candidate.blurb ?? '']
           .some((field) => field.toLocaleLowerCase().includes(needle)),
       )
     : [...source];

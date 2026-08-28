@@ -1,3 +1,28 @@
+/**
+ * The wall board.
+ *
+ * This is the screen behind the stage at Freedom Park, so it is composed once
+ * at 16:9 and letterboxed into whatever plays it — every length in its
+ * stylesheet is a container-query unit against that frame, and nothing
+ * scrolls. What does not fit was never going to be read from the back of the
+ * park anyway.
+ *
+ * Where its numbers come from:
+ *
+ *  - **counts** — `createVotingOverviewSource`, which reads the server when
+ *    `VITE_VOTING_API_URL` is set and runs the simulation when it is not. The
+ *    eyebrow prints "Live simulation" in the second case; if that label is
+ *    wrong on an event screen, the environment variable is missing.
+ *  - **the countdown** — `countdownFrom(votingDeadlineISO)`. When the deadline
+ *    passes the board switches itself to final standings rather than counting
+ *    backwards.
+ *  - **rank movement** — measured from the moment the board was put on screen,
+ *    not from the last tick, because "up 3 since the board opened" is a story
+ *    an audience can follow and "up 1 since four seconds ago" is noise.
+ *
+ * The `tallies` prop seeds it so the first paint is not empty; after that the
+ * source owns the numbers.
+ */
 import {
   useCallback,
   useEffect,
@@ -348,8 +373,8 @@ export function VotingOverviewPage({
   const leader = podiumEntries[0];
   const totalEntries = rankedEntries.length;
   /* Bars are scaled against the leader, not against the total. On a
-     twelve-entry board every share is under 20%, so a share-scaled bar
-     leaves the whole field huddled at the left edge saying nothing. */
+     full-roster board every share is under 20%, so a share-scaled bar leaves
+     the whole field huddled at the left edge saying nothing. */
   const leaderVotes = leader?.votes ?? 0;
 
   return (

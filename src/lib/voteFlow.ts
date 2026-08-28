@@ -19,13 +19,12 @@ export const VOTE_FLOW_STEPS: Array<{ id: VoteFlowStep; label: string }> = [
 ];
 
 /** Centavos, not pesos: money in floating point is how a tally goes wrong. */
-export const VOTE_PRICE_CENTAVOS = 2000;
+export const VOTE_PRICE_CENTAVOS = 100;
 
-/* Bundles people actually buy. The list is deliberately short — a long one
-   turns a two-second decision into a pricing table. */
-export const VOTE_BUNDLES = [1, 5, 10, 25, 50, 100] as const;
-
-export const MAX_VOTE_QUANTITY = 500;
+/** The payment gateway can only charge a positive, whole number of votes. */
+export function isValidVoteQuantity(quantity: number): boolean {
+  return Number.isSafeInteger(quantity) && quantity > 0;
+}
 
 export type PaymentMethodId = 'gcash' | 'maya' | 'card';
 
@@ -56,7 +55,7 @@ export function voteFlowGuide(nounSingular: string): Array<{ title: string; copy
     },
     {
       title: 'Pay',
-      copy: `Choose how many votes to send at ${formatPeso(VOTE_PRICE_CENTAVOS)} each, then pay by GCash, Maya or card.`,
+      copy: 'Enter how many votes you want to add, then pay by GCash, Maya or card.',
     },
     {
       title: 'Confirmed',
@@ -75,7 +74,7 @@ export type VoteFlowDraft = {
 };
 
 export function emptyVoteFlowDraft(entryId: string | null = null): VoteFlowDraft {
-  return { entryId, mobile: '', origin: '', quantity: 10, method: null };
+  return { entryId, mobile: '', origin: '', quantity: 1, method: null };
 }
 
 /**
@@ -111,13 +110,8 @@ export function isValidPhMobile(nationalDigits: string): boolean {
   return /^9\d{9}$/.test(nationalDigits);
 }
 
-export function clampQuantity(value: number): number {
-  if (!Number.isFinite(value)) return 1;
-  return Math.min(MAX_VOTE_QUANTITY, Math.max(1, Math.trunc(value)));
-}
-
 export function voteTotalCentavos(quantity: number): number {
-  return clampQuantity(quantity) * VOTE_PRICE_CENTAVOS;
+  return isValidVoteQuantity(quantity) ? quantity * VOTE_PRICE_CENTAVOS : 0;
 }
 
 export function formatPeso(centavos: number): string {
@@ -146,7 +140,7 @@ export function voteFlowIssues(step: VoteFlowStep, draft: VoteFlowDraft): string
       break;
 
     case 'pay':
-      if (clampQuantity(draft.quantity) !== draft.quantity) issues.push('Choose between 1 and 500 votes.');
+      if (!isValidVoteQuantity(draft.quantity)) issues.push('Enter a whole number of votes.');
       if (draft.method === null) issues.push('Choose how you want to pay.');
       break;
 

@@ -20,11 +20,11 @@ function RankingList({ state }: { state: VoterState }) {
 }
 
 function MechanicsPanel() {
-  return <div className="panel info-panel"><span className="eyebrow">Voting mechanics</span><h2>One account.<br /><em>One vote per day.</em></h2><p>Every registered supporter gets one vote each day during the online voting period. Choose carefully, confirm your selection, and return tomorrow to keep supporting your candidate.</p><div className="info-list"><span><Icon name="check" size={16} /> Vote from May 20 to June 10, 2026</span><span><Icon name="check" size={16} /> Use one email or mobile account</span><span><Icon name="check" size={16} /> Votes close at 11:59 PM each day</span></div></div>;
+  return <div className="panel info-panel"><span className="eyebrow">Voting mechanics</span><h2>One account.<br /><em>One vote per day.</em></h2><p>Every registered supporter gets one vote each day during the online voting period. Choose carefully, confirm your selection, and return tomorrow to keep supporting your candidate.</p><div className="info-list"><span><Icon name="check" size={16} /> Vote from {pageantContent.votingWindow.replace(' — ', ' to ')}</span><span><Icon name="check" size={16} /> Use one email or mobile account</span><span><Icon name="check" size={16} /> Votes close at 11:59 PM each day</span></div></div>;
 }
 
 function FaqPanel() {
-  const faqs = [['How many votes do I get?', 'One vote per account per day while voting is open.'], ['Can I change my vote?', 'Review your candidate before you confirm. Confirmed votes cannot be changed.'], ['When does voting close?', 'Online voting ends on June 10, 2026 at 11:59 PM.']];
+  const faqs = [['How many votes do I get?', 'One vote per account per day while voting is open.'], ['Can I change my vote?', 'Review your candidate before you confirm. Confirmed votes cannot be changed.'], ['When does voting close?', `Online voting ends on ${pageantContent.votingDeadline}.`]];
   return <div className="panel faq-panel"><span className="eyebrow">Questions, answered</span><h2>Before you <em>vote.</em></h2><div className="faq-list">{faqs.map(([question, answer]) => <details key={question}><summary>{question}<Icon name="chevron" size={16} /></summary><p>{answer}</p></details>)}</div></div>;
 }
 

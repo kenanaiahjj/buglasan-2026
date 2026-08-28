@@ -1,6 +1,7 @@
 import { type ContestArena } from '../data/pageant';
 import { entriesForArena, type VoteEntry } from './arenaEntries';
 import { resolveVotingApi, type VotingApi } from './votingApi';
+import { isLiveVoting } from './votingConfig';
 
 export type VotingOverviewEntry = {
   id: string;
@@ -53,10 +54,10 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/* The four programmes hold different records — a candidate, a booth, a
-   contingent — but arenaEntries already flattens all of them to one shape, so
-   the overview reads from that rather than from Candidate directly. `origin`
-   is the town or district in every case, which is what the standings show. */
+  /* The four programmes hold different records — a candidate, a booth, a
+     contingent — but arenaEntries already flattens all of them to one shape, so
+     the overview reads from that rather than from Candidate directly. `origin`
+     is the town or district in every case, which is what the standings show. */
 function createEntry(entry: VoteEntry, votes: number): VotingOverviewEntry {
   return {
     id: entry.id,
@@ -76,7 +77,15 @@ export function createVotingOverviewSnapshot(
   updatedAt = Date.now(),
   votesPerMinute = 0,
 ): VotingOverviewSnapshot {
-  const entries = source_entries.map((entry) => createEntry(entry, tallies[entry.id] ?? entry.votes));
+  /* An entry the server did not mention has zero votes — that is what
+     VOTING_API.md promises. Falling back to the seeded placeholder there would
+     mix real counts with invented ones and the board would look right while
+     being wrong. The simulation has no server to omit anything, so it keeps
+     the seed as its starting point. */
+  const entries = source_entries.map((entry) => {
+    const counted = tallies[entry.id];
+    return createEntry(entry, counted ?? (source === 'api' ? 0 : entry.votes));
+  });
   const totalVotes = entries.reduce((sum, entry) => sum + entry.votes, 0);
 
   return {
@@ -116,7 +125,7 @@ export type OverviewSummary = {
   /** The same margin in share points, which survives a growing total. */
   leadMarginShare: number;
   /* The closest pair anywhere in the table, not just at the top — on a
-     twelve-entry board the race worth watching is often for 6th. */
+     full-roster board the race worth watching is often outside the podium. */
   tightestGap: {
     gap: number;
     upper: RankedVotingOverviewEntry;
@@ -184,6 +193,18 @@ export function planSimulationTick(random: () => number, rosterSize: number) {
   return moves;
 }
 
+/**
+ * The simulation.
+ *
+ * A deliberate stub, and the one most likely to be seen by the public: this
+ * is what the wall board runs on when no backend is configured. It invents
+ * turnout. `snapshot.source` is `'simulation'` throughout and the board prints
+ * "Live simulation" rather than "Live results" because of it — if that label
+ * ever reads wrong on a real event screen, this function is why.
+ *
+ * Replaced by `createApiVotingSource` the moment `VITE_VOTING_API_URL` is set.
+ * Nothing else needs to change.
+ */
 export function createSimulatedVotingSource(
   arenaId: ContestArena['id'],
   initialTallies: Record<string, number>,
@@ -364,7 +385,7 @@ export function createVotingOverviewSource(
   arenaId: ContestArena['id'],
   initialTallies: Record<string, number>,
 ): VotingOverviewSource {
-  return import.meta.env?.VITE_VOTING_API_URL
+  return isLiveVoting()
     ? createApiVotingSource(arenaId, initialTallies)
     : createSimulatedVotingSource(arenaId, initialTallies);
 }

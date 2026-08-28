@@ -20,6 +20,8 @@ declare var IS_REACT_ACT_ENVIRONMENT: boolean;
  */
 interface ImportMetaEnv {
   readonly VITE_VOTING_API_URL?: string;
+  /** Optional canonical route for hosted checkout returns. */
+  readonly VITE_VOTING_RETURN_URL?: string;
 }
 
 interface ImportMeta {

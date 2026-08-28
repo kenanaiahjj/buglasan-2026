@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" width="640" height="800"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" width="1000" height="750"
      fill="none" stroke-linejoin="round" stroke-linecap="round">
   <!-- LGU pavilion 01 — generated placeholder, not photography -->
   <defs>
-    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="640" y2="800">
+    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="750">
       <stop offset="0%" stop-color="#fde68a" />
       <stop offset="52%" stop-color="#f59e0b" />
       <stop offset="100%" stop-color="#b45309" />
@@ -12,53 +12,58 @@
       <stop offset="100%" stop-color="#f7d377" stop-opacity="0" />
     </radialGradient>
   </defs>
-  <rect width="640" height="800" fill="#071409" />
-  <rect width="640" height="800" fill="url(#halo)" />
+  <rect width="1000" height="750" fill="#071409" />
+  <rect width="1000" height="750" fill="url(#halo)" />
+  <!-- The subject sits on its own baseline; the shift lifts it into the
+       middle of the shorter canvas without touching the composition's own
+       numbers. Backticks are forbidden here: this is inside a template. -->
+  <g transform="translate(0 -34)">
   <g stroke="url(#k)" stroke-width="3.4" stroke-opacity="0.95">
-    <path d="M111 430 L320 315.6 L529 430" />
-    <path d="M141.9 410.9 L314 410.9 M176.7 391.9 L314 391.9 M211.5 372.8 L314 372.8 M246.3 353.7 L314 353.7 M281.2 334.7 L314 334.7" stroke-opacity=".34" stroke-width="1.1" />
-    <path d="M194.2 333 L320 236 L445.8 333" />
-    <path d="M211.2 316.8 L314 316.8 M232.2 300.6 L314 300.6 M253.1 284.5 L314 284.5 M274.1 268.3 L314 268.3 M295 252.1 L314 252.1" stroke-opacity=".34" stroke-width="1.1" />
-    <path d="M243.2 256 L320 147 L396.8 256" />
-    <path d="M252 237.9 L314 237.9 M264.8 219.7 L314 219.7 M277.6 201.5 L314 201.5 M290.4 183.3 L314 183.3 M303.2 165.2 L314 165.2" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M211.6 430 L500 296.9 L788.4 430" />
+    <path d="M255.7 407.8 L494 407.8 M303.7 385.6 L494 385.6 M351.8 363.4 L494 363.4 M399.9 341.2 L494 341.2 M447.9 319 L494 319" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M326.4 314.3 L500 241.2 L673.6 314.3" />
+    <path d="M351.4 302.1 L494 302.1 M380.3 289.9 L494 289.9 M409.2 277.7 L494 277.7 M438.1 265.5 L494 265.5 M467.1 253.4 L494 253.4" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M393.9 261.2 L500 213.6 L606.1 261.2" />
+    <path d="M407.6 253.3 L494 253.3 M425.3 245.4 L494 245.4 M443 237.4 L494 237.4 M460.6 229.5 L494 229.5 M478.3 221.6 L494 221.6" stroke-opacity=".34" stroke-width="1.1" />
   </g>
   <g stroke="url(#k)" stroke-width="2.4" stroke-opacity="0.8">
-    <path d="M97 430 L543 430" />
-    <path d="M180.2 333 L459.8 333" />
-    <path d="M229.2 256 L410.8 256" />
+    <path d="M197.6 430 L802.4 430" />
+    <path d="M312.4 314.3 L687.6 314.3" />
+    <path d="M379.9 261.2 L620.1 261.2" />
   </g>
   <g stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.75">
-    <path d="M320 136.5 L320 102.5" />
-    <circle cx="320" cy="92.5" r="9" />
+    <path d="M500 203.1 L500 169.1" />
+    <circle cx="500" cy="159.1" r="9" />
   </g>
   <g stroke="url(#k)" stroke-width="2.6" stroke-opacity="0.85">
-    <path d="M145 438 L145 700 M138 503.5 L152 503.5 M138 569 L152 569 M138 634.5 L152 634.5 M232.5 438 L232.5 700 M225.5 503.5 L239.5 503.5 M225.5 569 L239.5 569 M225.5 634.5 L239.5 634.5 M320 438 L320 700 M313 503.5 L327 503.5 M313 569 L327 569 M313 634.5 L327 634.5 M407.5 438 L407.5 700 M400.5 503.5 L414.5 503.5 M400.5 569 L414.5 569 M400.5 634.5 L414.5 634.5 M495 438 L495 700 M488 503.5 L502 503.5 M488 569 L502 569 M488 634.5 L502 634.5" />
+    <path d="M245.6 438 L245.6 700 M238.6 503.5 L252.6 503.5 M238.6 569 L252.6 569 M238.6 634.5 L252.6 634.5 M372.8 438 L372.8 700 M365.8 503.5 L379.8 503.5 M365.8 569 L379.8 569 M365.8 634.5 L379.8 634.5 M500 438 L500 700 M493 503.5 L507 503.5 M493 569 L507 569 M493 634.5 L507 634.5 M627.2 438 L627.2 700 M620.2 503.5 L634.2 503.5 M620.2 569 L634.2 569 M620.2 634.5 L634.2 634.5 M754.4 438 L754.4 700 M747.4 503.5 L761.4 503.5 M747.4 569 L761.4 569 M747.4 634.5 L761.4 634.5" />
   </g>
   <g stroke="url(#k)" stroke-width="3.8" stroke-opacity="0.9">
-    <path d="M85 700 L555 700" />
+    <path d="M185.6 700 L814.4 700" />
   </g>
   <g stroke="url(#k)" stroke-width="1.6" stroke-opacity="0.45">
-    <path d="M103 722 L537 722" />
+    <path d="M203.6 722 L796.4 722" />
   </g>
   <g stroke="#ffffff" stroke-width="1.8" stroke-opacity="0.62">
-    <path d="M201.8 438 L201.8 467" />
-    <ellipse cx="201.8" cy="483" rx="15" ry="19" />
-    <path d="M201.8 502 L201.8 513" />
-    <path d="M320 438 L320 455.1" />
-    <ellipse cx="320" cy="471.1" rx="15" ry="19" />
-    <path d="M320 490.1 L320 501.1" />
-    <path d="M422 438 L422 462.5" />
-    <ellipse cx="422" cy="478.5" rx="15" ry="19" />
-    <path d="M422 497.5 L422 508.5" />
+    <path d="M332.6 438 L332.6 467" />
+    <ellipse cx="332.6" cy="483" rx="15" ry="19" />
+    <path d="M332.6 502 L332.6 513" />
+    <path d="M500 438 L500 455.1" />
+    <ellipse cx="500" cy="471.1" rx="15" ry="19" />
+    <path d="M500 490.1 L500 501.1" />
+    <path d="M647.4 438 L647.4 462.5" />
+    <ellipse cx="647.4" cy="478.5" rx="15" ry="19" />
+    <path d="M647.4 497.5 L647.4 508.5" />
   </g>
   <g stroke="url(#k)" stroke-width="2.2" stroke-opacity="0.8">
-    <path d="M224 568 L224 622 L416 622 L416 568 Z" />
+    <path d="M404 568 L404 622 L596 622 L596 568 Z" />
   </g>
   <g stroke="#ffffff" stroke-width="1.4" stroke-opacity="0.4">
-    <path d="M248 582 L392 582 M248 596 L362 596 M248 610 L332 610" />
+    <path d="M428 582 L572 582 M428 596 L542 596 M428 610 L512 610" />
   </g>
   <g stroke="url(#k)" stroke-width="1.8" stroke-opacity="0.6">
-    <path d="M129 700 q18 -30 40 0 Z" />
-    <path d="M471 700 q22 -36 46 0 Z" />
+    <path d="M229.6 700 q18 -30 40 0 Z" />
+    <path d="M730.4 700 q22 -36 46 0 Z" />
+  </g>
   </g>
 </svg>

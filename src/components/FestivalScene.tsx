@@ -21,6 +21,14 @@ const CAMERA_STOPS: CameraStop[] = [
 type Tier = RenderQualityTier;
 const TIER_ORDER: Tier[] = ['low', 'medium', 'high'];
 
+type PointerPosition = { x: number; y: number };
+const STATIC_SCENE_POINTER = { x: 0, y: 0 } as const;
+
+/** Keep the subpage atmosphere ambient instead of letting it follow the cursor. */
+export function getScenePointer(pointer: PointerPosition, quiet: boolean): PointerPosition {
+  return quiet ? STATIC_SCENE_POINTER : pointer;
+}
+
 /** MSAA applies to the final framebuffer where the crisp GLB overlay is drawn. */
 export const FESTIVAL_RENDERER_OPTIONS = {
   alpha: false,
@@ -33,13 +41,23 @@ export const FESTIVAL_RENDERER_OPTIONS = {
 const SLOW_FRAME_MS = 21;
 const FAST_FRAME_MS = 11;
 
-export function FestivalScene({ progressRef, quiet = false }: { progressRef: RefObject<number>; quiet?: boolean }) {
+export function FestivalScene({
+  progressRef,
+  quiet = false,
+  arenaId,
+}: {
+  progressRef: RefObject<number>;
+  quiet?: boolean;
+  arenaId?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const quietRef = useRef(quiet);
+  const arenaIdRef = useRef(arenaId);
   const [sceneReady, setSceneReady] = useState(false);
   const [bootProgress, setBootProgress] = useState(0);
   quietRef.current = quiet;
+  arenaIdRef.current = arenaId;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +90,7 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
     const stage = buildFestivalWorld(scene, renderer, {
       lowPower,
       reducedMotion,
+      homeAtmosphere: arenaId === undefined,
       onLogoProgress: setBootProgress,
     });
     const post = new PostPipeline(renderer);
@@ -346,25 +365,27 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
       const targetProgress = reducedMotion ? 0 : progressRef.current ?? 0;
       smoothProgress += (targetProgress - smoothProgress) * (reducedMotion ? 1 : 0.065);
 
-      mouseVec.set(pointerState.x, pointerState.y);
+      const scenePointer = getScenePointer(pointerState, quietRef.current);
+      mouseVec.set(scenePointer.x, scenePointer.y);
 
       const rig = interpolateCamera(CAMERA_STOPS, smoothProgress);
       const tallFrame = Math.max(0, 1.15 - camera.aspect);
 
       camera.position.set(
-        rig.position[0] + pointerState.x * 0.32,
-        rig.position[1] + pointerState.y * 0.18 + tallFrame * 0.5,
+        rig.position[0] + scenePointer.x * 0.32,
+        rig.position[1] + scenePointer.y * 0.18 + tallFrame * 0.5,
         rig.position[2] + tallFrame * 3.4,
       );
       camera.fov = rig.fov + tallFrame * 4;
       camera.lookAt(
-        rig.target[0] + pointerState.x * 0.1,
-        rig.target[1] + pointerState.y * 0.06,
+        rig.target[0] + scenePointer.x * 0.1,
+        rig.target[1] + scenePointer.y * 0.06,
         rig.target[2],
       );
       camera.updateProjectionMatrix();
 
       stage.update(time * 0.001, mouseVec, currentPixelRatio, pointerState.torch, quietRef.current, pointerState.mark);
+      stage.setHomeAtmosphere(arenaIdRef.current === undefined);
       stage.world.rotation.y = -smoothProgress * 0.02;
       stage.lockBackdropToCamera(camera);
 
@@ -479,18 +500,30 @@ export function FestivalScene({ progressRef, quiet = false }: { progressRef: Ref
   }, [progressRef]);
 
   return (
-    <div className={`festival-scene${sceneReady ? ' is-ready' : ''}${quiet ? ' is-quiet' : ''}`} data-scene-mode={quiet ? 'quiet' : 'full'} ref={hostRef}>
+    <div
+      className={`festival-scene${sceneReady ? ' is-ready' : ''}${quiet ? ' is-quiet' : ''}${arenaId ? ` festival-scene--${arenaId}` : ' festival-scene--home'}`}
+      data-arena={arenaId ?? 'hub'}
+      data-scene-mode={quiet ? 'quiet' : 'full'}
+      ref={hostRef}
+    >
       <canvas className="festival-scene__canvas" ref={canvasRef} role="img" aria-label="Crown of Light festival scene" />
+      <div className="festival-scene__tint" aria-hidden="true" />
       {/* Held over the stage until the model resolves, so the wordmark is on
           screen from the first paint. If the GLB never loads, is-ready never
           fires and this simply stays — the mark is present either way. */}
       <div className="hero-boot" aria-hidden={sceneReady || quiet}>
+        {/* srcSet, not just src: this is the first image a visitor fetches and
+            the original is 3198px wide for a mark drawn at a few hundred. */}
         <img
           alt=""
           className="hero-boot__mark"
           decoding="async"
           fetchPriority="high"
+          height={BUGLASAN_HERO_LOGO.height}
+          sizes={BUGLASAN_HERO_LOGO.sizes}
           src={BUGLASAN_HERO_LOGO.src}
+          srcSet={BUGLASAN_HERO_LOGO.srcSet}
+          width={BUGLASAN_HERO_LOGO.width}
         />
         <div className="hero-boot__meter">
           <i style={{ width: `${Math.round(bootProgress * 100)}%` }} />

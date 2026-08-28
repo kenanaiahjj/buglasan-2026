@@ -1,5 +1,6 @@
 import { candidates, type ContestArena } from '../data/pageant';
 import { ARENA_VOTING, entriesForArena } from '../lib/arenaEntries';
+import { isValidVoteQuantity } from '../lib/voteFlow';
 
 export type ArenaId = ContestArena['id'];
 
@@ -17,6 +18,13 @@ const emptyArenaVotes = (): ArenaVotes =>
     return acc;
   }, {} as ArenaVotes);
 
+/**
+ * Starting counts, taken from the `votes` field on each entry.
+ *
+ * These exist so the prototype is not a wall of zeroes. They are placeholders:
+ * once `VITE_VOTING_API_URL` is set, `GET /tally` is the only source of counts
+ * and this seed is overwritten on the first read. See VOTING_API.md.
+ */
 const seedTallies = (): ArenaTallies =>
   ARENA_IDS.reduce((acc, id) => {
     acc[id] = entriesForArena(id).reduce<Record<string, number>>((tally, entry) => {
@@ -52,7 +60,7 @@ export type VoterAction =
   | { type: 'selectCandidate'; candidateId: string }
   | { type: 'confirmVote' }
   | { type: 'setSection'; section: VoterState['activeSection'] }
-  | { type: 'castArenaVote'; arenaId: ArenaId; entryId: string }
+  | { type: 'castArenaVote'; arenaId: ArenaId; entryId: string; quantity?: number }
   | { type: 'undoArenaVote'; arenaId: ArenaId; entryId: string };
 
 export const initialVoterState: VoterState = {
@@ -99,18 +107,28 @@ export function voterReducer(state: VoterState, action: VoterAction): VoterState
     case 'castArenaVote': {
       const { arenaId, entryId } = action;
       const spent = state.arenaVotes[arenaId];
+      const isPaidOrder = action.quantity !== undefined;
+      const quantity = action.quantity ?? 1;
+
+      if (!isValidVoteQuantity(quantity)) return state;
+
       // Guard here rather than only in the view: a disabled button is a
       // courtesy, not a rule, and double-submits are the normal way a tally
-      // goes wrong.
-      if (spent.includes(entryId) || spent.length >= ARENA_VOTING[arenaId].allowance) return state;
+      // goes wrong. A confirmed paid order is allowed to add its full
+      // quantity, including a second purchase for the same entry. The
+      // quantity-less action remains the legacy one-vote path.
+      if (!isPaidOrder && (spent.includes(entryId) || spent.length >= ARENA_VOTING[arenaId].allowance)) return state;
       return {
         ...state,
-        arenaVotes: { ...state.arenaVotes, [arenaId]: [...spent, entryId] },
+        arenaVotes: {
+          ...state.arenaVotes,
+          [arenaId]: spent.includes(entryId) ? spent : [...spent, entryId],
+        },
         arenaTallies: {
           ...state.arenaTallies,
           [arenaId]: {
             ...state.arenaTallies[arenaId],
-            [entryId]: (state.arenaTallies[arenaId][entryId] ?? 0) + 1,
+            [entryId]: (state.arenaTallies[arenaId][entryId] ?? 0) + quantity,
           },
         },
       };

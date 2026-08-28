@@ -14,8 +14,8 @@
  */
 
 import {
-  candidates,
   festivalContingents,
+  gandangCandidates,
   haraCandidates,
   lguBooths,
   type Candidate,
@@ -48,6 +48,15 @@ export type ArenaVoteConfig = {
   /* `origin` is a town on three programmes and a district on booths. The
      standings board counts distinct origins, so it needs the right word. */
   originLabel: string;
+  /**
+   * What the entry photograph is of.
+   *
+   * Hara and Gandang photograph one person standing: a tall crop is the
+   * portrait. A booth is a building and a contingent is thirty dancers in a
+   * line — a tall crop of either throws away the thing being judged, so those
+   * two get a wide card and a wide frame.
+   */
+  cardShape: 'portrait' | 'landscape';
 };
 
 /**
@@ -68,8 +77,9 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     noun: 'candidates',
     nounSingular: 'candidate',
     action: 'Vote',
-    prompt: 'One vote per person. Choose the queen who carries your town.',
+    prompt: 'Choose the queen who carries your town, then purchase as many votes as you want to add.',
     originLabel: 'Towns represented',
+    cardShape: 'portrait',
   },
   // Booths are the one arena where backing several is fair: a visitor walks
   // the whole park in an evening and genuinely has three favourites.
@@ -78,24 +88,27 @@ export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {
     noun: 'booths',
     nounSingular: 'booth',
     action: 'Vote',
-    prompt: 'Back up to three booths. Spend them however you like.',
+    prompt: 'Choose the booth you want to support, then purchase as many votes as you want to add.',
     originLabel: 'Districts represented',
+    cardShape: 'landscape',
   },
   festival: {
     allowance: 1,
     noun: 'contingents',
     nounSingular: 'contingent',
     action: 'Vote',
-    prompt: 'One vote per person. Choose the festival contingent that represents its hometown best.',
+    prompt: 'Choose the festival contingent that represents its hometown best, then purchase as many votes as you want to add.',
     originLabel: 'Towns represented',
+    cardShape: 'landscape',
   },
   gandang: {
     allowance: 1,
     noun: 'candidates',
     nounSingular: 'candidate',
     action: 'Vote',
-    prompt: 'One vote per person. Choose the titleholder whose story stays with you.',
+    prompt: 'Choose the titleholder whose story stays with you, then purchase as many votes as you want to add.',
     originLabel: 'Towns represented',
+    cardShape: 'portrait',
   },
 };
 
@@ -153,6 +166,6 @@ export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
       }));
 
     case 'gandang':
-      return candidateEntries(candidates);
+      return candidateEntries(gandangCandidates);
   }
 }

@@ -196,12 +196,39 @@ export const BUGLASAN_SPARKLE_LAYOUT = [
   { position: [-3.6, 1.65, -1.6] as const, scale: 2.8, phase: 4.7 },
 ] as const;
 
+const BUG_SURFACE_UV_HELPER = `
+           /* Three has not had a single vUv since r152 — each map carries its
+              own varying (vMapUv, vRoughnessMapUv...) and a generic vUv is
+              simply not declared, so referencing it fails to compile and the
+              material silently disappears. Fall back to fragment coordinates
+              where a mesh has no base map at all. */
+           vec2 bugSurfaceUv() {
+             #ifdef USE_MAP
+               return vMapUv;
+             #else
+               return gl_FragCoord.xy * 0.006;
+             #endif
+           }`;
+
+/** Inject the map-aware UV helper after Three declares its map varying. */
+export function injectHeroSheenShader(fragmentShader: string): string {
+  return fragmentShader.replace(
+    '#include <map_pars_fragment>',
+    `#include <map_pars_fragment>${BUG_SURFACE_UV_HELPER}`,
+  );
+}
+
 export type FestivalWorld = ReturnType<typeof buildFestivalWorld>;
 
 export function buildFestivalWorld(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
-  quality: { lowPower: boolean; reducedMotion: boolean; onLogoProgress?: (fraction: number) => void },
+  quality: {
+    lowPower: boolean;
+    reducedMotion: boolean;
+    homeAtmosphere?: boolean;
+    onLogoProgress?: (fraction: number) => void;
+  },
 ) {
   const world = new THREE.Group();
   scene.add(world);
@@ -221,6 +248,7 @@ export function buildFestivalWorld(
     uTime: { value: 0 },
     uMouse: { value: new THREE.Vector2(0, 0) },
     uIntensity: { value: 1 },
+    uHomeWarmth: { value: quality.homeAtmosphere ? 1 : 0 },
   };
   // Fewer FBM octaves and no star field on low-power devices; the two heavy
   // fragment shaders compile a cheaper variant rather than being switched off.
@@ -243,6 +271,10 @@ export function buildFestivalWorld(
   backdrop.frustumCulled = false;
   backdrop.renderOrder = -100;
   scene.add(backdrop);
+
+  const setHomeAtmosphere = (active: boolean) => {
+    backdropUniforms.uHomeWarmth.value = active ? 1 : 0;
+  };
 
   const BACKDROP_DISTANCE = 30;
   const camForward = new THREE.Vector3();
@@ -716,7 +748,8 @@ export function buildFestivalWorld(
   const addSheen = (material: THREE.Material) => {
     material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, sheenUniforms);
-      shader.fragmentShader = shader.fragmentShader
+      shader.fragmentShader = injectHeroSheenShader(
+        shader.fragmentShader
         .replace(
           '#include <common>',
           `#include <common>
@@ -745,19 +778,6 @@ export function buildFestivalWorld(
            }
            float bugFbm(vec2 p) {
              return 0.5 * bugNoise(p) + 0.25 * bugNoise(p * 2.03) + 0.125 * bugNoise(p * 4.01);
-           }
-
-           /* Three has not had a single vUv since r152 — each map carries its
-              own varying (vMapUv, vRoughnessMapUv...) and a generic vUv is
-              simply not declared, so referencing it fails to compile and the
-              material silently disappears. Fall back to fragment coordinates
-              where a mesh has no base map at all. */
-           vec2 bugSurfaceUv() {
-             #ifdef USE_MAP
-               return vMapUv;
-             #else
-               return gl_FragCoord.xy * 0.006;
-             #endif
            }`,
         )
         .replace(
@@ -833,7 +853,8 @@ export function buildFestivalWorld(
              outgoingLight += add / (1.0 + add);
            }
            #include <opaque_fragment>`,
-        );
+        )
+      );
     };
     material.needsUpdate = true;
   };
@@ -1026,6 +1047,8 @@ export function buildFestivalWorld(
   };
 
   const torchPos = new THREE.Vector2();
+  const tempPosA = new THREE.Vector3();
+  const tempPosB = new THREE.Vector3();
 
   const update = (
     elapsed: number,
@@ -1045,16 +1068,50 @@ export function buildFestivalWorld(
     for (const item of landmarkMeshes) item.mesh.visible = showDecorativeAtmosphere;
     logoGroup.visible = !quiet;
 
-    // The landmarks live inside `world`, which fitWorld() scales and lifts to
-    // suit the viewport. Put the torch through the same transform or the pool
-    // of light sits off the cursor on every aspect but one.
-    torchPos.set(mouse.x * 9.5 * world.scale.x, mouse.y * 5.0 * world.scale.y + world.position.y);
+    let activeTorch = torch;
+    const isMobileOrNoHover = !canHover || (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
+
+    if (isMobileOrNoHover && !quality.reducedMotion && landmarkMeshes.length > 0) {
+      // Touch/mobile devices have no hover state. Cycle the torch smoothly
+      // between the key landmark line-art drawings so they subtly appear in sequence.
+      const seq = [1, 2, 6, 3, 5, 4]; // cathedral, belltower, portal, capitol, boulevard, hall
+      const totalSteps = seq.length;
+      const totalTime = elapsed * 0.35; // gentle, measured sequence rate (~2.85s per landmark)
+      const stepFloat = totalTime % totalSteps;
+      const curIdx = Math.floor(stepFloat);
+      const nextIdx = (curIdx + 1) % totalSteps;
+      const frac = stepFloat - curIdx;
+
+      // Linger on each landmark for ~65% of the time, then smoothly glide to the next
+      const glideProgress = frac < 0.65 ? 0 : (frac - 0.65) / 0.35;
+      const smoothGlide = glideProgress * glideProgress * (3 - 2 * glideProgress);
+
+      const mA = landmarkMeshes[seq[curIdx] % landmarkMeshes.length].mesh;
+      const mB = landmarkMeshes[seq[nextIdx] % landmarkMeshes.length].mesh;
+
+      mA.getWorldPosition(tempPosA);
+      mB.getWorldPosition(tempPosB);
+
+      torchPos.set(
+        tempPosA.x + (tempPosB.x - tempPosA.x) * smoothGlide,
+        tempPosA.y + (tempPosB.y - tempPosA.y) * smoothGlide,
+      );
+
+      // Subtle illumination: 0.62 peak when resting on landmark, gently dipping to 0.42 while travelling
+      const intensity = 0.62 - 0.2 * Math.sin(smoothGlide * Math.PI);
+      activeTorch = Math.max(torch, intensity);
+    } else {
+      // The landmarks live inside `world`, which fitWorld() scales and lifts to
+      // suit the viewport. Put the torch through the same transform or the pool
+      // of light sits off the cursor on every aspect but one.
+      torchPos.set(mouse.x * 9.5 * world.scale.x, mouse.y * 5.0 * world.scale.y + world.position.y);
+    }
 
     if (showDecorativeAtmosphere) {
       for (const mat of landmarkMats) {
         mat.uniforms.uTime.value = elapsed;
         mat.uniforms.uMouse.value.copy(mouse);
-        mat.uniforms.uTorch.value = torch;
+        mat.uniforms.uTorch.value = activeTorch;
         mat.uniforms.uTorchPos.value.copy(torchPos);
         // The mark moves with the pointer and the dock, so the keep-out
         // tracks it rather than sitting at a fixed point.
@@ -1176,5 +1233,16 @@ export function buildFestivalWorld(
     for (const item of disposables) item.dispose();
   };
 
-  return { world, logoGroup, logoReady, update, triggerBurst, placeWordmark, setWordmarkDock, lockBackdropToCamera, dispose };
+  return {
+    world,
+    logoGroup,
+    logoReady,
+    update,
+    triggerBurst,
+    placeWordmark,
+    setWordmarkDock,
+    setHomeAtmosphere,
+    lockBackdropToCamera,
+    dispose,
+  };
 }

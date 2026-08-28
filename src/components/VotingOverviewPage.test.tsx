@@ -71,7 +71,7 @@ describe('VotingOverviewPage', () => {
     expect(html).toContain('Biggest climb');
     expect(html).toContain('Tightest race');
     expect(html).toContain(pageantContent.votingDeadline);
-    expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(12);
+    expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(haraCandidates.length);
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('Back to Hara sa Negros Oriental');
     expect(html).toContain('Festival Hub');
@@ -169,10 +169,10 @@ describe('VotingOverviewPage', () => {
     expect(container.querySelectorAll('.vote-overview__rank-row.vote-overview__update')).toHaveLength(0);
 
     act(() => {
-      vi.advanceTimersByTime(6000);
+      vi.advanceTimersByTime(3000);
     });
 
-    /* A tick moves one to three entries — a single-target tick makes a wall
+    /* Each tick moves one to three entries — a single-target tick makes a wall
        board look stalled — so the marker count is a range, not a number. */
     const updatedRows = container.querySelectorAll('.vote-overview__rank-row.vote-overview__update');
     expect(updatedRows.length).toBeGreaterThanOrEqual(1);

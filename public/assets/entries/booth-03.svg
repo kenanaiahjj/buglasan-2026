@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" width="640" height="800"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" width="1000" height="750"
      fill="none" stroke-linejoin="round" stroke-linecap="round">
   <!-- LGU pavilion 03 — generated placeholder, not photography -->
   <defs>
-    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="640" y2="800">
+    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="750">
       <stop offset="0%" stop-color="#bfdbfe" />
       <stop offset="52%" stop-color="#60a5fa" />
       <stop offset="100%" stop-color="#1d4ed8" />
@@ -12,50 +12,55 @@
       <stop offset="100%" stop-color="#60a5fa" stop-opacity="0" />
     </radialGradient>
   </defs>
-  <rect width="640" height="800" fill="#071409" />
-  <rect width="640" height="800" fill="url(#halo)" />
+  <rect width="1000" height="750" fill="#071409" />
+  <rect width="1000" height="750" fill="url(#halo)" />
+  <!-- The subject sits on its own baseline; the shift lifts it into the
+       middle of the shorter canvas without touching the composition's own
+       numbers. Backticks are forbidden here: this is inside a template. -->
+  <g transform="translate(0 -34)">
   <g stroke="url(#k)" stroke-width="3.4" stroke-opacity="0.95">
-    <path d="M111.5 430 L320 314.2 L528.5 430" />
-    <path d="M142.3 410.7 L314 410.7 M177 391.4 L314 391.4 M211.8 372.1 L314 372.1 M246.5 352.8 L314 352.8 M281.3 333.5 L314 333.5" stroke-opacity=".34" stroke-width="1.1" />
-    <path d="M182 335.8 L320 237.1 L458 335.8" />
-    <path d="M201 319.3 L314 319.3 M224 302.9 L314 302.9 M247 286.5 L314 286.5 M270 270 L314 270 M293 253.6 L314 253.6" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M212.2 430 L500 296.2 L787.8 430" />
+    <path d="M256.2 407.7 L494 407.7 M304.1 385.4 L494 385.4 M352.1 363.1 L494 363.1 M400.1 340.8 L494 340.8 M448 318.5 L494 318.5" stroke-opacity=".34" stroke-width="1.1" />
+    <path d="M309.5 317.8 L500 236.9 L690.5 317.8" />
+    <path d="M337.2 304.3 L494 304.3 M369 290.8 L494 290.8 M400.7 277.3 L494 277.3 M432.5 263.8 L494 263.8 M464.2 250.4 L494 250.4" stroke-opacity=".34" stroke-width="1.1" />
   </g>
   <g stroke="url(#k)" stroke-width="2.4" stroke-opacity="0.8">
-    <path d="M97.5 430 L542.5 430" />
-    <path d="M168 335.8 L472 335.8" />
+    <path d="M198.2 430 L801.8 430" />
+    <path d="M295.5 317.8 L704.5 317.8" />
   </g>
   <g stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.75">
-    <path d="M320 230.3 L320 196.3" />
-    <circle cx="320" cy="186.3" r="9" />
+    <path d="M500 230 L500 196" />
+    <circle cx="500" cy="186" r="9" />
   </g>
   <g stroke="url(#k)" stroke-width="2.6" stroke-opacity="0.85">
-    <path d="M145.5 438 L145.5 700 M138.5 503.5 L152.5 503.5 M138.5 569 L152.5 569 M138.5 634.5 L152.5 634.5 M232.8 438 L232.8 700 M225.8 503.5 L239.8 503.5 M225.8 569 L239.8 569 M225.8 634.5 L239.8 634.5 M320 438 L320 700 M313 503.5 L327 503.5 M313 569 L327 569 M313 634.5 L327 634.5 M407.2 438 L407.2 700 M400.2 503.5 L414.2 503.5 M400.2 569 L414.2 569 M400.2 634.5 L414.2 634.5 M494.5 438 L494.5 700 M487.5 503.5 L501.5 503.5 M487.5 569 L501.5 569 M487.5 634.5 L501.5 634.5" />
+    <path d="M246.2 438 L246.2 700 M239.2 503.5 L253.2 503.5 M239.2 569 L253.2 569 M239.2 634.5 L253.2 634.5 M373.1 438 L373.1 700 M366.1 503.5 L380.1 503.5 M366.1 569 L380.1 569 M366.1 634.5 L380.1 634.5 M500 438 L500 700 M493 503.5 L507 503.5 M493 569 L507 569 M493 634.5 L507 634.5 M626.9 438 L626.9 700 M619.9 503.5 L633.9 503.5 M619.9 569 L633.9 569 M619.9 634.5 L633.9 634.5 M753.8 438 L753.8 700 M746.8 503.5 L760.8 503.5 M746.8 569 L760.8 569 M746.8 634.5 L760.8 634.5" />
   </g>
   <g stroke="url(#k)" stroke-width="3.8" stroke-opacity="0.9">
-    <path d="M85.5 700 L554.5 700" />
+    <path d="M186.2 700 L813.8 700" />
   </g>
   <g stroke="url(#k)" stroke-width="1.6" stroke-opacity="0.45">
-    <path d="M103.5 722 L536.5 722" />
+    <path d="M204.2 722 L795.8 722" />
   </g>
   <g stroke="#ffffff" stroke-width="1.8" stroke-opacity="0.62">
-    <path d="M207.1 438 L207.1 454.8" />
-    <ellipse cx="207.1" cy="470.8" rx="15" ry="19" />
-    <path d="M207.1 489.8 L207.1 500.8" />
-    <path d="M320 438 L320 475.1" />
-    <ellipse cx="320" cy="491.1" rx="15" ry="19" />
-    <path d="M320 510.1 L320 521.1" />
-    <path d="M440.7 438 L440.7 467" />
-    <ellipse cx="440.7" cy="483" rx="15" ry="19" />
-    <path d="M440.7 502 L440.7 513" />
+    <path d="M339.3 438 L339.3 454.8" />
+    <ellipse cx="339.3" cy="470.8" rx="15" ry="19" />
+    <path d="M339.3 489.8 L339.3 500.8" />
+    <path d="M500 438 L500 475.1" />
+    <ellipse cx="500" cy="491.1" rx="15" ry="19" />
+    <path d="M500 510.1 L500 521.1" />
+    <path d="M670.4 438 L670.4 467" />
+    <ellipse cx="670.4" cy="483" rx="15" ry="19" />
+    <path d="M670.4 502 L670.4 513" />
   </g>
   <g stroke="url(#k)" stroke-width="2.2" stroke-opacity="0.8">
-    <path d="M224 568 L224 622 L416 622 L416 568 Z" />
+    <path d="M404 568 L404 622 L596 622 L596 568 Z" />
   </g>
   <g stroke="#ffffff" stroke-width="1.4" stroke-opacity="0.4">
-    <path d="M248 582 L392 582 M248 596 L362 596 M248 610 L332 610" />
+    <path d="M428 582 L572 582 M428 596 L542 596 M428 610 L512 610" />
   </g>
   <g stroke="url(#k)" stroke-width="1.8" stroke-opacity="0.6">
-    <path d="M129.5 700 q18 -30 40 0 Z" />
-    <path d="M470.5 700 q22 -36 46 0 Z" />
+    <path d="M230.2 700 q18 -30 40 0 Z" />
+    <path d="M729.8 700 q22 -36 46 0 Z" />
+  </g>
   </g>
 </svg>

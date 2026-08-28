@@ -27,6 +27,27 @@ describe('arena voting', () => {
     expect(next.arenaVotes.booths).toEqual([]);
   });
 
+  it('applies the full quantity from a confirmed paid order', () => {
+    const [first] = entriesForArena('hara');
+    const purchased = voterReducer(initialVoterState, {
+      type: 'castArenaVote',
+      arenaId: 'hara',
+      entryId: first.id,
+      quantity: 55,
+    });
+
+    expect(purchased.arenaVotes.hara).toEqual([first.id]);
+    expect(purchased.arenaTallies.hara[first.id]).toBe(first.votes + 55);
+
+    const secondPurchase = voterReducer(purchased, {
+      type: 'castArenaVote',
+      arenaId: 'hara',
+      entryId: first.id,
+      quantity: 10,
+    });
+    expect(secondPurchase.arenaTallies.hara[first.id]).toBe(first.votes + 65);
+  });
+
   it('refuses a second vote in a single-vote arena', () => {
     const [first, second] = entriesForArena('hara');
     const once = cast(initialVoterState, 'hara', first.id);

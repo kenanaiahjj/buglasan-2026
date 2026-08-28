@@ -21,8 +21,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const OUT = path.join(process.cwd(), 'public/assets/entries');
-const W = 640;
-const H = 800;
+/* A wide frame, because the subjects are wide.
+   A pavilion is a building and a contingent is a line of dancers; the tall
+   canvas this started on cropped the eaves off one and the ends off the
+   other. 4:3 matches `.hara-gallery--landscape .hara-gallery-card__media`. */
+const W = 1000;
+const H = 750;
 
 /* Deterministic PRNG — the art must not churn between builds. */
 function mulberry32(seed) {
@@ -59,7 +63,7 @@ const PALETTES = [
   { key: ['#fed7aa', '#fb923c', '#c2410c'], glow: '#fb923c' },
 ];
 
-function doc({ body, pal, note }) {
+function doc({ body, pal, note, shift = 0 }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
      fill="none" stroke-linejoin="round" stroke-linecap="round">
   <!-- ${note} — generated placeholder, not photography -->
@@ -76,7 +80,12 @@ function doc({ body, pal, note }) {
   </defs>
   <rect width="${W}" height="${H}" fill="#071409" />
   <rect width="${W}" height="${H}" fill="url(#halo)" />
+  <!-- The subject sits on its own baseline; the shift lifts it into the
+       middle of the shorter canvas without touching the composition's own
+       numbers. Backticks are forbidden here: this is inside a template. -->
+  <g transform="translate(0 ${shift})">
 ${body}
+  </g>
 </svg>
 `;
 }
@@ -90,7 +99,7 @@ function pavilion(index) {
   const cx = W / 2;
   const ground = 700;
   const tiers = rand() > 0.5 ? 3 : 2;
-  const baseHalf = lerp(180, 215, rand());
+  const baseHalf = lerp(252, 296, rand());
   const postCount = 4 + Math.floor(rand() * 2);
 
   const roofs = [];
@@ -98,7 +107,9 @@ function pavilion(index) {
   let half = baseHalf;
   let y = 430;
   for (let t = 0; t < tiers; t++) {
-    const apex = y - lerp(88, 118, rand());
+    /* Pitch as a fraction of the span, not a fixed rise: a wider eave with
+       the old rise flattens into a lid. */
+    const apex = y - half * lerp(0.4, 0.47, rand());
     roofs.push(p(`M${n(cx - half)} ${n(y)} L${n(cx)} ${n(apex)} L${n(cx + half)} ${n(y)}`));
     // Eave line, oversailing the roof below it.
     ridges.push(p(seg(cx - half - 14, y, cx + half + 14, y)));
@@ -124,7 +135,7 @@ function pavilion(index) {
 
   const lanterns = [];
   for (let i = 0; i < 3; i++) {
-    const x = cx + (i - 1) * lerp(96, 122, rand());
+    const x = cx + (i - 1) * lerp(140, 172, rand());
     const ly = 470 + rand() * 26;
     lanterns.push(p(seg(x, 438, x, ly - 16)));
     lanterns.push(`<ellipse cx="${n(x)}" cy="${n(ly)}" rx="15" ry="19" />`);
@@ -164,7 +175,7 @@ function pavilion(index) {
     ]),
   ].join('\n');
 
-  return doc({ body, pal, note: `LGU pavilion ${String(index + 1).padStart(2, '0')}` });
+  return doc({ body, pal, shift: -34, note: `LGU pavilion ${String(index + 1).padStart(2, '0')}` });
 }
 
 /* ------------------------------------------------------------------ *
@@ -243,8 +254,8 @@ function dancer(index) {
     return { parts, crown, fans };
   };
 
-  const backL = figure(cx - 150, 0.62, 344, 0.34, 1.6, false);
-  const backR = figure(cx + 150, 0.62, 344, 0.34, 1.6, false);
+  const backL = figure(cx - 232, 0.62, 344, 0.34, 1.6, false);
+  const backR = figure(cx + 232, 0.62, 344, 0.34, 1.6, false);
   const lead = figure(cx, 1, 266, 0.95, 3.4, true);
 
   const body = [
@@ -263,8 +274,8 @@ function dancer(index) {
       p([-2, -1, 0, 1, 2].map((i) => `M${n(cx + i * 16)} ${430} Q${n(cx + i * 30)} ${580} ${n(cx + i * 44)} ${ground - 4}`).join(' ')),
     ]),
     // Street.
-    g({ stroke: 'url(#k)', 'stroke-width': 3.4, 'stroke-opacity': 0.8 }, [p(seg(cx - 230, ground, cx + 230, ground))]),
-    g({ stroke: 'url(#k)', 'stroke-width': 1.5, 'stroke-opacity': 0.3 }, [p(seg(cx - 280, ground + 28, cx + 280, ground + 28))]),
+    g({ stroke: 'url(#k)', 'stroke-width': 3.4, 'stroke-opacity': 0.8 }, [p(seg(cx - 372, ground, cx + 372, ground))]),
+    g({ stroke: 'url(#k)', 'stroke-width': 1.5, 'stroke-opacity': 0.3 }, [p(seg(cx - 428, ground + 28, cx + 428, ground + 28))]),
     // Confetti.
     g({ stroke: '#ffffff', 'stroke-width': 1.6, 'stroke-opacity': 0.3 }, [
       p(
@@ -278,7 +289,7 @@ function dancer(index) {
     ]),
   ].join('\n');
 
-  return doc({ body, pal, note: `Festival contingent ${String(index + 1).padStart(2, '0')}` });
+  return doc({ body, pal, shift: -74, note: `Festival contingent ${String(index + 1).padStart(2, '0')}` });
 }
 
 /* ------------------------------------------------------------------ */
