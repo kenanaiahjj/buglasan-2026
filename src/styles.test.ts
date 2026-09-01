@@ -65,21 +65,20 @@ describe('voting overview podium', () => {
   });
 });
 
-describe('voting overview responsive board and live bar edges', () => {
-  it('keeps wide content safe and provides a readable flow fallback', () => {
+describe('voting overview wallboard and live bar edges', () => {
+  it('keeps the overview letterboxed at 16:9 with live bar edges', () => {
+    const frameBlock = styles.match(/\.vote-overview__frame\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
     expect(styles).toMatch(/\.vote-overview\s*\{[\s\S]*?overflow:\s*auto;/);
+    expect(frameBlock).toContain('width: min(100vw, calc(100dvh * 16 / 9));');
+    expect(frameBlock).toContain('height: min(100dvh, calc(100vw * 9 / 16));');
     expect(styles).toMatch(/\.vote-overview__rank-bar-fill\s*\{[\s\S]*?position:\s*relative;/);
     expect(styles).toMatch(/\.vote-overview__rank-bar-fill::after\s*\{[\s\S]*?animation:\s*voteOverviewBarEdge/);
     expect(styles).toMatch(/@keyframes voteOverviewBarEdge\s*\{[\s\S]*?transform:/);
-    expect(styles).toMatch(
+    expect(styles).not.toMatch(
       /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__frame\s*\{[\s\S]*?height:\s*auto;/,
     );
-    expect(styles).toMatch(
-      /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__body\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
-    );
-    expect(styles).toMatch(
-      /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__rank-row\s*\{[\s\S]*?height:\s*auto;/,
-    );
+    expect(styles).not.toMatch(/@media \(max-width:\s*40rem\)[\s\S]*?\.vote-overview__podium\s*\{/);
     expect(styles).toMatch(
       /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
     );
