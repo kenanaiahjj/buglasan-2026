@@ -596,6 +596,7 @@ export function VotingOverviewPage({
                         <span
                           className="vote-overview__rank-bar-fill"
                           style={{
+                            ['--bar-edge-delay' as string]: `${(entry.rank % 7) * -0.16}s`,
                             width: `${Math.max(leaderVotes === 0 ? 0 : (entry.votes / leaderVotes) * 100, 2)}%`,
                           }}
                         />
