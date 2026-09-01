@@ -448,35 +448,41 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
             <div aria-live="polite" className="vote-flow__done" role="status">
               <CheckCircle aria-hidden="true" size={44} weight="fill" />
               <p className="vote-flow__done-kicker">Vote successful</p>
-              {chosen !== null && (
-                <div className="vote-flow__success-candidate">
-                  {chosen.image !== null && (
-                    <img
-                      alt={`${chosen.name}, entry ${chosen.number}`}
-                      className="vote-flow__success-image"
-                      decoding="async"
-                      height={88}
-                      src={chosen.image}
-                      width={88}
-                    />
-                  )}
-                  <div className="vote-flow__success-candidate-copy">
-                    <p className="vote-flow__success-label">You voted for</p>
-                    <h3>{chosen.name}</h3>
-                    <p>#{chosen.number} · {chosen.origin}</p>
+              <section
+                aria-labelledby={`${titleId}-success-entry`}
+                className="vote-flow__success-card"
+              >
+                {chosen !== null && (
+                  <div className="vote-flow__success-candidate">
+                    {chosen.image !== null && (
+                      <img
+                        alt={`${chosen.name}, entry ${chosen.number}`}
+                        className="vote-flow__success-image"
+                        decoding="async"
+                        height={88}
+                        src={chosen.image}
+                        width={88}
+                      />
+                    )}
+                    <div className="vote-flow__success-candidate-copy">
+                      <p className="vote-flow__success-label">You voted for</p>
+                      <h3 id={`${titleId}-success-entry`}>{chosen.name}</h3>
+                      <p className="vote-flow__success-category">{programName}</p>
+                      <p>#{chosen.number} · {chosen.origin}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              <dl className="vote-flow__success-stats">
-                <div>
-                  <dt>Votes added</dt>
-                  <dd>{draft.quantity.toLocaleString('en-PH')}</dd>
-                </div>
-                <div>
-                  <dt>Total votes</dt>
-                  <dd>{confirmedTotal === null ? 'Updating…' : confirmedTotal.toLocaleString('en-PH')}</dd>
-                </div>
-              </dl>
+                )}
+                <dl className="vote-flow__success-stats">
+                  <div>
+                    <dt>Votes added</dt>
+                    <dd>{draft.quantity.toLocaleString('en-PH')}</dd>
+                  </div>
+                  <div>
+                    <dt>Total votes</dt>
+                    <dd>{confirmedTotal === null ? 'Updating…' : confirmedTotal.toLocaleString('en-PH')}</dd>
+                  </div>
+                </dl>
+              </section>
               <p className="vote-flow__done-note">
                 A receipt is on its way to {formatPhMobile(draft.mobile)}. Reference{' '}
                 <strong>{reference ?? voteReference(arena.id, draft)}</strong>.

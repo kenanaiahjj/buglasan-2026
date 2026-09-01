@@ -4132,17 +4132,27 @@ html.is-booting body { overflow: hidden; }
   letter-spacing: .12em;
   text-transform: uppercase;
 }
+.vote-flow__success-card {
+  display: grid;
+  width: 100%;
+  gap: .75rem;
+  margin: .2rem 0 .15rem;
+  padding: .85rem;
+  border: 1px solid color-mix(in oklch, var(--arena, var(--gold)) 48%, transparent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(145deg, color-mix(in oklch, var(--arena, var(--gold)) 12%, transparent), transparent 58%),
+    color-mix(in oklch, var(--surface-2) 64%, transparent);
+  box-shadow: 0 0 1.6rem color-mix(in oklch, var(--arena, var(--gold)) 12%, transparent);
+}
 .vote-flow__success-candidate {
   display: flex;
   align-items: center;
   width: 100%;
   gap: .8rem;
-  margin: .2rem 0 .15rem;
-  padding: .7rem;
-  border: 1px solid color-mix(in oklch, var(--arena, var(--gold)) 42%, transparent);
-  border-radius: var(--radius-md);
+  margin: 0;
+  padding: 0;
   text-align: left;
-  background: color-mix(in oklch, var(--arena, var(--gold)) 8%, transparent);
 }
 .vote-flow__success-image {
   flex: 0 0 4.5rem;
@@ -4156,14 +4166,15 @@ html.is-booting body { overflow: hidden; }
 }
 .vote-flow__success-candidate-copy { min-width: 0; }
 .vote-flow__success-label { margin: 0 0 .15rem; color: var(--ink-dim); font-size: .7rem; }
-.vote-flow__success-candidate-copy h3 { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 650; }
-.vote-flow__success-candidate-copy p:last-child { margin: .2rem 0 0; color: var(--ink-muted); font-size: .76rem; }
+.vote-flow__success-candidate-copy h3 { margin: 0; color: var(--ink); font-size: 1.08rem; font-weight: 650; }
+.vote-flow__success-category { margin: .2rem 0 0; color: var(--arena, var(--gold)); font-size: .76rem; font-weight: 620; }
+.vote-flow__success-candidate-copy p:last-child { margin: .15rem 0 0; color: var(--ink-muted); font-size: .72rem; }
 .vote-flow__success-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: 100%;
   gap: .55rem;
-  margin: .1rem 0 .25rem;
+  margin: 0;
 }
 .vote-flow__success-stats div {
   display: grid;
@@ -4253,6 +4264,12 @@ html.is-booting body { overflow: hidden; }
   .vote-flow__panel { width: 100%; max-height: 92dvh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
   .vote-flow__step-label { display: none; }
   .vote-flow__steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vote-flow__success-card { padding: .75rem; }
+  .vote-flow__success-image { flex-basis: 4rem; width: 4rem; height: 4rem; }
+}
+
+@media (max-width: 360px) {
+  .vote-flow__success-stats { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
