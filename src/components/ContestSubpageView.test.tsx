@@ -1,8 +1,11 @@
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { contestArenas, haraCandidates, lguBooths, pageantContent } from '../data/pageant';
 import { ARENA_VOTING, entriesForArena } from '../lib/arenaEntries';
 import { ContestSubpageView } from './ContestSubpageView';
+import { HaraGallery } from './HaraGallery';
 
 describe('ContestSubpageView', () => {
   it('keeps the voting deadline centralized, with its ISO twin in step', () => {
@@ -97,12 +100,14 @@ describe('ContestSubpageView', () => {
     expect(html).not.toContain('<details');
     expect(html).not.toContain('class="vote-flow"');
     expect(html).toContain('Voting is open');
+    expect(html).not.toContain('class="hara-gallery__status-live"><span');
     expect(html).toContain(pageantContent.votingDeadline);
     expect(html).toContain('aria-label="Search candidates or town"');
     expect(html).not.toContain('Most votes');
     expect(html).not.toContain('Entry number');
     expect(html).not.toContain('>Name</button>');
     expect(html).not.toContain('aria-label="Sort candidates"');
+    expect(html).not.toMatch(/class="hara-gallery-card__location"><svg/);
     expect(html).not.toContain('hara-gallery__sort');
     expect(html).not.toContain('hara-gallery__count');
     expect(html).not.toContain('22 of 22 candidates');
@@ -121,6 +126,119 @@ describe('ContestSubpageView', () => {
       expect(html).toContain(candidate.location);
       expect(html).toContain(candidate.image);
       expect(html).toContain(`Vote for ${candidate.name}`);
+    }
+  });
+
+  it('keeps status and location labels text-only across every contest subpage', () => {
+    for (const arena of contestArenas) {
+      const html = renderToStaticMarkup(
+        <ContestSubpageView
+          arena={arena}
+          dispatch={() => undefined}
+          onBackToHub={() => undefined}
+          onOpenOverview={() => undefined}
+          onSwitchArena={() => undefined}
+          tallies={{}}
+        />,
+      );
+
+      expect(html).not.toContain('class="hara-gallery__status-live"><span');
+      expect(html).not.toMatch(/class="hara-gallery-card__location"><svg/);
+      expect(html).toMatch(
+        /<button[^>]*class="hara-gallery__home crown-quiet-control"[^>]*><span>Home<\/span><\/button>/,
+      );
+
+      const cardMarkup = html.match(/<article[^>]*class="hara-gallery-card"[\s\S]*?<\/article>/g) ?? [];
+      expect(cardMarkup).toHaveLength(arena.totalEntries);
+      /* The card is an article carrying content, not a button wrapping it.
+         `role="button"` gave the subtree presentational children, so the
+         heading stopped being a heading, and `aria-label` on the card
+         replaced the town, the blurb and the vote count with one string.
+         Neither may come back. The one control is a real button, named by
+         its own visible text, and it is the only tab stop in the card. */
+      expect(cardMarkup.every((card) => !card.includes('role="button"'))).toBe(true);
+      expect(cardMarkup.every((card) => !card.includes('tabindex='))).toBe(true);
+      expect(cardMarkup.every((card) => !/<article[^>]*aria-label=/.test(card))).toBe(true);
+      expect(cardMarkup.every((card) => /<article[^>]*aria-labelledby="/.test(card))).toBe(true);
+      expect(cardMarkup.every((card) => /<h2 id="[^"]+"/.test(card))).toBe(true);
+      expect(cardMarkup.every((card) => card.includes('<button'))).toBe(true);
+    }
+  });
+
+  it('opens a vote from the card surface or its one real button', async () => {
+    const originalMatchMedia = window.matchMedia;
+    const onVote = vi.fn();
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        matches: true,
+        media: '(prefers-reduced-motion: reduce)',
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }),
+    });
+    document.body.appendChild(container);
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+    try {
+      const hara = contestArenas.find((arena) => arena.id === 'hara')!;
+
+      await act(async () => {
+        root.render(
+          <HaraGallery
+            arena={hara}
+            onBackToHub={() => undefined}
+            onHowToVote={() => undefined}
+            onOpenOverview={() => undefined}
+            onVote={onVote}
+            tallies={{}}
+          />,
+        );
+      });
+
+      const card = container.querySelector<HTMLElement>('.hara-gallery-card');
+      expect(card).not.toBeNull();
+
+      // Pointer convenience: anywhere on the card still votes.
+      await act(async () => {
+        card?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+      expect(onVote).toHaveBeenLastCalledWith(haraCandidates[0].id);
+      expect(onVote).toHaveBeenCalledTimes(1);
+
+      /* The button is the keyboard path. It carries no handler of its own —
+         Enter and Space on a native button raise a click, and that click
+         bubbles to the card. Which also means it must fire once, not twice. */
+      const button = container.querySelector<HTMLButtonElement>('.subpage-vote-btn');
+      expect(button?.tagName).toBe('BUTTON');
+      expect(button?.textContent).toContain(`Vote for ${haraCandidates[0].name}`);
+
+      await act(async () => {
+        button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+      expect(onVote).toHaveBeenLastCalledWith(haraCandidates[0].id);
+      expect(onVote).toHaveBeenCalledTimes(2);
+
+      // And the card itself is no longer a focus target.
+      expect(card?.hasAttribute('tabindex')).toBe(false);
+      expect(card?.getAttribute('role')).toBeNull();
+    } finally {
+      await act(async () => {
+        root.unmount();
+      });
+      container.remove();
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        value: originalMatchMedia,
+      });
+      globalThis.IS_REACT_ACT_ENVIRONMENT = false;
     }
   });
 
@@ -243,7 +361,7 @@ describe('ContestSubpageView', () => {
       />,
     );
     expect(festivalHtml).toContain('Festival of Festivals');
-    expect(festivalHtml).toContain('/assets/program-logos/festival-of-festivals-transparent.png');
+    expect(festivalHtml).toContain('/assets/program-logos/festival-of-festivals-2026.webp');
     expect(festivalHtml).toContain('Sandurot Festival');
 
     const gandang = contestArenas.find((a) => a.id === 'gandang');

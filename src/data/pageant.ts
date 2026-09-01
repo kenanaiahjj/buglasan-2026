@@ -211,8 +211,11 @@ export const contestArenas: ContestArena[] = [
     tagline: 'Many hometowns. One provincial story.',
     icon: 'sparkle',
     badge: 'Province-Wide Showdown',
-    // Supplied Festival of Festivals logo with its background removed.
-    logo: '/assets/program-logos/festival-of-festivals-transparent.png',
+    // The 2026 emblem: three figures under the guiding star, inside a
+    // rainbow ring. Supplied at 2048px square and resized to 512 — decoded,
+    // the original cost 16MB of RAM for a mark drawn at ~216px at its
+    // largest, on the subpage hero.
+    logo: '/assets/program-logos/festival-of-festivals-2026.webp',
     venue: 'Dumaguete City Streets & Lamberto Macias Sports Complex',
     dateRange: 'October 20 – 21, 2026',
     totalEntries: 10,

@@ -2297,17 +2297,8 @@ html.is-booting body { overflow: hidden; }
 .hara-gallery__status-live {
   display: inline-flex;
   align-items: center;
-  gap: 0.38rem;
   color: #70f19a;
   font-weight: 700;
-}
-
-.hara-gallery__status-live span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 4px rgba(112, 241, 154, 0.12);
 }
 
 .hara-gallery__toolbar {
@@ -2458,6 +2449,7 @@ html.is-booting body { overflow: hidden; }
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4), 0 0 1px var(--subpage-accent-line);
   width: 100%;
   max-width: 16rem;
+  cursor: pointer;
   transition: transform 280ms cubic-bezier(0.2, 0, 0, 1), border-color 180ms ease, box-shadow 280ms cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -2541,7 +2533,6 @@ html.is-booting body { overflow: hidden; }
 .hara-gallery-card__location {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
   color: var(--crown-gold-light);
   font-size: 0.56rem;
   font-weight: 700;
@@ -2579,23 +2570,37 @@ html.is-booting body { overflow: hidden; }
   gap: 0.55rem;
 }
 
-.hara-gallery-card__footer > span {
+/* `:not(.crown-button)` because the vote button is a span in this same row,
+   and this rule was written for the vote count beside it. Being a direct
+   child span, the button matched too — and at 0,1,1 this beat the 0,1,0 of
+   `.crown-floating-dots-button`, so the primary action took the muted ink
+   meant for a caption and rendered pale grey-green on bright gold: about
+   1.2:1, against the 4.5:1 that size of text needs. */
+.hara-gallery-card__footer > span:not(.crown-button) {
   flex: 0 0 auto;
   color: var(--crown-muted);
   font-size: 0.64rem;
   white-space: nowrap;
 }
 
+/* 0.62rem is under 10px, and this is the only way to vote for an entry. It
+   was also below the 24px/18.66px-bold threshold where WCAG relaxes contrast
+   to 3:1, so the small size was making the contrast requirement stricter at
+   the same time as making the label harder to read. */
 .hara-gallery-card .subpage-vote-btn {
   width: 100%;
-  min-height: 36px;
+  min-height: 42px;
   justify-content: space-between;
-  padding: 0.5rem 0.65rem;
-  font-size: 0.62rem;
-  white-space: nowrap;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.78rem;
 }
 
 .hara-gallery-card:focus-within {
+  outline: 2px solid var(--crown-gold-light);
+  outline-offset: 4px;
+}
+
+.hara-gallery-card:focus-visible {
   outline: 2px solid var(--crown-gold-light);
   outline-offset: 4px;
 }

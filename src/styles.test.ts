@@ -387,6 +387,7 @@ describe('Hara gallery card sizing', () => {
   it('styles the Hara support block and search-only toolbar', () => {
     expect(styles).toMatch(/\.hara-gallery__support\s*\{[\s\S]*?display:\s*grid;/);
     expect(styles).toMatch(/\.hara-gallery__status-live\s*\{[\s\S]*?color:/);
+    expect(styles).not.toMatch(/\.hara-gallery__status-live span\s*\{/);
     expect(styles).toMatch(/\.hara-gallery__toolbar\s*\{[\s\S]*?display:\s*grid;/);
     expect(styles).toMatch(/\.hara-gallery__toolbar\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\);/);
     expect(styles).toMatch(/\.hara-gallery__search\s*\{[\s\S]*?min-height:\s*42px;/);

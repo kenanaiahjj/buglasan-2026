@@ -82,7 +82,7 @@ describe('LandingPage Crown of Light contract', () => {
     expect(hero).toContain('Choose a contest');
     expect(html).toContain('/assets/program-logos/hara-sa-negros-oriental-2026-transparent.png');
     expect(html).toContain('/assets/program-logos/gandang-negorense-queen-size.webp');
-    expect(html).toContain('/assets/program-logos/festival-of-festivals-transparent.png');
+    expect(html).toContain('/assets/program-logos/festival-of-festivals-2026.webp');
     /* `home`, not `festival`: the hero's anchor used to collide with the
        Festival of Festivals arena id, so Home opened a programme page. */
     expect(html).toContain('id="home"');
@@ -258,7 +258,7 @@ describe('LandingPage Crown of Light contract', () => {
       expect(picker?.querySelectorAll('.hero-arena-card__niche')).toHaveLength(4);
       expect(picker?.querySelectorAll('.contest-picker__card-count')).toHaveLength(4);
       expect(picker?.querySelector('img[src="/assets/program-logos/hara-sa-negros-oriental-2026-transparent.png"]')).not.toBeNull();
-      expect(picker?.querySelector('img[src="/assets/program-logos/festival-of-festivals-transparent.png"]')).not.toBeNull();
+      expect(picker?.querySelector('img[src="/assets/program-logos/festival-of-festivals-2026.webp"]')).not.toBeNull();
       expect(picker?.querySelector('img[src="/assets/program-logos/gandang-negorense-queen-size.webp"]')).not.toBeNull();
       // Programmes with no supplied logo fall back to the arch emblem.
       expect(picker?.querySelector('.hero-arena-card__emblem svg')).not.toBeNull();

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
-import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { ChartBar } from '@phosphor-icons/react/dist/icons/ChartBar';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/icons/MagnifyingGlass';
 import { Question } from '@phosphor-icons/react/dist/icons/Question';
-import { MapPin } from '@phosphor-icons/react/dist/icons/MapPin';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
 import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
@@ -90,7 +88,6 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
       <div className="hara-gallery__intro">
         <nav aria-label={`${programName} navigation`} className="hara-gallery__actions">
           <button className="hara-gallery__home crown-quiet-control" onClick={onBackToHub} type="button">
-            <ArrowLeft aria-hidden="true" size={15} weight="bold" />
             <span>Home</span>
           </button>
 
@@ -136,7 +133,6 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
         <div className="hara-gallery__support">
           <p className="hara-gallery__status" role="status">
             <span className="hara-gallery__status-live">
-              <span aria-hidden="true" />
               Voting is open
             </span>
             <span>Ends {pageantContent.votingDeadline}</span>
@@ -179,9 +175,32 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
       ) : (
         <div className="hara-gallery__grid" aria-label={`${programName} entries`}>
           {visibleCandidates.map((candidate, index) => (
+            /*
+             * The card is an article, not a button.
+             *
+             * It used to be `role="button"` with `aria-label="Vote for ..."`,
+             * and both halves of that hurt. `aria-label` on a container
+             * replaces everything inside it, so the town, the heading, the
+             * blurb and the vote count were never announced. And ARIA gives
+             * `button` presentational children — a screen reader is entitled
+             * to drop the subtree entirely — so the `<h2>` was not a heading
+             * to anyone using one. Twenty-two cards announced as twenty-two
+             * identical-shaped "Vote for X, button" and nothing else.
+             *
+             * Now the content is just content, the heading names the article,
+             * and the one thing that was always drawn as a button is one.
+             */
             <article
+              aria-labelledby={`${candidate.id}-name`}
               className="hara-gallery-card"
               key={candidate.id}
+              /* Pointer convenience only — anywhere on the card votes, as
+                 before. There is no keyboard handler here because there is no
+                 longer a keyboard affordance here: the button below is the
+                 tab stop, and a native button turns Enter and Space into a
+                 click that bubbles to exactly this handler. One stop, one
+                 code path, no phantom focus on a 22-item grid. */
+              onClick={() => onVote(candidate.id)}
             >
               <div className="hara-gallery-card__motion">
                 <div className="hara-gallery-card__media">
@@ -195,18 +214,17 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
                     src={candidate.image ?? undefined}
                     width={512}
                   />
-                  <span
-                    aria-label={`${titleCase(cfg.nounSingular)} ${candidate.number}`}
-                    className="hara-gallery-card__number"
-                  >
+                  {/* `aria-label` was on this span, and a span carries the
+                      generic role, which does not take a name — browsers are
+                      free to ignore it, and Chrome does, so this announced as
+                      a bare "01". Real text, hidden visually, always works. */}
+                  <span className="hara-gallery-card__number">
+                    <span className="visually-hidden">{`${titleCase(cfg.nounSingular)} `}</span>
                     {candidate.number}
                   </span>
                   <div className="hara-gallery-card__caption">
-                    <span className="hara-gallery-card__location">
-                      <MapPin aria-hidden="true" size={13} weight="fill" />
-                      {candidate.origin}
-                    </span>
-                    <h2>{candidate.name}</h2>
+                    <span className="hara-gallery-card__location">{candidate.origin}</span>
+                    <h2 id={`${candidate.id}-name`}>{candidate.name}</h2>
                   </div>
                 </div>
 
@@ -214,12 +232,11 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
                   {candidate.blurb && <p>{candidate.blurb}</p>}
                   <div className="hara-gallery-card__footer">
                     <span>{(tallies[candidate.id] ?? candidate.votes).toLocaleString()} votes</span>
-                    <button
-                      aria-label={`Vote for ${candidate.name}`}
-                      className="crown-button crown-floating-dots-button subpage-vote-btn"
-                      onClick={() => onVote(candidate.id)}
-                      type="button"
-                    >
+                    {/* Its visible text is its accessible name, so it needs
+                        no `aria-label`. No `onClick` either: the click it
+                        raises — from a pointer, or from Enter/Space on a
+                        native button — bubbles to the article's handler. */}
+                    <button className="crown-button crown-floating-dots-button subpage-vote-btn" type="button">
                       <span>Vote for {candidate.name}</span>
                       <ArrowRight aria-hidden="true" size={14} />
                     </button>
