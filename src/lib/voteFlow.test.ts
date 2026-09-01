@@ -14,6 +14,7 @@ import {
   voteFlowGuide,
   voteFlowIssues,
   voteReference,
+  voteDraftTotals,
   voteTotalCentavos,
   type VoteFlowDraft,
 } from './voteFlow';
@@ -22,7 +23,7 @@ const complete = (over: Partial<VoteFlowDraft> = {}): VoteFlowDraft => ({
   entryId: 'c-01',
   mobile: '9171234567',
   origin: 'Dumaguete City',
-  quantity: 20,
+  bundles: { 'b-100': 1 },
   method: 'gcash',
   ...over,
 });
@@ -56,8 +57,20 @@ describe('Philippine mobile numbers', () => {
 });
 
 describe('vote pricing', () => {
-  it('prices any positive whole-number quantity at one peso per vote', () => {
-    expect(emptyVoteFlowDraft().quantity).toBe(1);
+  it('starts with an empty basket, because a bundle is a choice', () => {
+    expect(emptyVoteFlowDraft().bundles).toEqual({});
+    expect(voteDraftTotals(emptyVoteFlowDraft()).votes).toBe(0);
+    expect(voteDraftTotals(emptyVoteFlowDraft()).amountCentavos).toBe(0);
+  });
+
+  it('reads votes and amount off the bundles in the draft', () => {
+    const totals = voteDraftTotals(complete({ bundles: { 'b-1000': 2, 'b-50': 1 } }));
+
+    expect(totals.votes).toBe(2_655);
+    expect(totals.amountCentavos).toBe(205_000);
+  });
+
+  it('still prices bare votes at the base rate for callers that use it', () => {
     expect(voteTotalCentavos(1)).toBe(100);
     expect(voteTotalCentavos(20)).toBe(2_000);
     expect(voteTotalCentavos(55)).toBe(5_500);
@@ -94,8 +107,14 @@ describe('step gating', () => {
     expect(voteFlowIssues('supporter', badPhone)[0]).toMatch(/09XX/);
 
     expect(voteFlowIssues('pay', complete({ method: null }))).toHaveLength(1);
-    expect(voteFlowIssues('pay', complete({ quantity: 10 }))).not.toContain('Enter a whole number of votes.');
-    expect(voteFlowIssues('pay', complete({ quantity: 0 }))).toContain('Enter a whole number of votes.');
+    expect(voteFlowIssues('pay', complete({ bundles: { 'b-10': 1 } }))).not.toContain(
+      'Add at least one vote bundle.',
+    );
+    expect(voteFlowIssues('pay', complete({ bundles: {} }))).toContain('Add at least one vote bundle.');
+    /* A bundle the catalogue no longer sells is no bundle at all. */
+    expect(voteFlowIssues('pay', complete({ bundles: { 'b-withdrawn': 4 } }))).toContain(
+      'Add at least one vote bundle.',
+    );
     expect(canLeaveStep('pay', complete())).toBe(true);
   });
 
@@ -129,7 +148,9 @@ describe('receipt reference', () => {
   /* A reference that changes when the page reloads is not a reference. */
   it('is stable for the same submission and different for another', () => {
     expect(voteReference('hara', complete())).toBe(voteReference('hara', complete()));
-    expect(voteReference('hara', complete())).not.toBe(voteReference('hara', complete({ quantity: 11 })));
+    expect(voteReference('hara', complete())).not.toBe(
+      voteReference('hara', complete({ bundles: { 'b-500': 3 } })),
+    );
     expect(voteReference('hara', complete())).not.toBe(voteReference('booths', complete()));
     expect(voteReference('hara', complete())).toMatch(/^BF26-HA-[0-9A-Z]{7}$/);
   });

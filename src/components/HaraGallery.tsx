@@ -7,6 +7,7 @@ import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
 import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
 import { entryHash } from '../lib/entryRoutes';
+import { VoteCursor } from './VoteCursor';
 import { filterHaraCandidates } from '../lib/haraGallery';
 import { pageantContent, type ContestArena } from '../data/pageant';
 
@@ -85,6 +86,10 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
       ref={galleryRef}
       aria-label={`${programName} entries`}
     >
+      {/* The same follower the hero uses over its plaques. It gates itself on
+          a fine pointer, so on a touch screen it never mounts and the cards
+          keep their visible button instead. */}
+      <VoteCursor />
       <div className="hara-gallery__intro">
         <nav aria-label={`${programName} navigation`} className="hara-gallery__actions">
           <button className="hara-gallery__home crown-quiet-control" onClick={onBackToHub} type="button">
@@ -110,9 +115,10 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
           </button>
         </nav>
 
-        {/* Two programmes have a supplied logo, two do not. The lockup is not a
-            placeholder for the missing art — it is what those programmes get
-            until real art exists, so the intro never renders as a bare toolbar. */}
+        {/* Programmes with an emblem or supplied mark render .hara-gallery__logo.
+            When a programme has no mark, or when its supplied mark is an emblem
+            without type (Festival of Festivals), .hara-gallery__lockup renders the
+            title and subtitle so the programme name is always clear and legible. */}
         {arena.logo ? (
           <img
             alt={`${programName} 2026`}
@@ -123,7 +129,9 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
             src={arena.logo}
             width={447}
           />
-        ) : (
+        ) : null}
+
+        {(!arena.logo || arena.id === 'festival') && (
           <div className="hara-gallery__lockup">
             <h1>{programName}</h1>
             <p>{arena.subtitle}</p>
@@ -178,6 +186,7 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
             <article
               aria-labelledby={`${candidate.id}-name`}
               className="hara-gallery-card"
+              data-vote-cursor
               key={candidate.id}
             >
               <div className="hara-gallery-card__motion">
@@ -210,23 +219,55 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
                   {candidate.blurb && <p>{candidate.blurb}</p>}
                   <div className="hara-gallery-card__footer">
                     <span>{(tallies[candidate.id] ?? candidate.votes).toLocaleString()} votes</span>
-                    {/* One native link owns navigation. Its CSS hit area
-                        stretches across the card, so pointer users can tap
-                        anywhere without creating a second keyboard target. */}
-                    <a
+                    {/* Decorative. The whole card is the link (`__surface`
+                        below), so this is the affordance drawn for people who
+                        have no cursor to change — it is hidden wherever the
+                        follower cursor runs. A `span`, not an anchor: two
+                        anchors to the same place is two tab stops and two
+                        announcements of one thing. */}
+                    <span
+                      aria-hidden="true"
                       className="crown-button crown-floating-dots-button subpage-entry-link"
-                      href={entryHash(arena.id, candidate.id)}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        onOpenEntry(candidate.id);
-                      }}
                     >
                       <span>View {candidate.name}</span>
                       <ArrowRight aria-hidden="true" size={14} />
-                    </a>
+                    </span>
                   </div>
                 </div>
               </div>
+
+              {/*
+               * The card *is* the link — the whole surface, and the only one.
+               *
+               * It began as a `::after` on the button, stretched with
+               * `inset: 0`. That is the standard trick and it does not survive
+               * this button: `.crown-floating-dots-button` sets `position:
+               * relative`, `overflow: hidden`, `isolation: isolate` and a
+               * `filter`, and any one of those either makes the button the
+               * pseudo's containing block or clips the pseudo to it. Three of
+               * the four were overridden and the hit area still came out
+               * button-sized.
+               *
+               * Its own element has none of that inherited baggage, and being
+               * a real anchor means middle-click and open-in-new-tab work from
+               * anywhere on the card — which matters for a page whose whole
+               * purpose is being shared.
+               *
+               * It carries the accessible name because it is the control. The
+               * visible pill above is `aria-hidden`, so this is the card's
+               * single tab stop at every width, including the widths where the
+               * pill is not drawn at all.
+               */}
+              <a
+                className="hara-gallery-card__surface"
+                href={entryHash(arena.id, candidate.id)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onOpenEntry(candidate.id);
+                }}
+              >
+                <span className="visually-hidden">{`View ${candidate.name}`}</span>
+              </a>
             </article>
           ))}
         </div>

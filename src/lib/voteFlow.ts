@@ -8,6 +8,12 @@
  */
 
 import { NEGROS_ORIENTAL_LGUS, OUTSIDE_PROVINCE } from '../data/pageant';
+import {
+  bundleCartTotals,
+  cartSignature,
+  isOrderableCart,
+  type VoteBundleCart,
+} from './voteBundles';
 
 /* Choosing happens on the programme page, not in here: the dialog opens
    against a candidate the supporter already pressed Vote on. */
@@ -18,7 +24,13 @@ export const VOTE_FLOW_STEPS: Array<{ id: VoteFlowStep; label: string }> = [
   { id: 'pay', label: 'Pay' },
 ];
 
-/** Centavos, not pesos: money in floating point is how a tally goes wrong. */
+/**
+ * Centavos, not pesos: money in floating point is how a tally goes wrong.
+ *
+ * This is the base rate the smallest bundle is priced at, and the rate the
+ * bonus on every larger bundle is measured against. Votes are not sold at it
+ * individually — see `voteBundles.ts`.
+ */
 export const VOTE_PRICE_CENTAVOS = 100;
 
 /** The payment gateway can only charge a positive, whole number of votes. */
@@ -69,12 +81,23 @@ export type VoteFlowDraft = {
   /** National significant number: ten digits, no leading zero, no country code. */
   mobile: string;
   origin: string;
-  quantity: number;
+  /**
+   * How many of each bundle. Votes are bought in bundles, so this is the
+   * order — the vote count and the amount are both read off it rather than
+   * stored beside it, because two places to say how much this costs is one
+   * place too many.
+   */
+  bundles: VoteBundleCart;
   method: PaymentMethodId | null;
 };
 
 export function emptyVoteFlowDraft(entryId: string | null = null): VoteFlowDraft {
-  return { entryId, mobile: '', origin: '', quantity: 1, method: null };
+  return { entryId, mobile: '', origin: '', bundles: {}, method: null };
+}
+
+/** Votes and amount for a draft, from its bundles. */
+export function voteDraftTotals(draft: VoteFlowDraft) {
+  return bundleCartTotals(draft.bundles);
 }
 
 /**
@@ -110,6 +133,8 @@ export function isValidPhMobile(nationalDigits: string): boolean {
   return /^9\d{9}$/.test(nationalDigits);
 }
 
+/** What the same number of votes would cost at the base rate. Kept for the
+ *  places that still reason in votes rather than in bundles. */
 export function voteTotalCentavos(quantity: number): number {
   return isValidVoteQuantity(quantity) ? quantity * VOTE_PRICE_CENTAVOS : 0;
 }
@@ -140,7 +165,7 @@ export function voteFlowIssues(step: VoteFlowStep, draft: VoteFlowDraft): string
       break;
 
     case 'pay':
-      if (!isValidVoteQuantity(draft.quantity)) issues.push('Enter a whole number of votes.');
+      if (!isOrderableCart(draft.bundles)) issues.push('Add at least one vote bundle.');
       if (draft.method === null) issues.push('Choose how you want to pay.');
       break;
 
@@ -178,7 +203,7 @@ export function voteFlowStepIndex(step: VoteFlowStep): number {
  * until one is wired up.
  */
 export function voteReference(arenaId: string, draft: VoteFlowDraft): string {
-  const seed = `${arenaId}:${draft.entryId ?? ''}:${draft.mobile}:${draft.quantity}`;
+  const seed = `${arenaId}:${draft.entryId ?? ''}:${draft.mobile}:${cartSignature(draft.bundles)}`;
   let hash = 0x811c9dc5;
 
   for (let index = 0; index < seed.length; index += 1) {

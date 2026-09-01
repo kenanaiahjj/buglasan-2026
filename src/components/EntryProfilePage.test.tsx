@@ -27,7 +27,11 @@ describe('EntryProfilePage', () => {
     expect(html).toContain(entry.name);
     expect(html).toContain(entry.origin);
     expect(html).toContain('Festival of Festivals');
-    expect(html).toContain('3,192 votes');
+    /* The tally is a numeral and a unit in separate elements now, not one
+       "3,192 votes" string — it is the only number on the page and is set
+       like it. */
+    expect(html).toContain('3,192');
+    expect(html).toContain('votes so far');
     for (const fact of entry.meta) {
       expect(html).toContain(fact.label);
       expect(html).toContain(fact.value);

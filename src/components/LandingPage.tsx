@@ -26,8 +26,23 @@ import { enter } from '../lib/enter';
 import { entryHash, parseEntryHash, type EntryRoute } from '../lib/entryRoutes';
 import { trackPlaqueSheen } from '../lib/plaqueSheen';
 import { claimBootStage, useSiteBoot } from '../lib/siteBoot';
+import { shouldRenderStage } from '../lib/stageBudget';
 
 gsap.registerPlugin(useGSAP);
+
+/**
+ * The sponsor wordmark.
+ *
+ * PlanOut ship one asset: a stacked lockup — chevron over wordmark over a
+ * "PEOPLE | PLACES | PARTNERSHIPS" tagline — as a 2727x3000 PNG inlined into
+ * their site's JS. Stacked is unusable at the sizes it is drawn here: fitted
+ * to a 40px-tall header slot its wordmark band comes out about 8px tall, and
+ * their own site renders the whole lockup into 34x34. So this is the wordmark
+ * band on its own, cropped and trimmed to its ink, which is the one component
+ * that survives being small. If they have an official horizontal lockup it
+ * should replace this file rather than this being re-cropped.
+ */
+const PLANOUT_WORDMARK = '/assets/sponsors/planout-wordmark.webp';
 
 const FestivalScene = lazy(() =>
   import('./FestivalScene').then(({ FestivalScene: Scene }) => ({ default: Scene })),
@@ -79,6 +94,10 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const [showHowToVote, setShowHowToVote] = useState(false);
   const [showContestPicker, setShowContestPicker] = useState(false);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+  /* Read once. The answer depends on connection and memory hints that do not
+     change mid-session, and re-deciding on a resize would mean tearing the
+     stage down and rebuilding it while someone drags a window. */
+  const [stageAllowed] = useState(shouldRenderStage);
 
   /* This view mounts the 3D stage, so the curtain has something to wait for.
      Claimed here rather than inside FestivalScene because that component is
@@ -347,8 +366,18 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
 
   const currentArenaId = activeSubpage ?? activeOverview ?? undefined;
 
-  const scene = (
-    <Suspense fallback={<SceneFallback arenaId={currentArenaId} quiet={Boolean(activeOverview || activeSubpage)} />}>
+  /* Decided once, before the lazy import can be reached: `lazy` only defers
+     the chunk, it does not decline it, and the 8.1MB model behind it is not
+     something to hand a phone on mobile data. `SceneFallback` is the same
+     wordmark as a still. See `stageBudget.ts`. */
+  const stageFallback = (
+    <SceneFallback arenaId={currentArenaId} quiet={Boolean(activeOverview || activeSubpage)} />
+  );
+
+  const scene = !stageAllowed ? (
+    stageFallback
+  ) : (
+    <Suspense fallback={stageFallback}>
       <FestivalScene
         arenaId={currentArenaId}
         progressRef={sceneProgressRef}
@@ -506,6 +535,16 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
               on screen — and without promoting any single arena above the
               festival itself. */}
           <h1 className="visually-hidden" id="crown-hero-title">{pageantContent.title}</h1>
+          <a
+            className="planout-credit"
+            data-hero-reveal
+            href="https://planout.io"
+            rel="noreferrer noopener"
+            target="_blank"
+          >
+            <span>Powered by</span>
+            <img alt="planout.io" height={80} src={PLANOUT_WORDMARK} width={400} />
+          </a>
           <p className="hero-intro" data-hero-reveal>
             Celebrate Buglasan 2026 and the people, places, and traditions of Negros Oriental.
             {/* Not "select a contest below": below is four cards on a desktop

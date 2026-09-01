@@ -56,6 +56,16 @@ export type VoteOrderRequest = {
    * Treat this as an allowlisted navigation hint, never as proof of payment.
    */
   returnUrl?: string;
+  /**
+   * The bundles the supporter picked, in catalogue order.
+   *
+   * `quantity` and `expectedAmountCentavos` above are both derived from these.
+   * Sent so the server can price the order against its own catalogue and, when
+   * they disagree, report `price_mismatch` against a specific line rather than
+   * one wrong total. Optional so an older client — or a caller that still
+   * reasons in bare votes — remains valid.
+   */
+  bundles?: Array<{ bundleId: string; count: number }>;
 };
 
 export type VoteOrderStatus = 'pending' | 'confirmed' | 'failed' | 'expired';

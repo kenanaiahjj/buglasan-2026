@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type Dispatch, type SyntheticEvent } from 'react';
-import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { House } from '@phosphor-icons/react/dist/icons/House';
 import { ShareNetwork } from '@phosphor-icons/react/dist/icons/ShareNetwork';
 import type { ContestArena } from '../data/pageant';
-import { arenaDisplayName, type VoteEntry } from '../lib/arenaEntries';
+import { ARENA_VOTING, arenaDisplayName, type VoteEntry } from '../lib/arenaEntries';
 import {
   shareEntryPage,
   type ShareEntryOutcome,
@@ -72,7 +71,26 @@ export function EntryProfilePage({
         style={{ ['--arena' as string]: arena.accentColor }}
       >
         <section className="entry-profile__not-found">
-          <p className="entry-profile__eyebrow">{programName}</p>
+          <p className="entry-profile__eyebrow">
+            {arena.logo ? (
+              /* Decorative: `alt=""` because the programme name is spelled out
+                 beside it, and a described mark would have a screen reader say
+                 it twice. Rendered only when the arena has one — Booths has no
+                 mark, and the gallery's rule is the same, so the text carries
+                 it there. Its own type is illegible at this size and does not
+                 need to be legible; the name is right there. */
+              <img
+                alt=""
+                className="entry-profile__crest"
+                decoding="async"
+                height={447}
+                loading="eager"
+                src={arena.logo}
+                width={447}
+              />
+            ) : null}
+            {programName}
+          </p>
           <h1 ref={headingRef} tabIndex={-1}>Entry not found</h1>
           <p>This shared link no longer matches an entry in the current roster.</p>
           <div className="entry-profile__actions">
@@ -111,7 +129,6 @@ export function EntryProfilePage({
     >
       <nav aria-label={`${entry.name} navigation`} className="entry-profile__nav">
         <button onClick={onBackToProgram} type="button">
-          <ArrowLeft aria-hidden="true" size={16} />
           <span>Back to {programName}</span>
         </button>
         <button onClick={onBackToHome} type="button">
@@ -143,24 +160,65 @@ export function EntryProfilePage({
         </div>
 
         <div className="entry-profile__content">
-          <p className="entry-profile__eyebrow">{programName}</p>
-          <p className="entry-profile__number">Entry {entry.number}</p>
-          <h1 id="entry-profile-title" ref={headingRef} tabIndex={-1}>{entry.name}</h1>
+          {/* A shared link can be someone's first contact with the festival,
+              so the programme has to identify itself on sight rather than only
+              in the small print. */}
+          <p className="entry-profile__eyebrow">
+            {arena.logo ? (
+              /* Decorative: `alt=""` because the programme name is spelled out
+                 beside it, and a described mark would have a screen reader say
+                 it twice. Rendered only when the arena has one — Booths has no
+                 mark, and the gallery's rule is the same, so the text carries
+                 it there. Its own type is illegible at this size and does not
+                 need to be legible; the name is right there. */
+              <img
+                alt=""
+                className="entry-profile__crest"
+                decoding="async"
+                height={447}
+                loading="eager"
+                src={arena.logo}
+                width={447}
+              />
+            ) : null}
+            {programName}
+          </p>
+
+          {/* The number rides beside the name rather than sitting above it as
+              its own labelled line — "#01", the way it is written on the
+              roster card. It stays outside the heading so the heading is the
+              name and nothing else, and it carries a hidden noun because "#01"
+              alone is not something a screen reader can make sense of. */}
+          <div className="entry-profile__title">
+            <h1 id="entry-profile-title" ref={headingRef} tabIndex={-1}>{entry.name}</h1>
+            <p className="entry-profile__number">
+              <span className="visually-hidden">{`${ARENA_VOTING[arena.id].nounSingular} number `}</span>
+              #{entry.number}
+            </p>
+          </div>
           <p className="entry-profile__origin">{entry.origin}</p>
           <p className="entry-profile__description">{entry.blurb}</p>
 
-          <dl className="entry-profile__metadata">
-            {entry.meta.map((fact) => (
-              <div key={fact.label}>
-                <dt>{fact.label}</dt>
-                <dd>{fact.value}</dd>
-              </div>
-            ))}
-            <div>
-              <dt>Total votes</dt>
-              <dd>{(tally ?? entry.votes).toLocaleString()} votes</dd>
-            </div>
-          </dl>
+          {/* Rendered only when there is something to say. Two of the four
+              arenas now have no facts beyond what the description carries, and
+              an empty list still drew its own rules and spacing. */}
+          {entry.meta.length > 0 && (
+            <dl className="entry-profile__facts">
+              {entry.meta.map((fact) => (
+                <div key={fact.label}>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {/* The one number on the page, so it is set as one rather than
+              boxed up as a third identical stat card. */}
+          <p className="entry-profile__tally">
+            <strong>{(tally ?? entry.votes).toLocaleString()}</strong>
+            <span>votes so far</span>
+          </p>
 
           <div className="entry-profile__actions">
             <button
@@ -170,7 +228,11 @@ export function EntryProfilePage({
             >
               <span>Vote for {entry.name}</span>
             </button>
-            <button className="entry-profile__share" onClick={handleShare} type="button">
+            <button
+              className="entry-profile__share crown-button crown-button--quiet"
+              onClick={handleShare}
+              type="button"
+            >
               <ShareNetwork aria-hidden="true" size={18} />
               <span>Share</span>
             </button>

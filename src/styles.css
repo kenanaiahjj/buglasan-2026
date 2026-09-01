@@ -295,6 +295,441 @@ img, svg, video { max-width: 100%; }
 .vote-summary.is-complete .vote-summary__ring strong { color: var(--mint); }
 .vote-summary .button { margin-top: 1rem; }
 .vote-summary .button:disabled { border-color: var(--line-soft); color: var(--ink-dim); background: transparent; }
+
+/* ----------------------------------------------------
+   SHAREABLE ENTRY PROFILE
+   ---------------------------------------------------- */
+.entry-profile {
+  --entry-profile-max: 1180px;
+  position: relative;
+  z-index: var(--z-content);
+  min-height: 100svh;
+  overflow-x: clip;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  color: var(--crown-ivory);
+  background:
+    radial-gradient(circle at 18% 12%, color-mix(in oklch, var(--arena) 12%, transparent), transparent 34rem),
+    linear-gradient(180deg, color-mix(in oklch, var(--ground) 48%, transparent), color-mix(in oklch, var(--ground) 84%, transparent));
+}
+
+.entry-profile__nav,
+.entry-profile__card,
+.entry-profile__not-found {
+  width: min(100%, var(--entry-profile-max));
+  margin-inline: auto;
+}
+
+.entry-profile__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+}
+
+/* Share keeps a button shape, because it sits beside Vote rather than in a
+   nav bar. It takes that shape from `.crown-button.crown-button--quiet` — the
+   festival's existing secondary action, a hairline that never competes with
+   the gold — so only its touch height and icon gap are set here. */
+
+.entry-profile__nav button:hover,
+.entry-profile__not-found .entry-profile__actions button:hover {
+  color: var(--crown-ivory);
+}
+
+.entry-profile__card {
+  display: grid;
+  grid-template-columns: minmax(18rem, .9fr) minmax(20rem, 1.1fr);
+  overflow: hidden;
+  /* A hairline, not an outline. At 58% of the arena colour this was a bright
+     ring around the whole page with a coloured halo behind it — the accent
+     shouting from the one place it has nothing to say. The colour belongs on
+     the eyebrow, the rules and the vote button; the card is just paper. */
+  border: 1px solid color-mix(in oklch, var(--arena) 20%, var(--line-soft));
+  border-radius: clamp(1.25rem, 3vw, 2rem);
+  background: linear-gradient(150deg, rgba(5, 24, 17, .96), rgba(1, 11, 8, .99));
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, .4),
+    0 30px 70px -20px rgba(0, 0, 0, .66),
+    inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+.entry-profile__media {
+  min-height: min(62svh, 660px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in oklch, var(--arena) 16%, transparent), transparent 56%),
+    rgba(0, 0, 0, .34);
+}
+
+/* Booths and contingents are photographed wide, and a wide photograph in a
+   tall column is mostly empty column — `contain` letterboxed some 300px of
+   dead space above and below it. So the media becomes a banner across the
+   full card instead.
+
+   It is capped, and it crops. At the photographs' own 3:2 a full-width banner
+   came out 866px tall and pushed the name, the theme and the vote button off
+   the first screen entirely, which is a worse failure than a crop. Held to
+   half the viewport and filled, the subject stays centred and the copy stays
+   visible. This is a deliberate departure from the plan's "wide uncropped
+   image" — the uncropped version is the one that does not fit. */
+.entry-profile--landscape .entry-profile__card {
+  grid-template-columns: 1fr;
+}
+
+.entry-profile--landscape .entry-profile__media {
+  /* Height, not `aspect-ratio` with a `max-height`. That pair reads the cap as
+     the known dimension and derives the width from it, so the banner came out
+     864px wide inside a 1300px card with dead space beside it. */
+  min-height: 0;
+  width: 100%;
+  height: min(48svh, 460px);
+  border-bottom: 1px solid color-mix(in oklch, var(--arena) 16%, var(--line-soft));
+}
+
+.entry-profile__media img,
+.entry-profile__image-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.entry-profile--landscape .entry-profile__media img {
+  object-fit: cover;
+}
+
+.entry-profile__content {
+  container: entry-profile-content / inline-size;
+}
+
+.entry-profile__content,
+.entry-profile__not-found {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.5rem, 4.5vw, 4rem);
+}
+
+.entry-profile__not-found {
+  min-height: min(72svh, 44rem);
+  align-items: flex-start;
+  border: 1px solid color-mix(in oklch, var(--arena) 46%, transparent);
+  border-radius: clamp(1.25rem, 3vw, 2rem);
+  background: color-mix(in oklch, var(--surface) 80%, transparent);
+}
+
+.entry-profile__eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem .7rem;
+  color: var(--arena);
+  font-size: .7rem;
+  font-weight: 720;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+/* The programme mark. Small on purpose — it identifies, the eyebrow names.
+   `flex: none` so a square crest beside wrapping text keeps its size instead
+   of being squeezed by it. */
+.entry-profile__crest {
+  flex: none;
+  width: auto;
+  height: clamp(30px, 3vw, 40px);
+  object-fit: contain;
+}
+
+/* Name and number on one baseline. `align-items: baseline` rather than
+   centre: the number is a fraction of the name's size, and centred it floats
+   in the middle of the cap height instead of sitting on the line with it. */
+.entry-profile__title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .1rem .75rem;
+}
+
+.entry-profile__number {
+  color: color-mix(in oklch, var(--arena) 82%, var(--crown-ivory));
+  font-size: clamp(1rem, 1.5vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-profile h1 {
+  margin: .7rem 0 0;
+  font-size: clamp(2.35rem, 5.4vw, 4.75rem);
+  font-weight: 500;
+  line-height: .96;
+  /* Display sizes need the tracking pulled in; the same letter-spacing that
+     reads as neutral at 16px reads as loose at 76. */
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+
+.entry-profile__origin {
+  margin-top: .5rem;
+  color: var(--crown-ivory);
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.entry-profile__description,
+.entry-profile__not-found > p:not(.entry-profile__eyebrow) {
+  max-width: 58ch;
+  margin-top: .85rem;
+  color: rgba(247, 244, 232, .72);
+  line-height: 1.65;
+}
+
+/* Facts, as an editorial list rather than a grid of little panels. Boxed and
+   bordered they read as dashboard tiles — the shape a page reaches for when
+   it has nothing to say about which fact matters. A hairline and a label is
+   enough, and it survives having exactly one row, which is what most of these
+   arenas now have. */
+.entry-profile__facts {
+  display: grid;
+  gap: .9rem;
+  margin: 1.75rem 0 0;
+  padding-top: 1.4rem;
+  border-top: 1px solid color-mix(in oklch, var(--arena) 22%, var(--line-soft));
+}
+
+.entry-profile__facts > div {
+  min-width: 0;
+}
+
+.entry-profile__facts dt {
+  color: rgba(247, 244, 232, .5);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.entry-profile__facts dd {
+  margin: .4rem 0 0;
+  max-width: 46ch;
+  overflow-wrap: anywhere;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* The tally. One number, set as a number: a large tabular numeral with the
+   unit hung off it quietly, rather than a third identical stat tile. */
+.entry-profile__tally {
+  display: flex;
+  align-items: baseline;
+  gap: .55rem;
+  margin: 1.6rem 0 0;
+  padding-top: 1.4rem;
+  border-top: 1px solid color-mix(in oklch, var(--arena) 22%, var(--line-soft));
+}
+
+.entry-profile__tally strong {
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-profile__tally span {
+  color: rgba(247, 244, 232, .55);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.entry-profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: 1.9rem;
+}
+
+/* The nav's own exits are a row of quiet controls, not primary actions, so
+   they keep the tighter spacing the toolbar uses. */
+.entry-profile__nav .entry-profile__actions,
+.entry-profile__not-found .entry-profile__actions {
+  margin-top: 1.4rem;
+}
+
+.entry-profile__vote,
+.entry-profile__share {
+  min-height: 44px;
+  gap: .5rem;
+}
+
+/* Side by side, Vote takes the room and Share stays its label's width. The
+   two only need to match when they stop being side by side — wrapped, Vote
+   filled the line and Share sat under it at label width, two different
+   buttons doing one job.
+
+   So the switch is a container query on the column they live in rather than a
+   viewport breakpoint: what decides whether they fit is the width of the
+   content column, which on this page is a fraction of the card and not of the
+   window. Measured, the column is 413px where the pair wraps and 609px where
+   it does not, so 32rem sits clear of both. */
+.entry-profile__vote {
+  flex: 1 1 15rem;
+}
+
+.entry-profile__share {
+  flex: 0 1 auto;
+}
+
+@container entry-profile-content (max-width: 32rem) {
+  .entry-profile__vote,
+  .entry-profile__share {
+    flex-basis: 100%;
+    width: 100%;
+  }
+}
+
+
+
+.entry-profile__share-status {
+  min-height: 1.4em;
+  margin-top: .65rem;
+  color: var(--arena);
+  font-size: .78rem;
+}
+
+.entry-profile__share-fallback {
+  display: grid;
+  gap: .4rem;
+  margin-top: .45rem;
+  color: var(--crown-muted);
+  font-size: .74rem;
+}
+
+.entry-profile__share-url {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid color-mix(in oklch, var(--arena) 38%, var(--line-soft));
+  border-radius: .75rem;
+  padding: .7rem .85rem;
+  color: var(--crown-ivory);
+  background: rgba(0, 0, 0, .28);
+}
+
+.hara-gallery-card {
+  position: relative;
+}
+
+/* The card's whole surface opens the entry — see `__surface` below for why
+   it is an element and not this button's `::after`. This keeps `position:
+   relative` and a z-index above that surface so the button stays hoverable
+   and focusable in its own right rather than being covered by it. */
+.hara-gallery-card .subpage-entry-link {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  min-height: 44px;
+  justify-content: space-between;
+  padding: .6rem .8rem;
+  font-size: .78rem;
+}
+
+.hara-gallery-card .subpage-entry-link::before {
+  display: none;
+}
+
+/* Tap anywhere on the card. A `::after` on the button cannot do this job:
+   `.crown-floating-dots-button` brings `position: relative`, `overflow:
+   hidden`, `isolation: isolate` and a `filter`, so the pseudo either takes
+   the button as its containing block or gets clipped to it, and the hit area
+   collapses to the button no matter how many of those are overridden. */
+.hara-gallery-card__surface {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* The card is the control, so the ring goes round the card. */
+.hara-gallery-card__surface:focus-visible {
+  outline: 3px solid var(--arena);
+  outline-offset: 4px;
+}
+
+/* Wherever the follower cursor runs, the card says "vote now" under the
+   pointer and the pill is redundant — two affordances for one link, one of
+   them costing a row of height on every card. Gated on the pointer rather
+   than a width, because that is the same condition `VoteCursor` gates itself
+   on: hide the pill exactly where the cursor replaces it, and nowhere else. */
+@media (hover: hover) and (pointer: fine) {
+  .hara-gallery-card .subpage-entry-link {
+    display: none;
+  }
+}
+
+/* The focus ring belongs to the real control. It sits on the button itself
+   now rather than on a pseudo that no longer spans anything. */
+.subpage-entry-link:focus-visible {
+  outline: 3px solid var(--arena);
+  outline-offset: 3px;
+}
+
+@keyframes entry-profile-arrive {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .entry-profile__card {
+    animation: entry-profile-arrive .55s cubic-bezier(.22, 1, .36, 1) both;
+  }
+}
+
+@media (max-width: 720px) {
+  .entry-profile__nav {
+    align-items: stretch;
+  }
+
+  .entry-profile__nav button {
+    flex: 1 1 0;
+  }
+
+  .entry-profile__card {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-profile__media,
+  .entry-profile--landscape .entry-profile__media {
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+  }
+
+  .entry-profile--landscape .entry-profile__media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .entry-profile__content {
+    padding: 1.35rem;
+  }
+
+  .entry-profile h1 {
+    font-size: clamp(2.35rem, 14vw, 4rem);
+  }
+
+  .entry-profile__actions > * {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-profile__card {
+    animation: none;
+  }
+}
 .dashboard-rail__announcements { padding: 1.05rem; }
 .dashboard-rail__announcements .section-heading { display: block; margin-bottom: 1rem; }
 .dashboard-rail__announcements .section-heading h2 { font-size: 1.85rem; }
@@ -1040,9 +1475,9 @@ html.is-booting body { overflow: hidden; }
 .hero-lockup {
   display: grid;
   justify-items: center;
-  gap: clamp(1.2rem, 2.4vh, 1.9rem);
+  gap: clamp(.85rem, 1.8vh, 1.4rem);
   max-width: 46rem;
-  margin-top: clamp(1.2rem, 3.4vh, 2.4rem);
+  margin-top: clamp(.75rem, 2.2vh, 1.6rem);
 }
 
 .hero-official-marks {
@@ -1242,6 +1677,47 @@ html.is-booting body { overflow: hidden; }
    picker dialog, four options. Which one shows is decided here rather than in
    JS, so there is no state to get wrong and no width at which both are gone.
    ---------------------------------------------------- */
+/* ----------------------------------------------------
+   SPONSOR CREDIT: POWERED BY PLANOUT
+   ----------------------------------------------------
+   Seated in normal flow directly below the Buglasan hero centerpiece.
+   Small, understated, carrying PlanOut's own brand mark.
+   ---------------------------------------------------- */
+.planout-credit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .48rem;
+  color: var(--ink-muted);
+  font-size: clamp(.62rem, .88vw, .7rem);
+  font-weight: 560;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+  opacity: .88;
+  pointer-events: auto;
+  transition: opacity var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+.planout-credit img {
+  display: block;
+  width: auto;
+  height: clamp(14px, 1.2vw, 17px);
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75));
+}
+.planout-credit:hover {
+  opacity: 1;
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+.planout-credit:focus-visible {
+  opacity: 1;
+  color: var(--ink);
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 .hero-actions { display: none; }
 
 @media (max-width: 1180px) {
@@ -1778,6 +2254,18 @@ html.is-booting body { overflow: hidden; }
   --arena-accent: #38bdf8;
 }
 
+/* `VoteCursor` reads `--arena-accent` off whatever it is standing on so the
+   pill takes the programme's colour. The hero plaques each declare one; here
+   the subpage already has `--arena`, so this just points the cursor at it —
+   otherwise every programme's cursor stays gold. */
+.hara-gallery-card {
+  --arena-accent: var(--arena);
+}
+
+.hara-gallery-card:hover {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='42' viewBox='0 0 120 42'%3E%3Cpath d='M4 3.5 12 27l5-8 8 8 3-3-8-8 8-2L4 3.5Z' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1.2' stroke-linejoin='round'/%3E%3Crect x='18' y='5' width='98' height='28' rx='14' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1'/%3E%3Ctext x='67' y='23' fill='%231a1204' font-family='Arial,sans-serif' font-size='10' font-weight='700' letter-spacing='1.2' text-anchor='middle'%3EVOTE%20NOW%3C/text%3E%3C/svg%3E") 4 3, pointer;
+}
+
 .hero-arena-card:hover,
 .hero-arena-card:focus-visible {
   z-index: 8;
@@ -1869,7 +2357,9 @@ html.is-booting body { overflow: hidden; }
 }
 
 :root.has-vote-cursor .hero-arena-card:hover,
-:root.has-vote-cursor .hero-arena-card:hover * { cursor: none; }
+:root.has-vote-cursor .hero-arena-card:hover *,
+:root.has-vote-cursor .hara-gallery-card:hover,
+:root.has-vote-cursor .hara-gallery-card:hover * { cursor: none; }
 
 .vote-cursor {
   position: fixed;
@@ -2205,7 +2695,7 @@ html.is-booting body { overflow: hidden; }
 
 .hara-gallery__logo {
   display: block;
-  width: clamp(5.75rem, 12vw, 8rem);
+  width: clamp(8rem, 16vw, 12rem);
   height: auto;
   aspect-ratio: 1;
   margin: 0 auto clamp(1rem, 2vw, 1.4rem);
@@ -2217,6 +2707,10 @@ html.is-booting body { overflow: hidden; }
 .hara-gallery__lockup {
   margin: 0 auto clamp(1rem, 2vw, 1.4rem);
   text-align: center;
+}
+
+.hara-gallery__logo + .hara-gallery__lockup {
+  margin-top: 0;
 }
 
 .hara-gallery__lockup h1 {
@@ -2253,9 +2747,19 @@ html.is-booting body { overflow: hidden; }
   gap: 0.55rem;
 }
 
+/* The subpage nav control. One rule, and now three consumers: the gallery
+   toolbar, the entry profile's nav, and the exits on its not-found card.
+
+   The profile used to define its own — an outlined, blurred, arena-tinted
+   pill — and that shape appears nowhere else in the festival. Every other
+   back/home control here is this: borderless, transparent, uppercase,
+   letter-spaced. Sharing the rule rather than copying its values is what
+   stops them drifting apart again. */
 .hara-gallery__home,
 .hara-gallery__overview,
-.hara-gallery__how-to {
+.hara-gallery__how-to,
+.entry-profile__nav button,
+.entry-profile__not-found .entry-profile__actions button {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -2276,6 +2780,8 @@ html.is-booting body { overflow: hidden; }
 .hara-gallery__home:focus-visible,
 .hara-gallery__overview:focus-visible,
 .hara-gallery__how-to:focus-visible,
+.entry-profile__nav button:focus-visible,
+.entry-profile__not-found .entry-profile__actions button:focus-visible,
 .hara-gallery__empty button:focus-visible,
 .hara-gallery__search:focus-within {
   outline: 2px solid var(--crown-gold-light);
@@ -2478,7 +2984,7 @@ html.is-booting body { overflow: hidden; }
 
 /* Subpage-specific media blending & bottom fade */
 .contest-subpage--booths .hara-gallery-card__media img {
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
 }
 
 .contest-subpage--booths .hara-gallery-card__media::after {
@@ -4055,39 +4561,125 @@ html.is-booting body { overflow: hidden; }
   background: color-mix(in oklch, var(--ink) 4%, transparent);
   font-variant-numeric: tabular-nums;
 }
-.vote-flow__quantity-control { position: relative; display: flex; align-items: center; }
-.vote-flow__quantity-input {
-  width: 100%;
-  min-height: 48px;
-  padding: 0 4.2rem 0 .8rem;
+/* --- bundles ------------------------------------------------------------
+   Votes are sold in bundles, so the amount is chosen rather than typed. Each
+   row is a price, what it buys, and a stepper — the stepper because the top
+   denomination is ₱1,000 and a supporter who wants ₱4,000 says so by adding
+   four of them.
+   ------------------------------------------------------------------------ */
+.vote-flow__bundles {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.vote-flow__bundle-list {
+  display: grid;
+  gap: .5rem;
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vote-flow__bundle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 56px;
+  padding: .55rem .7rem .55rem .9rem;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 1rem;
   background: color-mix(in oklch, var(--ink) 4%, transparent);
+  transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+}
+
+/* Picked rows carry the arena colour, so the basket is legible at a glance
+   without a separate summary of itself. */
+.vote-flow__bundle.is-picked {
+  border-color: color-mix(in oklch, var(--arena, var(--gold)) 55%, transparent);
+  background: color-mix(in oklch, var(--arena, var(--gold)) 9%, transparent);
+}
+
+.vote-flow__bundle-copy {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .15rem .6rem;
+  min-width: 0;
+}
+
+.vote-flow__bundle-copy strong {
+  font-size: 1.02rem;
+  font-weight: 640;
+  letter-spacing: -.01em;
   font-variant-numeric: tabular-nums;
 }
+
+.vote-flow__bundle-copy span {
+  color: var(--ink-muted);
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.vote-flow__bundle-copy em {
+  color: var(--arena, var(--gold));
+  font-size: .7rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.vote-flow__bundle-stepper {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: .15rem;
+}
+
+.vote-flow__bundle-stepper button {
+  display: grid;
+  place-items: center;
+  /* 44px, because this is the control the whole step depends on. */
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+
+.vote-flow__bundle-stepper button:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--arena, var(--gold)) 70%, transparent);
+  color: var(--arena, var(--gold));
+}
+
+.vote-flow__bundle-stepper button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.vote-flow__bundle-stepper output {
+  min-width: 1.9rem;
+  text-align: center;
+  font-size: .95rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
 .vote-flow__field select { color-scheme: dark; }
 .vote-flow__field select option {
   color: var(--ink);
   background: var(--surface-2);
 }
 .vote-flow__field input[type="tel"]:focus,
-.vote-flow__field select:focus,
-.vote-flow__quantity-input:focus {
+.vote-flow__field select:focus {
   outline: none;
   border-color: color-mix(in oklch, var(--arena, var(--gold)) 62%, transparent);
-}
-.vote-flow__quantity-input::-webkit-inner-spin-button,
-.vote-flow__quantity-input::-webkit-outer-spin-button { margin: 0; }
-.vote-flow__quantity-suffix {
-  position: absolute;
-  right: .9rem;
-  color: var(--ink-muted);
-  font-size: .82rem;
-  font-weight: 620;
-  pointer-events: none;
 }
 .vote-flow__hint { color: var(--ink-dim); font-size: .72rem; line-height: 1.45; }
 
@@ -4441,12 +5033,12 @@ html.is-booting body { overflow: hidden; }
 }
 .vote-overview__podium-candidate-badge {
   display: inline-flex; flex: none; align-items: center;
-  padding: .24cqh .42cqw;
-  border: 1px solid color-mix(in oklch, var(--arena, var(--gold)) 52%, transparent);
+  padding: .18cqh .38cqw;
+  border: 1px solid var(--line-soft);
   border-radius: 999px;
-  color: var(--arena, var(--gold));
-  background: color-mix(in oklch, var(--arena, var(--gold)) 9%, transparent);
-  font-size: .6cqw; font-weight: 720; letter-spacing: .08em;
+  color: var(--ink-dim);
+  background: color-mix(in oklch, var(--surface-2) 50%, transparent);
+  font-size: .54cqw; font-weight: 560; letter-spacing: .03em;
   font-variant-numeric: tabular-nums;
 }
 .vote-overview__podium-candidate-location {

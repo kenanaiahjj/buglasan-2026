@@ -2,6 +2,8 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Dispatch } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
+import { Minus } from '@phosphor-icons/react/dist/icons/Minus';
+import { Plus } from '@phosphor-icons/react/dist/icons/Plus';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { CheckCircle } from '@phosphor-icons/react/dist/icons/CheckCircle';
 import { X } from '@phosphor-icons/react/dist/icons/X';
@@ -15,18 +17,20 @@ import {
   emptyVoteFlowDraft,
   formatPeso,
   formatPhMobile,
-  isValidVoteQuantity,
+  VOTE_PRICE_CENTAVOS,
   nextVoteFlowStep,
   normalisePhMobile,
   previousVoteFlowStep,
   voteFlowGuide,
   voteFlowIssues,
+  voteDraftTotals,
   voteFlowStepIndex,
   voteReference,
   voteTotalCentavos,
   type PaymentMethodId,
   type VoteFlowStep,
 } from '../lib/voteFlow';
+import { addBundle, cartLineItems, VOTE_BUNDLES } from '../lib/voteBundles';
 import {
   VotingApiError,
   resolveVotingApi,
@@ -158,11 +162,15 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
     const order: VoteOrderRequest = {
       arenaId: arena.id,
       entryId: draft.entryId,
-      quantity: draft.quantity,
+      quantity: totals.votes,
       mobile: draft.mobile,
       origin: draft.origin,
       method: draft.method,
-      expectedAmountCentavos: voteTotalCentavos(draft.quantity),
+      expectedAmountCentavos: totals.amountCentavos,
+      /* The line items, so a `price_mismatch` can name the bundle that
+         disagreed instead of only the total. The server prices from its own
+         catalogue either way. */
+      bundles: cartLineItems(draft.bundles),
       idempotencyKey: key,
       returnUrl: resolveVotingReturnUrl(),
     };
@@ -260,8 +268,21 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
 
   const patch = (next: Partial<typeof draft>) => setDraft((current) => ({ ...current, ...next }));
 
+  /**
+   * Step a bundle's count.
+   *
+   * Reads the cart out of the updater rather than off `draft`. Through `patch`
+   * the new cart is computed from whatever `draft` held when this render ran,
+   * so three quick presses of `+` all derive from the same empty basket and
+   * the last one wins — the count goes to 1 and stays there. Anyone tapping a
+   * stepper taps it faster than React re-renders.
+   */
+  const stepBundle = (bundleId: string, step: number) =>
+    setDraft((current) => ({ ...current, bundles: addBundle(current.bundles, bundleId, step) }));
+
   const activeIndex = step === 'guide' ? -1 : voteFlowStepIndex(step);
-  const total = voteTotalCentavos(draft.quantity);
+  const totals = voteDraftTotals(draft);
+  const total = totals.amountCentavos;
 
   /* Portalled to the body. `position: fixed` is only fixed to the viewport
      while no ancestor has a transform, and the subpage's entrance animation
@@ -384,27 +405,56 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
 
           {step === 'pay' && (
             <>
-              <div className="vote-flow__field">
-                <label htmlFor={`${titleId}-quantity`}>How many votes?</label>
-                <div className="vote-flow__quantity-control">
-                  <input
-                    aria-describedby={`${titleId}-quantity-hint`}
-                    aria-invalid={!isValidVoteQuantity(draft.quantity)}
-                    className="vote-flow__quantity-input"
-                    id={`${titleId}-quantity`}
-                    inputMode="numeric"
-                    min={1}
-                    onChange={(event) => patch({ quantity: event.target.value === '' ? 0 : Number(event.target.value) })}
-                    step={1}
-                    type="number"
-                    value={draft.quantity > 0 ? draft.quantity : ''}
-                  />
-                  <span className="vote-flow__quantity-suffix">votes</span>
-                </div>
-                <p className="vote-flow__hint" id={`${titleId}-quantity-hint`}>
-                  1 vote = ₱1.00. Enter any positive whole number; the price updates automatically.
+              <fieldset className="vote-flow__field vote-flow__bundles">
+                <legend className="vote-flow__field-label">Choose your bundles</legend>
+                <p className="vote-flow__hint" id={`${titleId}-bundle-hint`}>
+                  The bigger the bundle, the more bonus votes. Add as many as you like.
                 </p>
-              </div>
+
+                <ul className="vote-flow__bundle-list">
+                  {VOTE_BUNDLES.map((bundle) => {
+                    const count = draft.bundles[bundle.id] ?? 0;
+                    const bonus = bundle.votes - bundle.priceCentavos / VOTE_PRICE_CENTAVOS;
+
+                    return (
+                      <li
+                        className={`vote-flow__bundle${count > 0 ? ' is-picked' : ''}`}
+                        key={bundle.id}
+                      >
+                        <div className="vote-flow__bundle-copy">
+                          <strong>{formatPeso(bundle.priceCentavos)}</strong>
+                          <span>{bundle.votes.toLocaleString('en-PH')} votes</span>
+                          {bonus > 0 && (
+                            <em>{`+${bonus.toLocaleString('en-PH')} bonus`}</em>
+                          )}
+                        </div>
+
+                        <div className="vote-flow__bundle-stepper">
+                          <button
+                            aria-label={`Remove one ${formatPeso(bundle.priceCentavos)} bundle`}
+                            disabled={count === 0}
+                            onClick={() => stepBundle(bundle.id, -1)}
+                            type="button"
+                          >
+                            <Minus aria-hidden="true" size={14} weight="bold" />
+                          </button>
+                          {/* The count is the value, so it is announced as one
+                              rather than left as decoration between two
+                              buttons. */}
+                          <output aria-label={`${formatPeso(bundle.priceCentavos)} bundles`}>{count}</output>
+                          <button
+                            aria-label={`Add one ${formatPeso(bundle.priceCentavos)} bundle`}
+                            onClick={() => stepBundle(bundle.id, 1)}
+                            type="button"
+                          >
+                            <Plus aria-hidden="true" size={14} weight="bold" />
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </fieldset>
 
               <div className="vote-flow__field">
                 <span className="vote-flow__field-label">Pay with</span>
@@ -434,8 +484,18 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
                 </div>
                 <div>
                   <dt>Votes</dt>
-                  <dd>{isValidVoteQuantity(draft.quantity) ? `${draft.quantity.toLocaleString('en-PH')} votes` : 'Enter a quantity'}</dd>
+                  <dd>
+                    {totals.votes > 0
+                      ? `${totals.votes.toLocaleString('en-PH')} votes`
+                      : 'Add a bundle'}
+                  </dd>
                 </div>
+                {totals.bonusVotes > 0 && (
+                  <div>
+                    <dt>Bonus included</dt>
+                    <dd>{`+${totals.bonusVotes.toLocaleString('en-PH')} votes`}</dd>
+                  </div>
+                )}
                 <div className="vote-flow__summary-total">
                   <dt>Total</dt>
                   <dd>{formatPeso(total)}</dd>
@@ -475,7 +535,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
                 <dl className="vote-flow__success-stats">
                   <div>
                     <dt>Votes added</dt>
-                    <dd>{draft.quantity.toLocaleString('en-PH')}</dd>
+                    <dd>{totals.votes.toLocaleString('en-PH')}</dd>
                   </div>
                   <div>
                     <dt>Total votes</dt>

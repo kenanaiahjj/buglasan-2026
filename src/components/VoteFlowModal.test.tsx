@@ -80,6 +80,14 @@ async function fillSupporter() {
   click(all('.vote-flow__method input')[0]);
 }
 
+/** Press a bundle's plus (or minus) by the label a screen reader would use. */
+function stepBundle(peso: string, times = 1, direction: 'Add' | 'Remove' = 'Add') {
+  const label = `${direction} one ${peso} bundle`;
+  for (let i = 0; i < times; i += 1) {
+    click(all('button').find((button) => button.getAttribute('aria-label') === label) ?? null);
+  }
+}
+
 describe('VoteFlowModal', () => {
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -158,7 +166,7 @@ describe('VoteFlowModal', () => {
     expect(all('.vote-flow__step')).toHaveLength(2);
   });
 
-  it('lets the supporter enter any whole-number quantity and updates the price 1:1', async () => {
+  it('sells bundles rather than a typed quantity, and stacks them', async () => {
     mount(
       <VoteFlowModal
         arena={hara}
@@ -171,13 +179,38 @@ describe('VoteFlowModal', () => {
 
     await fillSupporter();
 
-    const quantity = q<HTMLInputElement>('input[type="number"]')!;
-    expect(quantity.value).toBe('1');
+    // No free-text amount any more, and nothing is picked to begin with.
+    expect(q('input[type="number"]')).toBeNull();
+    expect(text()).toContain('Add a bundle');
+    /* `aria-disabled`, not `disabled`: the dialog keeps the button focusable
+       so it can say why it is dead. */
+    expect(nextButton()?.getAttribute('aria-disabled')).toBe('true');
 
-    type(quantity, '73');
-    expect(text()).toContain('73 votes');
-    expect(text()).toContain('₱73.00');
-    expect(nextButton()?.textContent).toContain('₱73.00');
+    // ₱50 buys 55 — five of those votes are bonus.
+    stepBundle('₱50.00');
+    expect(text()).toContain('55 votes');
+    expect(text()).toContain('₱50.00');
+    expect(text()).toContain('+5 votes');
+
+    /* Three presses in a row are three bundles. They were one: the handler
+       derived the next cart from the draft its render closed over, so every
+       press in the same tick started from the same basket and the last one
+       won. A stepper is tapped faster than React re-renders. */
+    stepBundle('₱1,000.00', 3);
+    expect(text()).toContain('3,955 votes');
+    expect(nextButton()?.textContent).toContain('₱3,050.00');
+    stepBundle('₱1,000.00', 3, 'Remove');
+
+    // Denominations stack: a second ₱50 and a ₱1,000 on top.
+    stepBundle('₱50.00');
+    stepBundle('₱1,000.00');
+    expect(text()).toContain('1,410 votes');
+    expect(nextButton()?.textContent).toContain('₱1,100.00');
+
+    // And they come back off.
+    stepBundle('₱1,000.00', 1, 'Remove');
+    expect(text()).toContain('110 votes');
+    expect(nextButton()?.textContent).toContain('₱100.00');
   });
 
   it('runs details → pay → confirmed and reports the purchased quantity and total', async () => {
@@ -201,13 +234,13 @@ describe('VoteFlowModal', () => {
     );
 
     await fillSupporter();
-    type(q<HTMLInputElement>('input[type="number"]')!, '55');
+    stepBundle('₱50.00');
 
-    // Pay: the entered quantity shows its complete 1:1 price.
+    // Pay: the ₱50 bundle's 55 votes, at the bundle's price.
     expect(text()).toContain('Pay with');
     expect(text()).toContain('55 votes');
-    expect(text()).toContain('₱55.00');
-    expect(nextButton()?.textContent).toContain('₱55.00');
+    expect(text()).toContain('₱50.00');
+    expect(nextButton()?.textContent).toContain('₱50.00');
 
     await clickAsync(nextButton());
 
@@ -222,7 +255,10 @@ describe('VoteFlowModal', () => {
       mobile: '9171234567',
       origin: 'Valencia',
       method: 'gcash',
-      expectedAmountCentavos: 5_500,
+      expectedAmountCentavos: 5_000,
+      /* The line items travel with the order so the server can price them
+         against its own catalogue and name the line that disagreed. */
+      bundles: [{ bundleId: 'b-50', count: 1 }],
       returnUrl: window.location.href,
     });
     expect(orders[0].idempotencyKey).toMatch(/^BF26-HA-/);
@@ -238,7 +274,11 @@ describe('VoteFlowModal', () => {
     expect(text()).toContain('Vote successful');
     expect(q('.vote-flow__success-card')).not.toBeNull();
     expect(q('.vote-flow__success-card')?.getAttribute('aria-labelledby')).toBeTruthy();
-    expect(q('.vote-flow__success-candidate-copy h3')?.textContent).toBe(haraCandidates[0].name);
+    /* The composed entry name, not the raw `Candidate.name`: entries join the
+       given names to the surname, and the modal renders the entry. */
+    expect(q('.vote-flow__success-candidate-copy h3')?.textContent).toBe(
+      entriesForArena('hara')[0].name,
+    );
     expect(q('.vote-flow__success-category')?.textContent).toBe('Hara sa Negros Oriental');
     expect(q('.vote-flow__success-stats dd')?.textContent).toBe('55');
     expect(q<HTMLImageElement>('.vote-flow__success-image')?.getAttribute('src')).toBe(haraCandidates[0].image);
@@ -270,6 +310,7 @@ describe('VoteFlowModal', () => {
     );
 
     await fillSupporter();
+    stepBundle('₱50.00');
     await clickAsync(nextButton());
 
     expect(q('.vote-flow__success-category')?.textContent).toBe(category);
@@ -294,6 +335,7 @@ describe('VoteFlowModal', () => {
     );
 
     await fillSupporter();
+    stepBundle('₱50.00');
     await clickAsync(nextButton());
 
     expect(dispatch).not.toHaveBeenCalled();
@@ -333,6 +375,7 @@ describe('VoteFlowModal', () => {
     );
 
     await fillSupporter();
+    stepBundle('₱50.00');
     await clickAsync(nextButton());
 
     expect(assign).toHaveBeenCalledWith('https://pay.example.test/checkout/REF-PENDING');

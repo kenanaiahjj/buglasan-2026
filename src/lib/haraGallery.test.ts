@@ -15,13 +15,21 @@ describe('filterHaraCandidates', () => {
   it('searches entry name, origin, and blurb case-insensitively', () => {
     const source = entriesForArena('hara');
 
-    expect(filterHaraCandidates(source, 'JESSA').map((entry) => entry.name)).toEqual(['Jessa Mae']);
-    expect(filterHaraCandidates(source, '  MANJUYOD  ').map((entry) => entry.name)).toEqual(['Kaye Nicole']);
-    expect(filterHaraCandidates(source, 'mangrove').map((entry) => entry.name)).toEqual([
-      'Maria Angela',
-      'Beatrice Joy',
-      'Dana Faye',
-    ]);
+    /* Matched on given names rather than the whole string, because entries
+       carry a surname now and these placeholder surnames are the first thing
+       the real roster will replace. */
+    const given = (query: string) =>
+      filterHaraCandidates(source, query).map((entry) => entry.name.split(' ').slice(0, -1).join(' '));
+
+    expect(given('JESSA')).toEqual(['Jessa Mae']);
+    expect(given('  MANJUYOD  ')).toEqual(['Kaye Nicole']);
+    expect(given('mangrove')).toEqual(['Maria Angela', 'Beatrice Joy', 'Dana Faye']);
+
+    // And a surname is searchable in its own right.
+    const first = source[0];
+    expect(filterHaraCandidates(source, first.name.split(' ').at(-1)!).map((e) => e.name)).toContain(
+      first.name,
+    );
   });
 
   it('returns an empty list when no entry matches', () => {

@@ -169,7 +169,9 @@ describe('LandingPage Crown of Light contract', () => {
       expect(container.querySelector('.entry-profile')).not.toBeNull();
       expect(container.querySelector('h1')?.textContent).toBe('Sandurot Festival');
       expect(container.textContent).toContain('Festival of Festivals');
-      expect(container.textContent).toContain('3,120 votes');
+      // Numeral and unit are separate elements on the profile now.
+      expect(container.textContent).toContain('3,120');
+      expect(container.textContent).toContain('votes so far');
 
       await act(async () => {
         window.location.hash = '#hara/not-current';
@@ -433,5 +435,20 @@ describe('LandingPage Crown of Light contract', () => {
 
   it('allocates extra pixels to the logo overlay on a DPR-1 desktop', () => {
     expect(getRenderPixelRatios(1, 'high')).toEqual({ overlay: 1.25, scene: 1 });
+  });
+
+  it('renders the Powered by PlanOut credit inside the hero lockup below the hero logo', () => {
+    const html = renderToStaticMarkup(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
+
+    const hero = html.match(/<section class="crown-hero[\s\S]*?<\/section>/)?.[0] ?? '';
+    expect(hero).toContain('class="planout-credit"');
+    expect(hero).toContain('href="https://planout.io"');
+    expect(hero).toContain('<span>Powered by</span>');
+    expect(hero).toContain('src="/assets/sponsors/planout-wordmark.webp"');
+    expect(hero).toContain('data-hero-reveal');
+
+    // Header and fixed page corners should not contain duplicate marks
+    const header = html.match(/<header class="crown-header"[\s\S]*?<\/header>/)?.[0] ?? '';
+    expect(header).not.toContain('planout-mark');
   });
 });

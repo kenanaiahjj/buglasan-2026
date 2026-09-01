@@ -79,6 +79,14 @@ describe('voting overview podium', () => {
     expect(cardBlock).not.toContain('grid-template-columns: 4.2cqw minmax(0, 1fr);');
     expect(mediaBlock).toContain('aspect-ratio: 1 / 1;');
   });
+
+  it('keeps candidate number chips subdued and less prominent in the podium', () => {
+    const badgeBlock = styles.match(/\.vote-overview__podium-candidate-badge\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(badgeBlock).toContain('color: var(--ink-dim);');
+    expect(badgeBlock).toContain('border: 1px solid var(--line-soft);');
+    expect(badgeBlock).not.toContain('color: var(--arena');
+  });
 });
 
 describe('voting overview wallboard and live bar edges', () => {
@@ -398,9 +406,12 @@ describe('Hara gallery card sizing', () => {
   });
 
   it('uses flat main-page utility controls instead of pills', () => {
-    // Tolerates extra selectors sharing the rule (e.g. __overview) — the
-    // contract is the declarations, not the exact selector list.
-    const utilityBlock = styles.match(/\.hara-gallery__home,[\s\S]*?\.hara-gallery__how-to\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    /* Tolerates extra selectors sharing the rule — the contract is the
+       declarations, not the selector list. It has to be anchored on the
+       *opening brace* to mean that: anchored on `__how-to` instead, it broke
+       the moment the entry profile's nav joined the rule and `__how-to`
+       stopped being last. */
+    const utilityBlock = styles.match(/\.hara-gallery__home,[\s\S]*?\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
     expect(utilityBlock).toContain('min-height: 44px;');
     expect(utilityBlock).toContain('border: 0;');
@@ -484,5 +495,17 @@ describe('subpage color themes', () => {
     expect(homeBlock).toContain('var(--gold-deep)');
     expect(homeBlock).toContain('var(--gold-bright)');
     expect(homeBlock).toContain('#020B06');
+  });
+});
+
+describe('hero sponsor credit', () => {
+  it('styles the powered by planout credit as an inline-flex element in flow', () => {
+    const creditBlock = styles.match(/\.planout-credit\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(creditBlock).toContain('display: inline-flex;');
+    expect(creditBlock).toContain('align-items: center;');
+    expect(creditBlock).toContain('justify-content: center;');
+    expect(creditBlock).not.toContain('position: fixed;');
+    expect(styles).not.toContain('.planout-mark {');
   });
 });

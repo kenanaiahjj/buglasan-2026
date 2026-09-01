@@ -120,15 +120,17 @@ const candidateEntries = (source: Candidate[]): VoteEntry[] =>
   source.map((c) => ({
     id: c.id,
     number: c.number,
-    name: c.name,
+    /* Full name, so the profile page, the ballot and the roster card all
+       call the same person the same thing. */
+    name: c.surname ? `${c.name} ${c.surname}` : c.name,
     origin: c.location,
     blurb: c.advocacy ?? c.location,
     image: c.image,
     votes: c.votes,
-    meta: [
-      { label: 'Advocacy', value: c.advocacy ?? '—' },
-      { label: 'Talent', value: c.talent ?? '—' },
-    ],
+    /* No facts of its own. `blurb` above is already the advocacy, so listing
+       it again as a labelled fact printed the same sentence twice on the
+       profile — which is what removing Talent left behind. */
+    meta: [],
   }));
 
 export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
@@ -146,10 +148,8 @@ export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
         image: b.image,
         fallbackImage: b.fallbackImage,
         votes: b.votes,
-        meta: [
-          { label: 'Theme', value: truncate(b.theme, 64) },
-          { label: 'Known for', value: b.signatureProducts.slice(0, 2).join(' · ') },
-        ],
+        // The tagline is the blurb, so the theme is the one fact worth listing.
+        meta: [{ label: 'Theme', value: truncate(b.theme, 64) }],
       }));
 
     case 'festival':
@@ -162,10 +162,8 @@ export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
         image: s.image,
         fallbackImage: s.fallbackImage,
         votes: s.votes,
-        meta: [
-          { label: 'Performers', value: `${s.performersCount} dancers` },
-          { label: 'Presentation slot', value: s.performanceTime },
-        ],
+        // `blurb` above is the theme; nothing else earns a label here.
+        meta: [],
       }));
 
     case 'gandang':

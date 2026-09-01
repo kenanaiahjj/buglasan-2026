@@ -27,6 +27,21 @@ export function isLiveVoting(): boolean {
 }
 
 /**
+ * Base URL of the content service — rosters, programmes, prices, dates.
+ *
+ * Falls back to the voting base so one backend can serve both, which is the
+ * common case. Empty means the app reads the bundled demo data.
+ */
+export function contentApiBaseUrl(): string {
+  return import.meta.env?.VITE_CONTENT_API_URL?.trim() ?? votingApiBaseUrl();
+}
+
+/** True once a real content backend is configured. */
+export function isLiveContent(): boolean {
+  return contentApiBaseUrl() !== '';
+}
+
+/**
  * Canonical route for returning from hosted checkout, if the deployment has
  * one. Empty means "send them back where they started".
  *

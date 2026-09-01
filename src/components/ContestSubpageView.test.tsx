@@ -153,11 +153,16 @@ describe('ContestSubpageView', () => {
 
       const cardMarkup = html.match(/<article[^>]*class="hara-gallery-card"[\s\S]*?<\/article>/g) ?? [];
       expect(cardMarkup).toHaveLength(arena.totalEntries);
-      /* The card remains a semantic article. Its one control is a native
-         profile link, whose stretched hit area makes the complete card
-         clickable without adding a second keyboard stop. */
+      /* The card remains a semantic article with exactly one keyboard stop:
+         the visible profile link. A second, `aria-hidden` link covers the card
+         so pointers can tap anywhere — it is the only `tabindex` allowed here,
+         and it must be -1. This replaced a stretched `::after` on the button,
+         which collapsed to the button's own box and left most of the card
+         dead to a click. */
       expect(cardMarkup.every((card) => !card.includes('role="button"'))).toBe(true);
-      expect(cardMarkup.every((card) => !card.includes('tabindex='))).toBe(true);
+      expect(cardMarkup.every((card) => !/tabindex="(?!-1")/.test(card))).toBe(true);
+      expect(cardMarkup.every((card) => /class="hara-gallery-card__surface"[^>]*href="#/.test(card)
+        || /href="#[^"]*"[^>]*class="hara-gallery-card__surface"/.test(card))).toBe(true);
       expect(cardMarkup.every((card) => !/<article[^>]*aria-label=/.test(card))).toBe(true);
       expect(cardMarkup.every((card) => /<article[^>]*aria-labelledby="/.test(card))).toBe(true);
       expect(cardMarkup.every((card) => /<h2 id="[^"]+"/.test(card))).toBe(true);
@@ -166,7 +171,7 @@ describe('ContestSubpageView', () => {
     }
   });
 
-  it('opens an individual page from the full card through one native link', async () => {
+  it('opens an individual page from anywhere on the card, with one keyboard stop', async () => {
     const originalMatchMedia = window.matchMedia;
     const onOpenEntry = vi.fn();
     const container = document.createElement('div');
@@ -205,19 +210,38 @@ describe('ContestSubpageView', () => {
       });
 
       const card = container.querySelector<HTMLElement>('.hara-gallery-card');
-      const link = card?.querySelector<HTMLAnchorElement>('.subpage-entry-link');
+      const entry = entriesForArena('hara')[0];
 
       expect(card?.getAttribute('role')).toBeNull();
       expect(card?.hasAttribute('tabindex')).toBe(false);
-      expect(card?.querySelectorAll('a,button')).toHaveLength(1);
-      expect(link?.getAttribute('href')).toBe(`#hara/${haraCandidates[0].id}`);
-      expect(link?.textContent).toContain(`View ${haraCandidates[0].name}`);
+
+      /* The card surface is the link and the only one. The visible pill is
+         decorative — it is not drawn where the vote cursor runs, so it cannot
+         be what carries navigation or the accessible name. */
+      const surface = card?.querySelector<HTMLAnchorElement>('.hara-gallery-card__surface');
+      expect(surface?.tagName).toBe('A');
+      expect(surface?.getAttribute('href')).toBe(`#hara/${entry.id}`);
+      expect(surface?.getAttribute('aria-hidden')).toBeNull();
+      expect(surface?.textContent).toContain(`View ${entry.name}`);
+
+      const pill = card?.querySelector('.subpage-entry-link');
+      expect(pill?.tagName).toBe('SPAN');
+      expect(pill?.getAttribute('aria-hidden')).toBe('true');
+
+      // One stop, and it is the surface.
+      const focusable = [...(card?.querySelectorAll('a,button') ?? [])].filter(
+        (el) => (el as HTMLElement).tabIndex >= 0,
+      );
+      expect(focusable).toEqual([surface]);
+
+      // The card asks for the hero's vote cursor over it.
+      expect(card?.hasAttribute('data-vote-cursor')).toBe(true);
 
       await act(async () => {
-        link?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        surface?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
       });
       expect(onOpenEntry).toHaveBeenCalledOnce();
-      expect(onOpenEntry).toHaveBeenCalledWith(haraCandidates[0].id);
+      expect(onOpenEntry).toHaveBeenCalledWith(entry.id);
     } finally {
       await act(async () => {
         root.unmount();
@@ -354,7 +378,8 @@ describe('ContestSubpageView', () => {
         tallies={{}}
       />,
     );
-    expect(festivalHtml).toContain('Festival of Festivals');
+    expect(festivalHtml).toContain('<h1>Festival of Festivals</h1>');
+    expect(festivalHtml).toContain('<p>Province-Wide Cultural Showdown</p>');
     expect(festivalHtml).toContain('/assets/program-logos/festival-of-festivals-2026.webp');
     expect(festivalHtml).toContain('Sandurot Festival');
 
