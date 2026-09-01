@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { reportBootStage, resolveBootStage } from '../lib/siteBoot';
 import { BUGLASAN_HERO_LOGO } from '../data/pageant';
 import { interpolateCamera, type CameraStop } from '../scene/landingSceneMath';
 import { buildFestivalWorld, LAYER_ATMOSPHERE, LAYER_OVERLAY } from '../scene/festivalWorld';
@@ -91,7 +92,10 @@ export function FestivalScene({
       lowPower,
       reducedMotion,
       homeAtmosphere: arenaId === undefined,
-      onLogoProgress: setBootProgress,
+      onLogoProgress: (value: number) => {
+        setBootProgress(value);
+        reportBootStage(value);
+      },
     });
     const post = new PostPipeline(renderer);
 
@@ -249,6 +253,10 @@ export function FestivalScene({
     stage.logoReady.then((loaded) => {
       logoLoaded = loaded;
       if (loaded && active) setSceneReady(true);
+      /* Resolved either way. A GLB that failed is a stage that will never
+         arrive, and the curtain must not wait on it — the in-canvas boot
+         layer holds the wordmark for exactly that case. */
+      resolveBootStage();
     });
 
     /* ---------------------------------------------- pointer */

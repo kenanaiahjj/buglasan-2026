@@ -31,6 +31,7 @@ export type VoteEntry = {
   origin: string;
   blurb: string;
   image: string | null;
+  fallbackImage?: string;
   votes: number;
   meta: Array<{ label: string; value: string }>;
 };
@@ -143,6 +144,7 @@ export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
         origin: b.district,
         blurb: b.tagline,
         image: b.image,
+        fallbackImage: b.fallbackImage,
         votes: b.votes,
         meta: [
           { label: 'Theme', value: truncate(b.theme, 64) },
@@ -158,6 +160,7 @@ export function entriesForArena(arenaId: ContestArena['id']): VoteEntry[] {
         origin: s.municipality,
         blurb: truncate(s.theme, 96),
         image: s.image,
+        fallbackImage: s.fallbackImage,
         votes: s.votes,
         meta: [
           { label: 'Performers', value: `${s.performersCount} dancers` },

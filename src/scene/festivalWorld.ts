@@ -212,9 +212,25 @@ const BUG_SURFACE_UV_HELPER = `
 
 /** Inject the map-aware UV helper after Three declares its map varying. */
 export function injectHeroSheenShader(fragmentShader: string): string {
-  return fragmentShader.replace(
+  const withSurfaceUv = fragmentShader.replace(
     '#include <map_pars_fragment>',
     `#include <map_pars_fragment>${BUG_SURFACE_UV_HELPER}`,
+  );
+
+  return withSurfaceUv.replace(
+    '#include <opaque_fragment>',
+    `{
+       // A slow, low-contrast UV sweep keeps the chrome alive when the
+       // pointer is still. It changes only the material response; the GLB's
+       // authored geometry and textures remain untouched.
+       vec2 motionUv = bugSurfaceUv();
+       float motionPhase = fract(uSheenTime * 0.028);
+       float bandDistance = abs(fract(motionUv.x * 0.75 + motionUv.y * 0.25 - motionPhase) - 0.5);
+       float band = exp(-bandDistance * bandDistance * 110.0);
+       float breathe = 0.5 + 0.5 * sin(uSheenTime * 0.45 + motionUv.y * 5.0);
+       outgoingLight *= 1.0 + band * 0.032 + breathe * 0.002;
+     }
+     #include <opaque_fragment>`,
   );
 }
 
@@ -1176,7 +1192,8 @@ export function buildFestivalWorld(
 
     // The shader band rides the same axis as the lamps, so the painted
     // highlight and the lit geometry agree instead of crossing each other.
-    sheenUniforms.uSheenTime.value = elapsed;
+    // Hold this uniform at its resting state for reduced-motion users.
+    sheenUniforms.uSheenTime.value = quality.reducedMotion ? 0 : elapsed;
     sheenUniforms.uSheenDir.value.set(lightX || 0.001, lightY + 0.55);
     sheenUniforms.uSheenPos.value = autoLight && !quality.reducedMotion
       ? Math.sin(elapsed * BUGLASAN_HERO_SHEEN.autoOrbit * 1.6) * 0.85

@@ -22,6 +22,8 @@ import { VoteFlowModal } from './VoteFlowModal';
 import { VotingOverviewPage } from './VotingOverviewPage';
 import { arenaDisplayName } from '../lib/arenaEntries';
 import { enter } from '../lib/enter';
+import { trackPlaqueSheen } from '../lib/plaqueSheen';
+import { claimBootStage, useSiteBoot } from '../lib/siteBoot';
 
 gsap.registerPlugin(useGSAP);
 
@@ -74,6 +76,14 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const [showHowToVote, setShowHowToVote] = useState(false);
   const [showContestPicker, setShowContestPicker] = useState(false);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+
+  /* This view mounts the 3D stage, so the curtain has something to wait for.
+     Claimed here rather than inside FestivalScene because that component is
+     lazy: on a slow connection its chunk can arrive well after the boot gates
+     have given up waiting for a stage nobody claimed. Declared above
+     `useSiteBoot` so it runs before the grace timer that hook starts. */
+  useEffect(claimBootStage, []);
+  const { ready: bootReady } = useSiteBoot();
 
   useEffect(() => {
     const updateHeaderScroll = () => {
@@ -191,6 +201,10 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   useGSAP(
     () => {
       if (activeSubpage || activeOverview) return undefined;
+      /* Held until the curtain lifts. Run on mount, the whole entrance plays
+         out behind the loading screen and the reveal is a page that has
+         already finished arriving. */
+      if (!bootReady) return undefined;
       const root = rootRef.current;
       if (!root) return undefined;
 
@@ -226,7 +240,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         sceneTrigger.kill();
       };
     },
-    { scope: rootRef, dependencies: [activeOverview, activeSubpage] },
+    { scope: rootRef, dependencies: [activeOverview, activeSubpage, bootReady] },
   );
 
   /**
@@ -240,7 +254,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
    */
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || activeSubpage || activeOverview) return undefined;
+    if (!root || activeSubpage || activeOverview || !bootReady) return undefined;
     if (typeof window.matchMedia !== 'function') return undefined;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
 
@@ -272,6 +286,22 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
       observer?.disconnect();
       root.removeAttribute('data-reveal-armed');
     };
+  }, [activeOverview, activeSubpage, bootReady]);
+
+  /**
+   * The plaques are steel, and steel only reads as steel while the highlight
+   * on it moves — so the pointer becomes the lamp lighting the whole row.
+   * Bails on coarse pointers and reduced motion inside `trackPlaqueSheen`,
+   * where the stylesheet's own rest values are already the right answer.
+   */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || activeSubpage || activeOverview) return undefined;
+
+    const row = root.querySelector<HTMLElement>('.hero-arena-cards');
+    if (!row) return undefined;
+
+    return trackPlaqueSheen(row);
   }, [activeOverview, activeSubpage]);
 
   const closeMenu = () => setMenuOpen(false);
@@ -427,7 +457,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
             {/* Not "select a contest below": below is four cards on a desktop
                 and a single button on a phone. The sentence has to be true at
                 both widths. */}
-            <span>To vote, choose a contest.</span>
+            <span className="hero-intro__instruction">To vote, choose a contest.</span>
           </p>
 
           {/* Phone and tablet only. Four plaques do not survive being stacked

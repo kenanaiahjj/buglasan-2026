@@ -23,6 +23,8 @@ export type LguBooth = {
   votes: number;
   highlights: string;
   image: string;
+  /** Local stand-in shown if the remote reference photo cannot be loaded. */
+  fallbackImage?: string;
   tagline: string;
 };
 
@@ -38,6 +40,8 @@ export type FestivalContingent = {
   votes: number;
   performanceTime: string;
   image: string;
+  /** Local stand-in shown if the remote reference photo cannot be loaded. */
+  fallbackImage?: string;
 };
 
 export type ContestArena = {
@@ -679,6 +683,46 @@ export const gandangCandidates: Candidate[] = [
   },
 ];
 
+/**
+ * Remote reference photography from past Buglasan coverage.
+ *
+ * These images are intentionally shared across the mock roster until the
+ * participating LGU list and final booth photography arrive. Keep the image
+ * source in the data layer so replacing the references later does not change
+ * the gallery component.
+ *
+ * Sources:
+ * - https://outoftownblog.com/negros-oriental-sizzles-with-44th-buglasan-festival/
+ * - https://marineconservationphilippines.org/marine-conservation-and-virtual-reality-buglasan-festival/
+ */
+const PAST_BUGLASAN_BOOTH_IMAGES = [
+  'https://outoftownblog.com/wp-content/uploads/2024/10/Manjuyod-municipal-booth-700x467.jpg',
+  'https://marineconservationphilippines.org/wp-content/uploads/2023/10/buglasan-mcp-zamboanguita-booth-2023.jpg',
+  'https://marineconservationphilippines.org/wp-content/uploads/2023/10/buglasan-2023-virtual-reality-mcp.jpg',
+] as const;
+
+/**
+ * Past-event contingent photography for the Festival of Festivals mock
+ * roster. These are illustrative references, not photos of the named mock
+ * entries.
+ *
+ * Sources:
+ * - https://jontotheworld.com/buglasan-festival-dumaguete/
+ * - https://outoftownblog.com/negros-oriental-sizzles-with-44th-buglasan-festival/
+ * - https://dumaguete.com/buglasan-festival-2025-street-dancing-showdown/
+ */
+const PAST_BUGLASAN_FESTIVAL_IMAGES = [
+  'https://jontotheworld.com/wp-content/uploads/2024/08/Buglasan-Festival-2.jpg',
+  'https://outoftownblog.com/wp-content/uploads/2024/10/Buglasan-Festival-Street-Dancing.jpg',
+  'https://outoftownblog.com/wp-content/uploads/2024/10/Buglasan-Festival-Street-Dancing-Contingents-700x510.jpg',
+  'https://dumaguete.com/wp-content/uploads/2025/10/Buglasan-Festival-2025-Street-Dancing-26-copy-495x400.jpg',
+] as const;
+
+const boothReferenceImage = (index: number) => PAST_BUGLASAN_BOOTH_IMAGES[index % PAST_BUGLASAN_BOOTH_IMAGES.length];
+const festivalReferenceImage = (index: number) => PAST_BUGLASAN_FESTIVAL_IMAGES[index % PAST_BUGLASAN_FESTIVAL_IMAGES.length];
+const boothFallbackImage = (index: number) => `/assets/entries/booth-${String((index % 6) + 1).padStart(2, '0')}.svg`;
+const festivalFallbackImage = (index: number) => `/assets/entries/festival-${String((index % 4) + 1).padStart(2, '0')}.svg`;
+
 /** Temporary booth records to fill the 23-slot presentation until the
  * participating LGU list and final booth photography arrive. */
 const mockBoothDetails: Array<Omit<LguBooth, 'id' | 'number' | 'materials' | 'image'>> = [
@@ -848,7 +892,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Dumaguete Silvanas', 'Budbud Kabog', 'Artisan Pottery', 'Roasted Arabica Coffee'],
     votes: 2430,
     highlights: 'Multi-level pavilion inspired by the historic Dumaguete Watchtower (Campanario) with a functioning café counter.',
-    image: '/assets/entries/booth-01.svg',
+    image: boothReferenceImage(0),
+    fallbackImage: boothFallbackImage(0),
     tagline: 'Where Heritage Meets the Gentle Breeze.',
   },
   {
@@ -861,7 +906,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Sweet Highland Lanzones', 'Organic Robusta Coffee', 'Wild Raw Honey', 'Cut Orchids'],
     votes: 2185,
     highlights: 'Features a cascading micro-waterfall mimicking Casaroro Falls with ambient mist and cold-brew tasting lounge.',
-    image: '/assets/entries/booth-02.svg',
+    image: boothReferenceImage(1),
+    fallbackImage: boothFallbackImage(1),
     tagline: 'Negros Oriental’s Cool Mountain Crown.',
   },
   {
@@ -874,7 +920,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Raw Muscovado Sugar', 'Crispy Dried Squid', 'Crab Paste (Taba ng Talangka)', 'Heritage Rum'],
     votes: 1890,
     highlights: 'Detailed replica of the Manjuyod White Sandbar stilt cottages with interactive marine sanctuary screens.',
-    image: '/assets/entries/booth-03.svg',
+    image: boothReferenceImage(2),
+    fallbackImage: boothFallbackImage(2),
     tagline: 'Sweet Waters and Playful Depths.',
   },
   {
@@ -887,7 +934,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Authentic Tanjay Budbud Pilit', 'Budbud Moron', 'Caramelized Yema', 'Native Woven Baskets'],
     votes: 1740,
     highlights: 'Towering golden archway with live budbud wrapping demonstrations and historic Spanish-era photo gallery.',
-    image: '/assets/entries/booth-04.svg',
+    image: boothReferenceImage(0),
+    fallbackImage: boothFallbackImage(3),
     tagline: 'The Heartland of Festivity and Flavors.',
   },
   {
@@ -900,7 +948,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Organic Black Rice', 'Bayawan Buko Pie', 'Freshwater Tilapia Crackers', 'Carabao Milk Cheese'],
     votes: 1610,
     highlights: 'Sculptural giant Tawo-Tawo scarecrows flanking an automated mini-rice mill display with fresh grain samples.',
-    image: '/assets/entries/booth-05.svg',
+    image: boothReferenceImage(1),
+    fallbackImage: boothFallbackImage(4),
     tagline: 'Negros Oriental’s Agricultural Capital.',
   },
   {
@@ -913,7 +962,8 @@ export const lguBooths: LguBooth[] = [
     signatureProducts: ['Smoked Sea Salt', 'Fresh Tuna Loin', 'Artisanal Shell Jewellery', 'Hand-dyed Dive Towels'],
     votes: 1540,
     highlights: 'Luminous underwater-themed dome with projection mapping of sea turtles grazing across coral reefs.',
-    image: '/assets/entries/booth-06.svg',
+    image: boothReferenceImage(2),
+    fallbackImage: boothFallbackImage(5),
     tagline: 'World-Class Diving and Marine Guardianship.',
   },
   ...mockBoothDetails.map((booth, index) => ({
@@ -921,7 +971,8 @@ export const lguBooths: LguBooth[] = [
     id: `booth-${String(index + 7).padStart(2, '0')}`,
     number: String(index + 7).padStart(2, '0'),
     materials: ['Treated bamboo', 'Nipa palm', 'Abaca weave'],
-    image: `/assets/entries/booth-${String((index % 6) + 1).padStart(2, '0')}.svg`,
+    image: boothReferenceImage(index + 6),
+    fallbackImage: boothFallbackImage(index + 6),
   })),
 ];
 
@@ -1008,7 +1059,8 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Silk-embroidered mantones, bamboo headdresses with mother-of-pearl accents, and flowing marine fabrics.',
     votes: 3120,
     performanceTime: 'June 08 · 2:00 PM (Perdices St.)',
-    image: '/assets/entries/festival-01.svg',
+    image: festivalReferenceImage(0),
+    fallbackImage: festivalFallbackImage(0),
   },
   {
     id: 'sd-02',
@@ -1021,7 +1073,8 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Vibrant crimson carapace armor, movable claw props with kinetic joints, and glowing mangrove leaf backdrops.',
     votes: 2840,
     performanceTime: 'June 08 · 2:45 PM (Perdices St.)',
-    image: '/assets/entries/festival-02.svg',
+    image: festivalReferenceImage(1),
+    fallbackImage: festivalFallbackImage(1),
   },
   {
     id: 'sd-03',
@@ -1034,7 +1087,8 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Straw-woven helmets, golden burlap smocks lined with LED-infused golden grain fronds, and giant kinetic scarecrow towers.',
     votes: 2690,
     performanceTime: 'June 08 · 3:30 PM (Perdices St.)',
-    image: '/assets/entries/festival-03.svg',
+    image: festivalReferenceImage(2),
+    fallbackImage: festivalFallbackImage(2),
   },
   {
     id: 'sd-04',
@@ -1047,12 +1101,14 @@ export const festivalContingents: FestivalContingent[] = [
     costumeHighlights: 'Velvet tunics with brass breastplates, ornate morion helmets, and red-and-gold battle capes.',
     votes: 2310,
     performanceTime: 'June 08 · 4:15 PM (Perdices St.)',
-    image: '/assets/entries/festival-04.svg',
+    image: festivalReferenceImage(3),
+    fallbackImage: festivalFallbackImage(3),
   },
   ...mockFestivalDetails.map((festival, index) => ({
     ...festival,
     id: `sd-${String(index + 5).padStart(2, '0')}`,
-    image: `/assets/entries/festival-${String((index % 4) + 1).padStart(2, '0')}.svg`,
+    image: festivalReferenceImage(index + 4),
+    fallbackImage: festivalFallbackImage(index + 4),
   })),
 ];
 

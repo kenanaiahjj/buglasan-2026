@@ -9,6 +9,7 @@
  */
 import { useEffect, useReducer } from 'react';
 import { DashboardPage } from './components/DashboardPage';
+import { SiteBoot } from './components/SiteBoot';
 import { LandingPage } from './components/LandingPage';
 import { LoginScreen } from './components/LoginScreen';
 import { initialVoterState, voterReducer } from './state/voterState';
@@ -19,7 +20,19 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [state.view]);
 
-  if (state.view === 'login') return <LoginScreen state={state} dispatch={dispatch} />;
-  if (state.view === 'dashboard') return <DashboardPage state={state} dispatch={dispatch} />;
-  return <LandingPage state={state} dispatch={dispatch} />;
+  /* Above the views rather than inside one. The loading screen this replaces
+     was mounted inside the WebGL stage and so could only ever cover the part
+     of the page the stage occupied. It removes itself once lifted. */
+  return (
+    <>
+      <SiteBoot />
+      {state.view === 'login' ? (
+        <LoginScreen state={state} dispatch={dispatch} />
+      ) : state.view === 'dashboard' ? (
+        <DashboardPage state={state} dispatch={dispatch} />
+      ) : (
+        <LandingPage state={state} dispatch={dispatch} />
+      )}
+    </>
+  );
 }

@@ -13,8 +13,9 @@ import type { ContestArena } from '../data/pageant';
  * afford to lose contrast.
  *
  * The bottom rule is separate and runs the full width: it is the card's
- * horizon rather than part of the arch, and the small chevron at its centre
- * is what keeps it from reading as a plain divider.
+ * horizon rather than part of the arch. It is a plain line — it carried a
+ * small chevron at its centre back when the card was a painted panel, and on
+ * a metal one that notch read as a sticker someone had cut a V out of.
  *
  * The viewBox is 100x128 and is scaled with preserveAspectRatio="none". The
  * hero wrapper intentionally uses a slightly shorter ratio to keep the
@@ -23,7 +24,7 @@ import type { ContestArena } from '../data/pageant';
  */
 const SILHOUETTE = 'M6 119V61C6 37 22 19 50 19C78 19 94 37 94 61V119Z';
 const EDGE = 'M6 119V61C6 37 22 19 50 19C78 19 94 37 94 61V119';
-const RULE = 'M0 119H43.5L50 126.5L56.5 119H100';
+const RULE = 'M0 119H100';
 
 function Emblem({ icon }: { icon: ContestArena['icon'] }) {
   switch (icon) {

@@ -2,7 +2,7 @@
  * The wall board.
  *
  * This is the screen behind the stage at Freedom Park, so it is composed once
- * at 16:9 and letterboxed into whatever plays it — every length in its
+ * at 16:10 and letterboxed into whatever plays it — every length in its
  * stylesheet is a container-query unit against that frame, and nothing
  * scrolls. What does not fit was never going to be read from the back of the
  * park anyway.
@@ -10,9 +10,7 @@
  * Where its numbers come from:
  *
  *  - **counts** — `createVotingOverviewSource`, which reads the server when
- *    `VITE_VOTING_API_URL` is set and runs the simulation when it is not. The
- *    eyebrow prints "Live simulation" in the second case; if that label is
- *    wrong on an event screen, the environment variable is missing.
+ *    `VITE_VOTING_API_URL` is set and runs the simulation when it is not.
  *  - **the countdown** — `countdownFrom(votingDeadlineISO)`. When the deadline
  *    passes the board switches itself to final standings rather than counting
  *    backwards.
@@ -46,7 +44,6 @@ import {
   createVotingOverviewSource,
   rankVotingOverviewEntries,
   summariseVotingOverview,
-  type RankedVotingOverviewEntry,
 } from '../lib/votingOverview';
 
 type VotingOverviewPageProps = {
@@ -66,12 +63,6 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
   minimumFractionDigits: 1,
 });
-const timeFormatter = new Intl.DateTimeFormat('en-US', {
-  hour: 'numeric',
-  minute: '2-digit',
-  second: '2-digit',
-});
-
 const votingDeadlineMs = Date.parse(pageantContent.votingDeadlineISO);
 
 function prefersReducedMotion(): boolean {
@@ -96,6 +87,12 @@ function pad(value: number): string {
 
 function titleCase(word: string): string {
   return word[0].toUpperCase() + word.slice(1);
+}
+
+function podiumMetal(rank: number): 'gold' | 'silver' | 'bronze' {
+  if (rank === 1) return 'gold';
+  if (rank === 2) return 'silver';
+  return 'bronze';
 }
 
 /**
@@ -202,21 +199,6 @@ export function VotingOverviewPage({
       rankedEntries.map((entry) => [entry.id, (baseline[entry.id] ?? entry.rank) - entry.rank]),
     );
   }, [rankedEntries]);
-
-  const biggestMover = useMemo(() => {
-    let best: RankedVotingOverviewEntry | null = null;
-    let bestDelta = 0;
-
-    for (const entry of rankedEntries) {
-      const delta = rankDeltas[entry.id] ?? 0;
-      if (delta > bestDelta) {
-        best = entry;
-        bestDelta = delta;
-      }
-    }
-
-    return best === null ? null : { entry: best, delta: bestDelta };
-  }, [rankDeltas, rankedEntries]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -386,7 +368,7 @@ export function VotingOverviewPage({
          one product rather than four differently themed screens. */
       style={{ ['--arena' as string]: arena.accentColor }}
     >
-      {/* Fixed 16:9. The board is composed once at wall proportions and
+      {/* Fixed 16:10. The board is composed once at wall proportions and
           letterboxed into whatever it is actually shown on, so nothing
           reflows between the laptop it is cued from and the LED wall. */}
       <div className="vote-overview__frame">
@@ -400,17 +382,7 @@ export function VotingOverviewPage({
                 <img alt="" className="vote-overview__crest" height={447} src={arena.logo} width={447} />
               ) : null}
               <div className="vote-overview__identity-type">
-                <p className="vote-overview__eyebrow">
-                  <span className="vote-overview__live" />
-                  {snapshot.source === 'simulation' ? 'Live simulation' : 'Live results'}
-                  <span className="vote-overview__eyebrow-sep">·</span>
-                  Buglasan Festival 2026
-                </p>
-                <h1 className="vote-overview__title">{programName}</h1>
-                {/* A wall board is read by people deciding whether to vote, so
-                    the second line is the instruction rather than a label for
-                    the screen they are already looking at. */}
-                <p className="vote-overview__supporting">{cfg.prompt}</p>
+                <h1 className="vote-overview__title">{programName} 2026</h1>
               </div>
             </div>
 
@@ -455,12 +427,22 @@ export function VotingOverviewPage({
                     <article className="vote-overview__podium-entry vote-overview__leader">
                       <div className="vote-overview__leader-media">
                         <img alt={`${leader.name} of ${leader.location}`} src={leader.image} />
-                        <span className="vote-overview__leader-badge">Leading</span>
+                        <span
+                          className={`vote-overview__leader-badge vote-overview__podium-rank-badge vote-overview__podium-rank-badge--${podiumMetal(leader.rank)}`}
+                        >
+                          Leading
+                        </span>
                       </div>
                       <div className="vote-overview__leader-type">
-                        <p className="vote-overview__candidate-number">
-                          {titleCase(cfg.nounSingular)} {leader.number} · {leader.location}
-                        </p>
+                        <div className="vote-overview__podium-candidate-line">
+                          <span
+                            aria-label={`Candidate number ${leader.number}`}
+                            className="vote-overview__podium-candidate-badge"
+                          >
+                            #{leader.number}
+                          </span>
+                          <span className="vote-overview__podium-candidate-location">{leader.location}</span>
+                        </div>
                         <h2 className="vote-overview__candidate-name">{leader.name}</h2>
                         <div className="vote-overview__leader-figures">
                           <p>
@@ -485,14 +467,23 @@ export function VotingOverviewPage({
                       >
                         <div className="vote-overview__podium-card-media">
                           <img alt={`${entry.name} of ${entry.location}`} src={entry.image} />
-                          <span className="vote-overview__podium-card-rank">Rank {entry.rank}</span>
+                          <span
+                            className={`vote-overview__podium-card-rank vote-overview__podium-rank-badge vote-overview__podium-rank-badge--${podiumMetal(entry.rank)}`}
+                          >
+                            Rank {entry.rank}
+                          </span>
                         </div>
                         <div className="vote-overview__podium-card-type">
-                          <p className="vote-overview__candidate-number">
-                            {titleCase(cfg.nounSingular)} {entry.number}
-                          </p>
+                          <div className="vote-overview__podium-candidate-line">
+                            <span
+                              aria-label={`Candidate number ${entry.number}`}
+                              className="vote-overview__podium-candidate-badge"
+                            >
+                              #{entry.number}
+                            </span>
+                            <span className="vote-overview__podium-candidate-location">{entry.location}</span>
+                          </div>
                           <h3 className="vote-overview__podium-card-name">{entry.name}</h3>
-                          <p className="vote-overview__podium-card-location">{entry.location}</p>
                           <p className="vote-overview__podium-card-votes">
                             <Ticker className="vote-overview__candidate-votes" value={entry.votes} />
                             <span className="vote-overview__figure-label">votes</span>
@@ -585,9 +576,11 @@ export function VotingOverviewPage({
                         src={entry.image}
                       />
                       <div className="vote-overview__rank-identity">
-                        <p className="vote-overview__rank-name">{entry.name}</p>
-                        <p className="vote-overview__rank-location">
-                          #{entry.number} · {entry.location}
+                        <p className="vote-overview__rank-name">
+                          <span className="vote-overview__rank-name-primary">{entry.name}</span>
+                          <span className="vote-overview__rank-name-meta">
+                            #{entry.number} · {entry.location}
+                          </span>
                         </p>
                       </div>
                       <Ticker className="vote-overview__rank-votes" value={entry.votes} />
@@ -608,37 +601,6 @@ export function VotingOverviewPage({
             </section>
           </div>
 
-          <footer className="vote-overview__ticker vote-overview__animate">
-            <p className="vote-overview__ticker-item">
-              <span>Biggest climb</span>
-              {biggestMover ? (
-                <strong>
-                  <CaretUp aria-hidden="true" size={12} weight="fill" />
-                  {biggestMover.delta} · {biggestMover.entry.name}
-                </strong>
-              ) : (
-                <strong>Standings holding steady</strong>
-              )}
-            </p>
-            <p className="vote-overview__ticker-item">
-              <span>Tightest race</span>
-              {summary.tightestGap ? (
-                <strong>
-                  {summary.tightestGap.gap === 0
-                    ? `Tied for ${summary.tightestGap.upper.rank}${summary.tightestGap.upper.rank === 1 ? 'st' : 'th'}`
-                    : `${formatCount(summary.tightestGap.gap)} votes`}
-                  {' · '}
-                  {summary.tightestGap.upper.name} ↔ {summary.tightestGap.lower.name}
-                </strong>
-              ) : (
-                <strong>—</strong>
-              )}
-            </p>
-            <p aria-atomic="true" aria-live="polite" className="vote-overview__ticker-item vote-overview__live-status">
-              <span>Last update</span>
-              <strong>{timeFormatter.format(snapshot.updatedAt)}</strong>
-            </p>
-          </footer>
         </div>
       </div>
 
@@ -649,7 +611,7 @@ export function VotingOverviewPage({
         </button>
         <button className="vote-overview__utility-button" onClick={onBackToHub} type="button">
           <House aria-hidden="true" size={14} weight="bold" />
-          Festival Hub
+          Home
         </button>
         <button
           className="vote-overview__utility-button"

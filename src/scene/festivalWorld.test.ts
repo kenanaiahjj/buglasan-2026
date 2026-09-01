@@ -22,5 +22,7 @@ describe('hero sheen shader injection', () => {
       compiled.indexOf('#include <map_pars_fragment>'),
     );
     expect(compiled).toContain('return vMapUv;');
+    expect(compiled).toContain('fract(uSheenTime *');
+    expect(compiled).toContain('outgoingLight *= 1.0 +');
   });
 });

@@ -24,6 +24,22 @@ describe('scrolled landing header', () => {
     expect(scrolledBlock).not.toContain('inset 0 -1px 0 rgba(255, 255, 255, .06)');
   });
 });
+describe('home voting cue', () => {
+  it('uses a larger gold treatment with a restrained glow', () => {
+    const cueBlock = styles.match(/\.hero-intro__instruction\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const glowBlock = styles.match(/\.hero-intro__instruction::after\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(cueBlock).toContain('color: var(--gold-bright);');
+    expect(cueBlock).toMatch(/font-size:\s*clamp\(/);
+    expect(cueBlock).toContain('text-shadow:');
+    expect(glowBlock).toContain('filter: blur(');
+    expect(glowBlock).toContain('animation: heroIntroGoldGlow');
+    expect(styles).toMatch(/@keyframes heroIntroGoldGlow\s*\{[\s\S]*?opacity:/);
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.hero-intro__instruction::after[\s\S]*?animation:\s*none;/,
+    );
+  });
+});
 describe('mobile landing footer', () => {
   it('removes the footer from the mobile composition', () => {
     const mobileBlock = styles.match(/@media \(max-width:\s*760px\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
@@ -66,12 +82,20 @@ describe('voting overview podium', () => {
 });
 
 describe('voting overview wallboard and live bar edges', () => {
-  it('keeps the overview letterboxed at 16:9 with live bar edges', () => {
+  it('lets dense standings rows shrink around their content', () => {
+    const rowBlock = styles.match(/\.vote-overview__rank-row\s*\{(?=\s*position:)([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(rowBlock).toContain('grid-template-rows: minmax(0, 1fr);');
+    expect(rowBlock).toContain('min-height: 0;');
+  });
+
+  it('extends the overview to 16:10 so a full candidate field stays readable', () => {
     const frameBlock = styles.match(/\.vote-overview__frame\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
     expect(styles).toMatch(/\.vote-overview\s*\{[\s\S]*?overflow:\s*auto;/);
-    expect(frameBlock).toContain('width: min(100vw, calc(100dvh * 16 / 9));');
-    expect(frameBlock).toContain('height: min(100dvh, calc(100vw * 9 / 16));');
+    expect(frameBlock).toContain('width: min(100vw, calc(100dvh * 16 / 10));');
+    expect(frameBlock).toContain('height: min(100dvh, calc(100vw * 10 / 16));');
+    expect(frameBlock).not.toContain('16 / 9');
     expect(styles).toMatch(/\.vote-overview__rank-bar-fill\s*\{[\s\S]*?position:\s*relative;/);
     expect(styles).toMatch(/\.vote-overview__rank-bar-fill::after\s*\{[\s\S]*?animation:\s*voteOverviewBarEdge/);
     expect(styles).toMatch(/@keyframes voteOverviewBarEdge\s*\{[\s\S]*?transform:/);
@@ -81,6 +105,22 @@ describe('voting overview wallboard and live bar edges', () => {
     expect(styles).not.toMatch(/@media \(max-width:\s*40rem\)[\s\S]*?\.vote-overview__podium\s*\{/);
     expect(styles).toMatch(
       /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
+    );
+  });
+
+  it('turns each bar end into a soft animated light cap', () => {
+    const sparkBlock = styles.match(/\.vote-overview__rank-bar-fill::before\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const edgeBlock = styles.match(/\.vote-overview__rank-bar-fill::after\s*\{(?=\s*top:)([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(sparkBlock).toContain('box-shadow:');
+    expect(sparkBlock).toContain('animation: voteOverviewBarSpark');
+    expect(edgeBlock).toContain('mix-blend-mode: screen;');
+    expect(edgeBlock).toMatch(/filter:\s*blur\([^)]*\);/);
+    expect(edgeBlock).toMatch(/box-shadow:\s*0 0 \.8cqw/);
+    expect(edgeBlock).toContain('animation: voteOverviewBarEdge');
+    expect(edgeBlock).not.toContain('border:');
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::before,[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
     );
   });
 });
@@ -339,6 +379,9 @@ describe('Hara gallery card sizing', () => {
     const logoBlock = styles.match(/\.hara-gallery__logo\s*\{([\s\S]*?)\}/)?.[1] ?? '';
     expect(logoBlock).toContain('object-fit: contain;');
     expect(logoBlock).not.toMatch(/border:|border-radius:|box-shadow:/);
+    expect(styles).toMatch(
+      /\.hara-gallery__logo\s*\{[\s\S]*?width:\s*clamp\(8rem,\s*16vw,\s*12rem\);/,
+    );
   });
 
   it('styles the Hara support block and search-only toolbar', () => {
@@ -373,6 +416,12 @@ describe('Hara gallery card sizing', () => {
 
     expect(cardBlock).not.toMatch(/\brotate:/);
     expect(styles).not.toMatch(/\.hara-gallery-card:nth-child/);
+  });
+
+  it('keeps booth reference photos opaque instead of blending them as SVG artwork', () => {
+    expect(styles).toMatch(
+      /\.contest-subpage--booths \.hara-gallery-card__media img\s*\{[\s\S]*?mix-blend-mode:\s*normal;/,
+    );
   });
 });
 

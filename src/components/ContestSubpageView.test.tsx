@@ -77,12 +77,19 @@ describe('ContestSubpageView', () => {
 
     expect(html).toContain('class="hara-gallery hara-gallery--portrait"');
     expect(html).toContain('aria-label="Hara sa Negros Oriental entries"');
-    expect(html).toContain('Back to home');
+    expect(html).toContain('>Home</span>');
     expect(html).toContain('How to vote');
     expect(html).toContain('Overview');
     expect(html).toContain('class="hara-gallery__home crown-quiet-control"');
     expect(html).toContain('class="hara-gallery__how-to crown-quiet-control"');
     expect(html).toContain('class="hara-gallery__overview crown-quiet-control"');
+    expect(html).toMatch(/<nav\b[^>]*class="hara-gallery__actions"/);
+    expect(html.indexOf('class="hara-gallery__actions"')).toBeLessThan(
+      html.indexOf('class="hara-gallery__logo"'),
+    );
+    expect(html.indexOf('class="hara-gallery__logo"')).toBeLessThan(
+      html.indexOf('class="hara-gallery__support"'),
+    );
     expect(html).toContain('aria-label="Open the Hara sa Negros Oriental voting overview"');
     /* The steps moved into the vote dialog, which is closed until asked for,
        so "How to vote" is a button here rather than a disclosure carrying its
@@ -145,6 +152,39 @@ describe('ContestSubpageView', () => {
     expect(html).not.toContain(`${lguBooths.length} of 23 booths`);
   });
 
+  it('uses remote past-event imagery with local fallbacks for booth and festival placeholders', () => {
+    expect(entriesForArena('booths').every((entry) => entry.image?.startsWith('https://'))).toBe(true);
+    expect(entriesForArena('festival').every((entry) => entry.image?.startsWith('https://'))).toBe(true);
+
+    const booths = contestArenas.find((a) => a.id === 'booths')!;
+    const boothsHtml = renderToStaticMarkup(
+      <ContestSubpageView
+        arena={booths}
+        dispatch={() => undefined}
+        onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
+        onSwitchArena={() => undefined}
+        tallies={{}}
+      />,
+    );
+    expect(boothsHtml).toContain('alt="Past Buglasan booth photo"');
+    expect(boothsHtml).toContain('data-fallback-src="/assets/entries/booth-01.svg"');
+
+    const festival = contestArenas.find((a) => a.id === 'festival')!;
+    const festivalHtml = renderToStaticMarkup(
+      <ContestSubpageView
+        arena={festival}
+        dispatch={() => undefined}
+        onBackToHub={() => undefined}
+        onOpenOverview={() => undefined}
+        onSwitchArena={() => undefined}
+        tallies={{}}
+      />,
+    );
+    expect(festivalHtml).toContain('alt="Past Buglasan festival contingent photo"');
+    expect(festivalHtml).toContain('data-fallback-src="/assets/entries/festival-01.svg"');
+  });
+
   it('gives all four programmes the same gallery chrome', () => {
     for (const arena of contestArenas) {
       const html = renderToStaticMarkup(
@@ -159,13 +199,20 @@ describe('ContestSubpageView', () => {
       );
 
       const entries = entriesForArena(arena.id);
+      const markClass = arena.logo ? 'hara-gallery__logo' : 'hara-gallery__lockup';
+      expect(html.indexOf('class="hara-gallery__actions"')).toBeLessThan(
+        html.indexOf(`class="${markClass}"`),
+      );
+      expect(html.indexOf(`class="${markClass}"`)).toBeLessThan(
+        html.indexOf('class="hara-gallery__support"'),
+      );
       expect(html).toContain(`id="subpage-${arena.id}"`);
       /* Booths are buildings and contingents are lines of dancers, so those
          two get a wide card; the pageants keep the portrait. */
       const shape = arena.id === 'booths' || arena.id === 'festival' ? 'landscape' : 'portrait';
       expect(html).toContain(`class="hara-gallery hara-gallery--${shape}"`);
       expect(ARENA_VOTING[arena.id].cardShape).toBe(shape);
-      expect(html).toContain('Back to home');
+      expect(html).toContain('>Home</span>');
       expect(html).toContain('How to vote');
       expect(html).toContain('Voting is open');
       expect(html).toContain('Overview');

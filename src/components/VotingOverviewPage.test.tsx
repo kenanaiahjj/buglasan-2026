@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { contestArenas, haraCandidates, pageantContent } from '../data/pageant';
-import { ARENA_VOTING, entriesForArena } from '../lib/arenaEntries';
+import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
 import { VotingOverviewPage } from './VotingOverviewPage';
 
 function getHaraArena() {
@@ -49,7 +49,7 @@ describe('VotingOverviewPage', () => {
     });
   });
 
-  it('renders the simulated Hara standings for event display', () => {
+  it('renders a clean titled Hara standings board', () => {
     const hara = getHaraArena();
     const html = renderToStaticMarkup(
       <VotingOverviewPage
@@ -60,21 +60,24 @@ describe('VotingOverviewPage', () => {
       />,
     );
 
-    expect(html).toContain('Hara sa Negros Oriental');
-    expect(html).toContain(ARENA_VOTING.hara.prompt);
-    expect(html).toContain('Live simulation');
+    expect(html).toContain('Hara sa Negros Oriental 2026');
+    expect(html).not.toContain(ARENA_VOTING.hara.prompt);
+    expect(html).not.toContain('Live simulation');
+    expect(html).not.toContain('Buglasan Festival 2026');
     expect(html).toContain('Leading');
     expect(html).toContain('Total votes cast');
     expect(html).toContain('Votes per minute');
     expect(html).toContain('Lead margin');
     expect(html).toContain('Towns represented');
-    expect(html).toContain('Biggest climb');
-    expect(html).toContain('Tightest race');
+    expect(html).not.toContain('Biggest climb');
+    expect(html).not.toContain('Tightest race');
     expect(html).toContain(pageantContent.votingDeadline);
     expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(haraCandidates.length);
-    expect(html).toContain('aria-live="polite"');
+    expect(html).not.toContain('vote-overview__ticker');
+    expect(html).not.toContain('aria-live="polite"');
     expect(html).toContain('Back to Hara sa Negros Oriental');
-    expect(html).toContain('Festival Hub');
+    expect(html).toContain('>Home</button>');
+    expect(html).not.toContain('Festival Hub');
     expect(html).toContain('class="vote-overview__utility-button"');
     expect(html).toContain('class="vote-overview__hero vote-overview__animate"');
     expect(html).not.toContain('class="vote-overview__utility-button" style=');
@@ -104,6 +107,27 @@ describe('VotingOverviewPage', () => {
     expect(podium!.textContent).not.toContain('Shaira');
     expect(html).toContain('Shaira');
 
+    expect(podium!.querySelector('.vote-overview__leader .vote-overview__podium-rank-badge--gold')?.textContent).toBe(
+      'Leading',
+    );
+    expect(
+      podium!.querySelector('.vote-overview__podium-card[data-rank="2"] .vote-overview__podium-rank-badge--silver')
+        ?.textContent,
+    ).toBe('Rank 2');
+    expect(
+      podium!.querySelector('.vote-overview__podium-card[data-rank="3"] .vote-overview__podium-rank-badge--bronze')
+        ?.textContent,
+    ).toBe('Rank 3');
+    expect(podium!.querySelector('.vote-overview__leader .vote-overview__podium-candidate-badge')?.textContent).toBe(
+      '#02',
+    );
+    expect(podium!.querySelector('.vote-overview__podium-card[data-rank="2"] .vote-overview__podium-candidate-badge')?.textContent).toBe(
+      '#01',
+    );
+    expect(podium!.querySelector('.vote-overview__podium-card[data-rank="3"] .vote-overview__podium-candidate-badge')?.textContent).toBe(
+      '#03',
+    );
+
     const barFills = [...document.querySelectorAll('.vote-overview__rank-bar-fill')];
     expect(barFills).toHaveLength(haraCandidates.length);
     expect(barFills[0].getAttribute('style')).toContain('--bar-edge-delay:');
@@ -130,6 +154,19 @@ describe('VotingOverviewPage', () => {
       expect(html).toContain(`--rows:${entries.length}`);
       expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(entries.length);
       expect(html).toContain(ARENA_VOTING[arena.id].originLabel);
+      expect(html).toContain(`${arenaDisplayName(arena)} 2026`);
+      expect(html).not.toContain(ARENA_VOTING[arena.id].prompt);
+      expect(html).not.toContain('Live simulation');
+      expect(html).not.toContain('Buglasan Festival 2026');
+      expect(html).not.toContain('vote-overview__ticker');
+
+      const document = new DOMParser().parseFromString(html, 'text/html');
+      const firstRowIdentity = document.querySelector('.vote-overview__rank-row .vote-overview__rank-name');
+      expect(firstRowIdentity?.querySelector('.vote-overview__rank-name-primary')?.textContent).toBeTruthy();
+      expect(firstRowIdentity?.querySelector('.vote-overview__rank-name-meta')?.textContent).toMatch(
+        /^#\d+ · .+$/,
+      );
+      expect(html).not.toContain('vote-overview__rank-location');
     }
   });
 

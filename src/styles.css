@@ -570,24 +570,69 @@ img, svg, video { max-width: 100%; }
 }
 .festival-scene.is-ready .hero-boot { opacity: 0; visibility: hidden; }
 
+/* ---- the curtain ---------------------------------------------------
+   `.hero-boot` above covers the stage only — it is absolutely positioned
+   inside `.festival-scene`, which is the background layer, so the header,
+   the hero copy and the plaque row all paint over the top of it. That is
+   fine for what it is, a placeholder for one slow canvas, and useless as a
+   loading screen, because the site stays legible around it the whole time.
+
+   `.site-boot` is the loading screen: the whole viewport, above everything,
+   lifted by `useSiteBoot` once the fonts, the programme art, the stage and
+   `window.load` have all reported in. The two share the mark's geometry
+   below, so the fade between them does not move it. */
+.site-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background:
+    radial-gradient(120% 80% at 50% 34%, rgba(9, 30, 20, .72), transparent 62%),
+    linear-gradient(180deg, oklch(0.128 0.02 158) 0%, oklch(0.086 0.014 160) 100%);
+  opacity: 1;
+  transition: opacity .62s var(--ease-out);
+}
+.site-boot.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+/* The page underneath is fully laid out while the curtain is up, so without
+   this a scroll during boot lands you halfway down a site you have not seen
+   yet. */
+html.is-booting,
+html.is-booting body { overflow: hidden; }
+
 /* Positioned, not centred by the grid.
    
    A percentage margin resolves against the container's *width*, so the
    obvious `margin-top: calc(32.4vh - 50%)` moved the mark up by half the
-   viewport width — about 430px — and stacked it on the header. Absolute
-   placement against the same 32.4% midline the 3D mark resolves to means the
-   handover is a crossfade in place. */
-.hero-boot__mark {
+   viewport width — about 430px — and stacked it on the header.
+
+   The custom properties are written by `SiteBoot` from `[data-scene-anchor]`,
+   the same box the stage fits the 3D wordmark into, so the flat mark and the
+   rendered one occupy the same rectangle and the handover is a crossfade in
+   place rather than a jump. The literals are the fallback for when there is
+   no anchor to measure — the login wall, the dashboard, a hero that has not
+   laid out yet — and they are what both marks used before. On a tall window
+   they sit some 90px below where the stage actually puts its mark, which is
+   the jump this replaced.
+
+   `height: auto` matters: the img carries a `height` attribute, and that
+   presentational hint beats `aspect-ratio`, so without it the box is the
+   asset's full 1681px and `object-fit` letterboxes the mark inside it. */
+.hero-boot__mark,
+.site-boot__mark {
   position: absolute;
-  top: 32.4%;
-  left: 50%;
-  width: min(54vw, 760px);
+  top: var(--boot-mark-y, 32.4%);
+  left: var(--boot-mark-x, 50%);
+  width: var(--boot-mark-w, min(54vw, 760px));
+  height: auto;
   aspect-ratio: 3198 / 1681;
   object-fit: contain;
   transform: translate(-50%, -50%);
   animation: heroBootBreathe 3.2s var(--ease-out) infinite;
 }
-.hero-boot__meter {
+.hero-boot__meter,
+.site-boot__meter {
   position: absolute;
   top: 58%;
   left: 50%;
@@ -598,14 +643,16 @@ img, svg, video { max-width: 100%; }
   background: color-mix(in oklch, var(--ink) 12%, transparent);
   overflow: hidden;
 }
-.hero-boot__meter i {
+.hero-boot__meter i,
+.site-boot__meter i {
   display: block;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright));
   transition: width .3s var(--ease-out);
 }
-.hero-boot__label {
+.hero-boot__label,
+.site-boot__label {
   position: absolute;
   top: calc(58% + 1.1rem);
   left: 50%;
@@ -623,7 +670,8 @@ img, svg, video { max-width: 100%; }
   50%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.012); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-boot__mark { animation: none; }
+  .hero-boot__mark,
+  .site-boot__mark { animation: none; }
 }
 
 .festival-scene.is-ready .festival-scene__fallback-logo { opacity: 0; }
@@ -1045,10 +1093,45 @@ img, svg, video { max-width: 100%; }
   line-height: 1.55;
   text-wrap: balance;
 }
-.hero-intro span {
+.hero-intro__instruction {
+  position: relative;
+  isolation: isolate;
   display: block;
-  margin-top: .35rem;
-  color: var(--ink);
+  margin-top: .55rem;
+  color: var(--gold-bright);
+  font-size: clamp(1rem, 1.6vw, 1.22rem);
+  font-weight: 650;
+  letter-spacing: .02em;
+  line-height: 1.3;
+  text-shadow:
+    0 0 .45rem color-mix(in oklch, var(--gold-bright) 62%, transparent),
+    0 0 1.35rem color-mix(in oklch, var(--gold) 40%, transparent);
+}
+.hero-intro__instruction::after {
+  content: "";
+  position: absolute;
+  inset: 18% -10% 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklch, var(--gold-bright) 35%, transparent) 0%,
+    color-mix(in oklch, var(--gold) 20%, transparent) 44%,
+    transparent 76%
+  );
+  mix-blend-mode: screen;
+  filter: blur(1rem);
+  opacity: .42;
+  transform: scale(.9);
+  pointer-events: none;
+  animation: heroIntroGoldGlow 3.6s var(--ease-out-soft) infinite;
+}
+@keyframes heroIntroGoldGlow {
+  0%, 100% { opacity: .3; transform: scale(.9); }
+  50% { opacity: .65; transform: scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-intro__instruction::after { animation: none; opacity: .3; transform: none; }
 }
 
 @media (max-width: 860px) {
@@ -1215,6 +1298,44 @@ img, svg, video { max-width: 100%; }
   pointer-events: auto;
 }
 
+/* ----------------------------------------------------
+   PLAQUE MATERIAL: milled steel
+   ----------------------------------------------------
+   The plaques used to be painted panels — a flat green wash under a gold
+   hairline. They are metal now, and every layer below exists to make one
+   claim believable: this is a surface, and light is landing on it.
+
+   A convincing metal is four things stacked, cheapest first.
+
+     1. A value ramp with a horizon. Reflective objects show a hard light/dark
+        flip where the reflected sky ends and the reflected ground begins. A
+        smooth two-stop gradient is plastic; the flip is the metal.
+     2. An anisotropic grain (`::before`) — brushing that scatters along one
+        axis only, which is why brushed steel has a direction and paint does
+        not.
+     3. A specular hotspot (`__light-leak`) that follows the pointer. A
+        highlight that cannot move is a painted highlight.
+     4. An environment bounce (`__ray`) that moves *against* the pointer.
+        Reflections counter-parallax, and that opposition is most of what
+        reads as depth.
+
+   The pointer arrives as `--sheen-x` / `--sheen-y` from `trackPlaqueSheen` —
+   one lamp shared by the whole row, so the four light as a set. Nothing here
+   depends on it: the rest values put the light where the hero's own key light
+   is, so the material is right with JS off, under reduced motion, and inside
+   the contest picker where there is no pointer to follow at all.
+   ---------------------------------------------------- */
+@property --sheen-x {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 30%;
+}
+@property --sheen-y {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 14%;
+}
+
 .hero-arena-card {
   position: relative;
   display: flex;
@@ -1222,36 +1343,189 @@ img, svg, video { max-width: 100%; }
   min-height: 300px;
   overflow: hidden;
   isolation: isolate;
+  /* The hero's key light is a warm stage lamp, not a studio strobe. The
+     specular keeps a white core — every source is white at its centre — and
+     decays into this. */
   --hero-card-source-light: rgba(247, 211, 119, .28);
-  border: 1px solid color-mix(in oklch, var(--gold) 34%, transparent);
-  border-radius: 26px;
+  /* Cool steel, all but neutral. The stage light around it is warm gold, and
+     a card tinted toward that gold turned to dust the moment the two met —
+     the metal has to stay the cold thing in a warm room. */
+  --steel-deep: oklch(0.088 0.005 196 / var(--glass-a));
+  --steel-dark: oklch(0.205 0.006 196);
+  --steel-mid: oklch(0.33 0.006 196);
+  --steel-lit: oklch(0.44 0.006 196);
+  /* The brightest the plaque goes, and it stops well short of white. Pushed
+     to near-white this was chrome in the sense that a chrome bumper is
+     chrome: a hard band clipped flat across the top of every card, with the
+     grain showing through it like a printing artefact. Dark glass with a
+     sheen on it is the material — the metal is in the ramp and the bezel,
+     not in how far the highlight blows out. */
+  --steel-hot: oklch(0.6 0.006 196 / var(--glass-a));
+  --sheen-x: 30%;
+  --sheen-y: 14%;
+  /* How much of the stage comes through the body. Glass that transmits
+     nothing is a painted panel with a shiny edge — the give-away is that the
+     card stays the same colour no matter what passes behind it. Eight per
+     cent is small on purpose: enough that the scene's light shafts drift
+     through the plaque, not enough to cost the programme marks contrast. */
+  --glass-a: .92;
+  /* Dark outside, bright inside: an edge you can see the thickness of. The
+     bright half is `::after`, which tracks the light. */
+  border: 1px solid rgba(0, 0, 0, .62);
+  border-radius: 28px;
+  backdrop-filter: blur(14px) saturate(116%);
+  -webkit-backdrop-filter: blur(14px) saturate(116%);
   color: #fff;
-  /* Light falls from the upper left, the way it does on the wordmark behind. */
   background:
-    radial-gradient(115% 78% at 4% 0%, color-mix(in oklch, var(--surface-3) 92%, transparent) 0%, transparent 56%),
-    linear-gradient(168deg, oklch(0.238 0.046 158) 0%, oklch(0.158 0.028 159) 60%, oklch(0.132 0.022 161) 100%);
+    /* Rolling variation across the width. Rolled stock is never one value
+       left to right, and without this the ramp reads as one bent sheet. */
+    linear-gradient(90deg,
+      rgba(255, 255, 255, .0) 0%,
+      rgba(255, 255, 255, .08) 15%,
+      rgba(0, 0, 0, .12) 31%,
+      rgba(255, 255, 255, .06) 47%,
+      rgba(0, 0, 0, .1) 64%,
+      rgba(255, 255, 255, .09) 79%,
+      rgba(0, 0, 0, .13) 100%),
+    /* The ramp, and it is dead vertical on purpose. Raked a few degrees off
+       it read as diagonal stripes laid over the artwork rather than as a
+       reflection: a reflected horizon is level, and the moment it tilts the
+       whole surface looks printed.
+
+       One lift, and it is not a band with an edge: the sheen along the top
+       has a long fall out of it, because cut short it stopped being a
+       reflection and became a stripe with the grain showing through.
+       Everything below it just keeps falling. This is glass with metal in
+       it, and the metal lives in the ramp and the bezel rather than in how
+       hard the highlight is driven. */
+    linear-gradient(180deg,
+      oklch(0.355 0.006 196 / var(--glass-a)) 0%,
+      oklch(0.275 0.006 196 / var(--glass-a)) 4%,
+      var(--steel-hot) 9%,
+      oklch(0.435 0.006 196 / var(--glass-a)) 14%,
+      oklch(0.3 0.006 196 / var(--glass-a)) 21%,
+      oklch(0.222 0.006 196 / var(--glass-a)) 32%,
+      oklch(0.172 0.005 196 / var(--glass-a)) 45%,
+      oklch(0.2 0.006 196 / var(--glass-a)) 52%,
+      oklch(0.172 0.006 196 / var(--glass-a)) 64%,
+      /* Nothing happens at 72.7%, where the well ends and the name plate
+         begins. There was a milled step there and it was the most artificial
+         thing on the card: a hard horizontal edge with the vertical grain
+         running straight through it, which is a printed band and not a
+         change of surface. The scribed rule in the artwork is horizon
+         enough.
+
+         What is left of a seam is structural: the well is darkened by the
+         arch fill and the plate below it is not, so the two meet at a hard
+         path edge no gradient can soften. The only fix is to stop them being
+         different — the fill gives up some of its depth, the plate gives up
+         some of its light, and they meet close enough that the boundary is
+         the drawn rule rather than a change of material. */
+      oklch(0.112 0.006 196 / var(--glass-a)) 80%,
+      oklch(0.098 0.005 196 / var(--glass-a)) 92%,
+      var(--steel-deep) 100%);
   text-align: center;
   cursor: pointer;
   box-shadow:
-    0 18px 46px rgba(0, 0, 0, .38),
-    inset 0 1px 0 rgba(255, 244, 210, .1);
+    /* Three shadows, not one. A tight contact shadow says the plaque is a
+       solid object; the wide one says it is standing off the stage; the last
+       one is the ambient pool that keeps the row from looking pasted on. */
+    0 2px 6px rgba(0, 0, 0, .44),
+    0 26px 58px -18px rgba(0, 0, 0, .7),
+    0 66px 92px -58px rgba(0, 0, 0, .62),
+    /* The edge, read from the outside in. `::after` paints the lit rim over
+       the first 2px, this dark band is the refraction behind it, and the
+       hairline inside that is the far face of the glass seen through the
+       body. Three steps in four pixels is what edge thickness costs. */
+    inset 0 1px 0 rgba(255, 255, 255, .4),
+    inset 0 0 0 4px rgba(0, 0, 0, .34),
+    inset 0 0 0 5px rgba(255, 255, 255, .07),
+    /* Fresnel: glass reflects hardest where you see it most obliquely, so the
+       light climbs toward every edge and the middle of the pane stays dark.
+       Without this the body is a flat fill with a nice border. */
+    inset 0 26px 32px -30px rgba(255, 255, 255, .55),
+    inset 0 -26px 34px -30px rgba(255, 255, 255, .3),
+    inset 28px 0 36px -34px rgba(255, 255, 255, .2),
+    inset -28px 0 36px -34px rgba(255, 255, 255, .2),
+    inset 0 -30px 44px -32px rgba(0, 0, 0, .75);
   transform: translateY(var(--card-rest, 66px));
   transition: transform .42s var(--ease-out),
               border-color .35s ease,
               box-shadow .35s ease;
 }
 
-/* Crisp top specular rim. */
+/* The grain. Two pitches — a 2px brush that gives the surface its direction,
+   and a 9px drift so the brushing is not a perfectly regular screen. Masked
+   to the light: grain is only visible where something is lighting it, and an
+   evenly grained card is a texture swatch rather than a surface.
+
+   Held at about half the strength a brushed plate would want. Past that the
+   surface reads as milled metal, and milled metal is the opposite of glass —
+   you cannot see into something with a texture that legible on it. */
+.hero-arena-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background-image:
+    repeating-linear-gradient(90deg,
+      rgba(255, 255, 255, .042) 0 1px,
+      rgba(0, 0, 0, .05) 1px 2px),
+    repeating-linear-gradient(90deg,
+      rgba(255, 255, 255, .024) 0 3px,
+      rgba(0, 0, 0, .03) 3px 9px);
+  -webkit-mask-image: radial-gradient(130% 100% at var(--sheen-x) var(--sheen-y),
+    #000 0%, rgba(0, 0, 0, .66) 40%, rgba(0, 0, 0, .3) 74%, rgba(0, 0, 0, .16) 100%);
+  mask-image: radial-gradient(130% 100% at var(--sheen-x) var(--sheen-y),
+    #000 0%, rgba(0, 0, 0, .66) 40%, rgba(0, 0, 0, .3) 74%, rgba(0, 0, 0, .16) 100%);
+  pointer-events: none;
+}
+
+/* The bezel: a hairline ring, brightest wherever the light currently is. It
+   is the one part of the plaque that always out-values the stage behind it,
+   which is what stops metal from settling into grey paint. It replaced a
+   static 1px rim across the top — the same idea, but able to move. */
 .hero-arena-card::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 18%;
-  right: 18%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 244, 210, .5) 50%, transparent 100%);
-  pointer-events: none;
+  inset: 0;
   z-index: 5;
+  padding: 2px;
+  border-radius: inherit;
+  background:
+    /* The corner. A rounded edge is a lens: it gathers whatever is falling on
+       the plaque into the tightest thing on it, and the eye reads that one
+       glint as thickness faster than any amount of gradient. */
+    radial-gradient(22% 13% at 9% 4%, rgba(255, 255, 255, .55) 0%, transparent 100%),
+    /* where the light is now */
+    radial-gradient(92% 68% at var(--sheen-x) var(--sheen-y),
+      rgba(255, 255, 255, .86) 0%,
+      rgba(255, 255, 255, .34) 19%,
+      rgba(255, 255, 255, .07) 44%,
+      transparent 72%),
+    /* Dispersion, a few percent either side of that highlight. Glass splits
+       what it bends, and the fringe — cool one way, warm the other — is the
+       detail that separates a rendered edge from a drawn one. Any more of it
+       and the card looks like an oil slick. */
+    radial-gradient(86% 62% at calc(var(--sheen-x) - 8%) var(--sheen-y),
+      rgba(140, 200, 255, .42) 0%, transparent 44%),
+    radial-gradient(86% 62% at calc(var(--sheen-x) + 8%) var(--sheen-y),
+      rgba(255, 200, 145, .36) 0%, transparent 44%),
+    /* and the edge's own turned finish underneath, so the ring still has a
+       top and a bottom when the light is nowhere near it */
+    linear-gradient(168deg,
+      rgba(255, 255, 255, .42) 0%,
+      rgba(255, 255, 255, .11) 25%,
+      rgba(0, 0, 0, .42) 48%,
+      rgba(255, 255, 255, .14) 68%,
+      rgba(255, 255, 255, .3) 88%,
+      rgba(255, 255, 255, .15) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* --- the niche --------------------------------------------------------- */
@@ -1265,23 +1539,53 @@ img, svg, video { max-width: 100%; }
   min-height: 0;
   aspect-ratio: 100 / 116;
 }
+/* The pane over the well. A black field is not black — it is a mirror with
+   nothing bright in front of it — so the well carries the room's reflection
+   and the bounce coming back off its own floor. Raked gloss streaks were
+   tried here first and read as a plastic wrapper laid over the card: too
+   hard-edged to be a reflection, too wide to be a caustic. */
+.hero-arena-card__niche::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    /* the room behind the viewer, counter-parallaxing across the glass */
+    radial-gradient(56% 38% at calc(100% - var(--sheen-x)) calc(100% - var(--sheen-y)),
+      rgba(190, 218, 236, .1) 0%, transparent 70%),
+    /* and the shading down the back wall of the well */
+    linear-gradient(180deg,
+      rgba(0, 0, 0, .22) 0%,
+      transparent 46%);
+  pointer-events: none;
+}
+
 .hero-arena-card__arch {
   display: block;
   width: 100%;
   height: 100%;
   color: var(--gold);
 }
-.hero-arena-card__arch-fill { fill: rgba(0, 6, 4, .88); }
-.hero-arena-card__arch-weave { opacity: .05; }
+/* A well milled into the plate, not a black label stuck onto it. The fill is
+   translucent so the ramp and the grain carry on through it, only darker —
+   opaque black here threw the material away over two thirds of the card. */
+.hero-arena-card__arch-fill { fill: rgba(2, 6, 8, .66); }
+.hero-arena-card__arch-weave { opacity: .06; }
+/* Steel at rest, gold on hover: the same rule the programme marks follow, so
+   the pointed-at card is the only warm thing in the row. The drop shadow is
+   the lip — a dark hairline immediately below the cut edge is what tells the
+   eye the surface steps down here rather than changing colour. */
 .hero-arena-card__arch-edge {
-  stroke: color-mix(in oklch, var(--gold) 92%, transparent);
+  stroke: rgba(236, 245, 250, .62);
   stroke-width: 1.15;
+  filter: drop-shadow(0 1.5px 0 rgba(0, 0, 0, .55)) drop-shadow(0 0 7px rgba(186, 222, 246, .22));
   transition: stroke var(--dur-2) var(--ease-out);
 }
 .hero-arena-card__arch-rule {
-  stroke: color-mix(in oklch, var(--gold) 82%, transparent);
+  stroke: rgba(236, 245, 250, .4);
   stroke-width: 1.15;
   stroke-linejoin: miter;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .5));
 }
 
 /* Centred on the arch's own middle, not the box's: the apex eats the top of
@@ -1346,6 +1650,9 @@ img, svg, video { max-width: 100%; }
   line-height: 1.22;
   letter-spacing: -.014em;
   color: #fff;
+  /* Struck into the plate. It also insures the name against the moment the
+     specular sweeps across the bottom of the card and puts white on white. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .72), 0 0 12px rgba(0, 0, 0, .4);
   text-wrap: balance;
 }
 .hero-arena-card__rule {
@@ -1362,31 +1669,53 @@ img, svg, video { max-width: 100%; }
   transition: width var(--dur-2) var(--ease-out);
 }
 
-/* Volumetric Top Light Leak (Reference: Grok & Light Leak Cards) */
+/* The specular. White at the core, decaying into the stage's warm gold. It
+   covers the whole card rather than a strip along the top: a highlight that
+   cannot reach the bottom of the plaque cannot convince anyone the plaque has
+   a shape. */
 .hero-arena-card__light-leak {
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 95px;
-  background: radial-gradient(ellipse 65% 55% at 50% 0%, var(--hero-card-source-light) 0%, rgba(247, 211, 119, .1) 50%, transparent 80%);
-  filter: blur(16px);
-  opacity: .42;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    /* the core. Small and near-white — a highlight you can find the centre
+       of is a highlight; a soft glow over half the card is fog. */
+    radial-gradient(13% 4.5% at var(--sheen-x) var(--sheen-y),
+      rgba(255, 255, 255, .82) 0%, rgba(255, 255, 255, .22) 62%, transparent 100%),
+    /* the anisotropic smear. Grooves run vertically, so the reflection
+       stretches across them, not along them. */
+    radial-gradient(46% 11% at var(--sheen-x) var(--sheen-y),
+      rgba(255, 255, 255, .46) 0%,
+      rgba(255, 252, 240, .15) 36%,
+      var(--hero-card-source-light) 64%,
+      transparent 86%);
+  filter: blur(6px);
+  /* Light adds, it does not paint over — and `isolation: isolate` on the card
+     keeps the blend inside the plaque. Without this the specular is a white
+     decal lying on the metal instead of the metal being lit. */
+  mix-blend-mode: screen;
+  opacity: .82;
   pointer-events: none;
   z-index: 1;
   transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
 }
 
+/* The environment bounce, sitting opposite the key light: pointer right,
+   bounce left. Cool against the lamp's warm, because a room is never lit by
+   one colour. Moving it *with* the specular would flatten the plaque back
+   into a lit rectangle — the counter-parallax is the depth. */
 .hero-arena-card__ray {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(247, 211, 119, .1), transparent 65%);
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(46% 32% at calc(100% - var(--sheen-x)) calc(100% - var(--sheen-y)),
+    rgba(196, 220, 236, .16) 0%,
+    rgba(196, 220, 236, .05) 42%,
+    transparent 70%);
+  mix-blend-mode: screen;
   pointer-events: none;
   z-index: 1;
-  opacity: .16;
+  opacity: .75;
   transition: opacity 0.4s ease;
 }
 
@@ -1459,17 +1788,24 @@ img, svg, video { max-width: 100%; }
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='42' viewBox='0 0 120 42'%3E%3Cpath d='M4 3.5 12 27l5-8 8 8 3-3-8-8 8-2L4 3.5Z' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1.2' stroke-linejoin='round'/%3E%3Crect x='18' y='5' width='98' height='28' rx='14' fill='%23f7d377' stroke='%23fff4d2' stroke-width='1'/%3E%3Ctext x='67' y='23' fill='%231a1204' font-family='Arial,sans-serif' font-size='10' font-weight='700' letter-spacing='1.2' text-anchor='middle'%3EVOTE%20NOW%3C/text%3E%3C/svg%3E") 4 3, pointer;
 }
 
+/* Pointed at, the plaque is closer to the lamp: the lip catches harder, the
+   ambient occlusion under it deepens, and the arena's own colour arrives as
+   spill on the metal rather than as a coat of paint. */
 .hero-arena-card:hover,
 .hero-arena-card:focus-visible {
-  border-color: color-mix(in oklch, var(--gold) 72%, transparent);
+  border-color: rgba(0, 0, 0, .5);
   box-shadow:
-    0 26px 58px rgba(0, 0, 0, .5),
-    0 0 30px color-mix(in oklch, var(--arena-accent, var(--gold)) 26%, transparent),
-    inset 0 1px 0 rgba(255, 244, 210, .2);
+    0 30px 64px rgba(0, 0, 0, .62),
+    0 0 34px color-mix(in oklch, var(--arena-accent, var(--gold)) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .5),
+    inset 0 -1px 0 rgba(255, 255, 255, .11),
+    inset 0 -26px 40px -30px rgba(0, 0, 0, .8);
 }
 
 .hero-arena-card:hover .hero-arena-card__arch-edge,
 .hero-arena-card:focus-visible .hero-arena-card__arch-edge { stroke: var(--gold-bright); }
+.hero-arena-card:hover .hero-arena-card__arch-rule,
+.hero-arena-card:focus-visible .hero-arena-card__arch-rule { stroke: color-mix(in oklch, var(--gold) 80%, transparent); }
 .hero-arena-card:hover .hero-arena-card__rule,
 .hero-arena-card:focus-visible .hero-arena-card__rule { width: 4.4rem; }
 .hero-arena-card:hover .hero-arena-card__logo,
@@ -1493,16 +1829,26 @@ img, svg, video { max-width: 100%; }
 
 .hero-arena-card:hover .hero-arena-card__light-leak,
 .hero-arena-card:focus-visible .hero-arena-card__light-leak {
-  background: radial-gradient(ellipse 65% 55% at 50% 0%, var(--leak-primary) 0%, var(--leak-secondary) 50%, transparent 80%);
-  opacity: .72;
-  transform: scale(1.08);
-  filter: blur(14px);
+  background:
+    radial-gradient(17% 6% at var(--sheen-x) var(--sheen-y),
+      rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, .42) 60%, transparent 100%),
+    radial-gradient(58% 14% at var(--sheen-x) var(--sheen-y),
+      rgba(255, 255, 255, .8) 0%,
+      rgba(255, 255, 255, .34) 26%,
+      var(--leak-primary) 48%,
+      var(--leak-secondary) 70%,
+      transparent 90%);
+  opacity: 1;
+  transform: scale(1.02);
+  filter: blur(6px);
 }
 
 .hero-arena-card:hover .hero-arena-card__ray,
 .hero-arena-card:focus-visible .hero-arena-card__ray {
-  background: radial-gradient(circle at 50% 0%, var(--leak-primary) 0%, transparent 65%);
-  opacity: .55;
+  background: radial-gradient(58% 42% at calc(100% - var(--sheen-x)) calc(100% - var(--sheen-y)),
+    color-mix(in oklch, var(--leak-primary) 26%, transparent) 0%,
+    transparent 72%);
+  opacity: 1;
 }
 
 
@@ -3918,10 +4264,10 @@ img, svg, video { max-width: 100%; }
    PROGRAMME VOTING OVERVIEW — the wall board
    ----------------------------------------------------
    This is the screen behind the stage at Freedom Park, so it is composed
-   once at 16:9 and letterboxed into whatever it is played on. Every length
+   once at 16:10 and letterboxed into whatever it is played on. Every length
    below is a container-query unit against that frame — 1cqw is 1% of the
-   board's width (19.2px on a 1920 wall), 1cqh is 1% of its height (10.8px
-   on 1080). Nothing reflows between the laptop it is cued from and the LED
+   board's width (16px on a 1600 wall), 1cqh is 1% of its height (10px
+   on a 1000px wall). Nothing reflows between the laptop it is cued from and the LED
    panel, and nothing scrolls: what does not fit was never going to be read
    from the back of the park anyway.
 
@@ -3947,8 +4293,8 @@ img, svg, video { max-width: 100%; }
 
 .vote-overview__frame {
   position: relative;
-  width: min(100vw, calc(100dvh * 16 / 9));
-  height: min(100dvh, calc(100vw * 9 / 16));
+  width: min(100vw, calc(100dvh * 16 / 10));
+  height: min(100dvh, calc(100vw * 10 / 16));
   container-type: size;
   overflow: hidden;
   background:
@@ -3959,7 +4305,7 @@ img, svg, video { max-width: 100%; }
 
 .vote-overview__board {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 2.2cqh;
   height: 100%;
   padding: 3cqh 2.2cqw;
@@ -3977,29 +4323,14 @@ img, svg, video { max-width: 100%; }
 .vote-overview__identity { display: flex; align-items: center; gap: 1.1cqw; min-width: 0; }
 .vote-overview__crest { flex: none; height: 11cqh; width: auto; max-width: 6cqw; object-fit: contain; }
 .vote-overview__identity-type { min-width: 0; }
-.vote-overview__eyebrow {
-  display: flex; align-items: center; gap: .55cqw;
-  color: var(--arena, var(--gold));
-  font-size: .72cqw; font-weight: 680;
-  letter-spacing: .18em; text-transform: uppercase;
-}
-.vote-overview__eyebrow-sep { opacity: .45; }
-.vote-overview__live {
-  width: .42cqw; height: .42cqw; border-radius: 50%;
-  background: var(--mint);
-  box-shadow: 0 0 0 .17cqw color-mix(in oklch, var(--mint) 24%, transparent);
-  animation: voteOverviewPulse 2.4s var(--ease-out) infinite;
-}
-@keyframes voteOverviewPulse { 0%, 100% { opacity: 1; } 50% { opacity: .34; } }
 .vote-overview__title {
-  margin-top: .7cqh;
+  margin-top: 0;
   font-family: var(--font-display);
   font-size: 3.05cqw; font-weight: 400;
   line-height: .95; letter-spacing: -.03em;
   color: var(--crown-ivory);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.vote-overview__supporting { margin-top: .5cqh; color: var(--ink-dim); font-size: .84cqw; letter-spacing: .02em; }
 
 /* The countdown is the reason the board holds a room: it is the only thing
    on screen that is running out. */
@@ -4059,17 +4390,47 @@ img, svg, video { max-width: 100%; }
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(180deg, transparent 46%, color-mix(in oklch, var(--surface) 88%, transparent) 100%);
 }
-.vote-overview__leader-badge {
-  position: absolute; z-index: 1; top: 1.3cqh; left: .8cqw;
-  padding: .55cqh .7cqw; border-radius: 999px;
-  background: var(--arena, var(--gold)); color: oklch(0.2 0.03 152);
-  font-size: .6cqw; font-weight: 720; letter-spacing: .17em; text-transform: uppercase;
+.vote-overview__podium-rank-badge {
+  position: absolute; z-index: 1;
+  padding: .45cqh .65cqw;
+  border: 1px solid color-mix(in oklch, var(--podium-metal) 72%, transparent);
+  border-radius: 999px;
+  color: var(--podium-ink);
+  background: color-mix(in oklch, var(--podium-metal) 88%, var(--surface));
+  box-shadow: 0 0 .8cqw color-mix(in oklch, var(--podium-metal) 22%, transparent);
+  font-size: .58cqw; font-weight: 720; letter-spacing: .14em; text-transform: uppercase;
 }
+.vote-overview__podium-rank-badge--gold {
+  --podium-metal: var(--gold-bright);
+  --podium-ink: oklch(0.2 0.03 80);
+}
+.vote-overview__podium-rank-badge--silver {
+  --podium-metal: oklch(0.83 0.018 105);
+  --podium-ink: oklch(0.2 0.025 155);
+}
+.vote-overview__podium-rank-badge--bronze {
+  --podium-metal: oklch(0.68 0.13 62);
+  --podium-ink: oklch(0.2 0.035 70);
+}
+.vote-overview__leader-badge { top: 1.3cqh; left: .8cqw; }
 .vote-overview__leader-type { padding: 0 1cqw 1.5cqh; }
-.vote-overview__candidate-number {
-  color: var(--arena, var(--gold)); font-size: .68cqw; font-weight: 660;
-  letter-spacing: .13em; text-transform: uppercase;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.vote-overview__podium-candidate-line {
+  display: flex; align-items: center; gap: .45cqw; min-width: 0;
+}
+.vote-overview__podium-candidate-badge {
+  display: inline-flex; flex: none; align-items: center;
+  padding: .24cqh .42cqw;
+  border: 1px solid color-mix(in oklch, var(--arena, var(--gold)) 52%, transparent);
+  border-radius: 999px;
+  color: var(--arena, var(--gold));
+  background: color-mix(in oklch, var(--arena, var(--gold)) 9%, transparent);
+  font-size: .6cqw; font-weight: 720; letter-spacing: .08em;
+  font-variant-numeric: tabular-nums;
+}
+.vote-overview__podium-candidate-location {
+  min-width: 0; overflow: hidden;
+  color: var(--ink-dim); font-size: .64cqw; line-height: 1.2;
+  text-overflow: ellipsis; white-space: nowrap;
 }
 .vote-overview__candidate-name {
   margin-top: .35cqh;
@@ -4129,17 +4490,8 @@ img, svg, video { max-width: 100%; }
   background: var(--surface-2);
 }
 .vote-overview__podium-card-rank {
-  position: absolute;
   top: .35cqh;
   left: .35cqw;
-  padding: .25cqh .3cqw;
-  border-radius: 999px;
-  color: oklch(0.2 0.03 152);
-  font-size: .52cqw;
-  font-weight: 720;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  background: var(--arena, var(--gold));
 }
 .vote-overview__podium-card-type {
   display: grid;
@@ -4157,15 +4509,6 @@ img, svg, video { max-width: 100%; }
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.vote-overview__podium-card-location {
-  margin-top: .22cqh;
-  color: var(--ink-dim);
-  font-size: .64cqw;
-  line-height: 1.2;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -4251,7 +4594,8 @@ img, svg, video { max-width: 100%; }
   margin: 0; padding: 0; list-style: none;
 }
 .vote-overview__rank-row {
-  position: relative; flex: none; height: var(--row-height);
+  position: relative; display: grid; grid-template-rows: minmax(0, 1fr);
+  flex: none; height: var(--row-height); min-height: 0;
   padding: 0 .8cqw; overflow: hidden;
   border: 1px solid transparent; border-radius: var(--radius-md);
   background: color-mix(in oklch, var(--surface-2) 40%, transparent);
@@ -4284,59 +4628,144 @@ img, svg, video { max-width: 100%; }
 }
 .vote-overview__rank-identity { min-width: 0; }
 .vote-overview__rank-name {
+  display: flex; align-items: baseline; gap: .45cqw; min-width: 0;
+  overflow: hidden;
   font-size: 1.06cqw; font-weight: 600; line-height: 1.15; letter-spacing: -.012em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.vote-overview__rank-location {
-  margin-top: .15cqh; color: var(--ink-dim); font-size: .68cqw; line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums;
+.vote-overview__rank-name-primary,
+.vote-overview__rank-name-meta {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.vote-overview__rank-votes { text-align: right; font-size: 1.12cqw; font-weight: 640; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.vote-overview__rank-share { text-align: right; color: var(--ink-muted); font-size: .82cqw; font-variant-numeric: tabular-nums; }
+.vote-overview__rank-name-primary { flex: 0 1 auto; }
+.vote-overview__rank-name-meta {
+  flex: 1 1 auto; color: var(--ink-dim); font-size: .68cqw; font-weight: 440;
+  letter-spacing: .01em; font-variant-numeric: tabular-nums;
+}
+/* The leader's bar runs the full width of the row, so its head lands under
+   these. The shadow is what keeps a five-digit total readable while a light
+   passes behind it. */
+.vote-overview__rank-votes { text-align: right; font-size: 1.12cqw; font-weight: 640; letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, .62); }
+.vote-overview__rank-share { text-align: right; color: var(--ink-muted); font-size: .82cqw; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); }
 
 /* The bar is the row, not a strip under it: no vertical budget, and length
    reads as standing at a glance. Scaled against the leader so the field
    fills the panel instead of huddling at 8% of the total. */
 .vote-overview__rank-bar { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+/* A solid bar that ends in light — a tube with the lamp at the far end.
+   The body ramps the whole way up and the last few per cent go to white,
+   and then `::before` and `::after` blow that end out into a flare that
+   overruns the bar on every side.
+
+   The radius is the row's, not a pill's. A 999px cap turned each bar into a
+   lozenge sitting on the board, and you read the shape before you read the
+   length.
+
+   The body stays dim behind the portrait and the name, which sit at the
+   left, and does its brightening over the stretch where nothing is written. */
 .vote-overview__rank-bar-fill {
   position: relative;
   display: block; height: 100%;
+  border-radius: var(--radius-md);
   background: linear-gradient(90deg,
-    color-mix(in oklch, var(--arena, var(--gold)) 24%, transparent),
-    color-mix(in oklch, var(--arena, var(--gold)) 4%, transparent));
+    color-mix(in oklch, var(--arena, var(--gold)) 9%, transparent) 0%,
+    color-mix(in oklch, var(--arena, var(--gold)) 15%, transparent) 48%,
+    color-mix(in oklch, var(--arena, var(--gold)) 32%, transparent) 78%,
+    color-mix(in oklch, var(--arena, var(--gold)) 64%, transparent) 94%,
+    color-mix(in oklch, var(--crown-ivory) 52%, var(--arena, var(--gold))) 100%);
   transition: width var(--dur-3) var(--ease-out);
 }
 
+.vote-overview__rank-bar-fill::before,
 .vote-overview__rank-bar-fill::after {
   content: "";
   position: absolute;
-  top: -22%;
-  right: -0.2cqw;
-  width: 1.55cqw;
-  height: 144%;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklch, var(--arena, var(--gold)) 30%, var(--crown-ivory)) 48%,
-    transparent
-  );
-  box-shadow: 0 0 0.65cqw color-mix(in oklch, var(--arena, var(--gold)) 62%, transparent);
-  opacity: 0.42;
   pointer-events: none;
-  transform: translate3d(-0.28cqw, 0, 0) scaleX(0.8);
+}
+
+/* The hot core of the flare. Blurred so it has no outline of its own — the
+   end of the bar is where the light is coming from, not a bead parked on it —
+   and taller than the bar so it reads as light escaping rather than as the
+   bar's own last pixel. */
+.vote-overview__rank-bar-fill::before {
+  top: 50%;
+  right: -0.22cqw;
+  z-index: 1;
+  width: .7cqw;
+  height: 96%;
+  background: radial-gradient(closest-side,
+    color-mix(in oklch, var(--crown-ivory) 96%, var(--arena, var(--gold))) 0%,
+    color-mix(in oklch, var(--crown-ivory) 58%, var(--arena, var(--gold))) 42%,
+    color-mix(in oklch, var(--arena, var(--gold)) 40%, transparent) 100%);
+  filter: blur(.18cqw);
+  box-shadow:
+    0 0 .8cqw color-mix(in oklch, var(--arena, var(--gold)) 92%, transparent),
+    0 0 2cqw color-mix(in oklch, var(--arena, var(--gold)) 52%, transparent);
+  opacity: .96;
+  transform: translate3d(0, -50%, 0);
+  animation: voteOverviewBarSpark 2.8s var(--ease-out) infinite;
+  animation-delay: var(--bar-edge-delay, 0s);
+}
+
+/* The halo around that core, overrunning the row top and bottom so the
+   flare is bigger than the thing it is coming out of. Radial and blurred
+   half a column wide, so it spills evenly around the end instead of
+   streaking back along the bar — the 2.45cqw horizontal gradient this
+   replaced reached most of a column back into the row, and since `screen`
+   only ever adds, everything it crossed got lifted with it: the name, the
+   portrait, and on the top rows the very number the bar was about. */
+.vote-overview__rank-bar-fill::after {
+  top: -16%;
+  right: -0.78cqw;
+  z-index: 0;
+  width: 1.85cqw;
+  height: 132%;
+  background: radial-gradient(closest-side,
+    color-mix(in oklch, var(--crown-ivory) 74%, var(--arena, var(--gold))) 0%,
+    color-mix(in oklch, var(--arena, var(--gold)) 44%, transparent) 40%,
+    color-mix(in oklch, var(--arena, var(--gold)) 12%, transparent) 70%,
+    color-mix(in oklch, var(--arena, var(--gold)) 0%, transparent) 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(.38cqw);
+  box-shadow:
+    0 0 .8cqw color-mix(in oklch, var(--arena, var(--gold)) 34%, transparent),
+    0 0 1.7cqw color-mix(in oklch, var(--arena, var(--gold)) 16%, transparent);
+  opacity: .82;
+  transform: translate3d(-.06cqw, 0, 0);
+  /* Same value the keyframes hold, so nothing steps when the animation
+     starts or when reduced motion takes it away. */
   animation: voteOverviewBarEdge 2.8s var(--ease-out) infinite;
   animation-delay: var(--bar-edge-delay, 0s);
 }
 
+/* Drift only. Not just no `scale` — no opacity swing either, which is the
+   part that kept reading as growth after the scale came out. Fading a
+   blurred halo up and down moves the point where its falloff drops below
+   what the eye can pick out, so the same pixels look like a bigger flare:
+   brightness *is* size on a soft edge. The halo therefore holds one value
+   and only slides, about a pixel each way. */
 @keyframes voteOverviewBarEdge {
   0%, 100% {
-    opacity: 0.24;
-    transform: translate3d(-0.5cqw, 0, 0) scaleX(0.72);
+    opacity: 0.82;
+    transform: translate3d(-0.06cqw, 0, 0);
   }
   50% {
-    opacity: 0.9;
-    transform: translate3d(0.08cqw, 0, 0) scaleX(1.24);
+    opacity: 0.82;
+    transform: translate3d(0.05cqw, 0, 0);
+  }
+}
+
+/* The core can flicker, just barely. It is small and hard-centred, so a
+   tenth of opacity does not move its edge the way it would on the halo. */
+@keyframes voteOverviewBarSpark {
+  0%, 100% {
+    opacity: .9;
+    transform: translate3d(-.06cqw, -50%, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(.05cqw, -50%, 0);
   }
 }
 
@@ -4344,24 +4773,6 @@ img, svg, video { max-width: 100%; }
    under a reader mid-scan. */
 .vote-overview__update { border-color: color-mix(in oklch, var(--mint) 52%, transparent); }
 .vote-overview__update .vote-overview__rank-votes { color: var(--mint); }
-
-/* --- ticker ---------------------------------------------------------- */
-.vote-overview__ticker {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2cqw;
-  padding-top: 1.6cqh; border-top: 1px solid var(--line-soft);
-}
-.vote-overview__ticker-item { display: flex; align-items: baseline; gap: .6cqw; min-width: 0; }
-.vote-overview__ticker-item > span {
-  flex: none; color: var(--ink-dim); font-size: .62cqw; font-weight: 660;
-  letter-spacing: .14em; text-transform: uppercase;
-}
-.vote-overview__ticker-item strong {
-  display: inline-flex; align-items: center; gap: .2cqw; min-width: 0;
-  font-size: .95cqw; font-weight: 560; font-variant-numeric: tabular-nums;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.vote-overview__ticker-item strong svg { flex: none; color: var(--mint); }
-.vote-overview__ticker-item:last-child { justify-content: flex-end; }
 
 /* --- operator chrome -------------------------------------------------- */
 /* For whoever cues the board, not for the room. It retires on its own so a
@@ -4387,7 +4798,7 @@ img, svg, video { max-width: 100%; }
 .vote-overview__utility-button:active { transform: scale(.97); }
 
 @media (prefers-reduced-motion: reduce) {
-  .vote-overview__live { animation: none; }
+  .vote-overview__rank-bar-fill::before,
   .vote-overview__rank-bar-fill::after { animation: none; opacity: .3; transform: none; }
   .vote-overview__rank-bar-fill, .vote-overview__rank-row, .vote-overview__utility { transition: none; }
 }

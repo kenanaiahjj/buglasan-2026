@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { ChartBar } from '@phosphor-icons/react/dist/icons/ChartBar';
@@ -30,6 +30,20 @@ type HaraGalleryProps = {
 };
 
 const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
+
+const entryImageAlt = (arena: ContestArena['id'], name: string, origin: string) => {
+  if (arena === 'booths') return 'Past Buglasan booth photo';
+  if (arena === 'festival') return 'Past Buglasan festival contingent photo';
+  return `${name} representing ${origin}`;
+};
+
+const handleEntryImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
+  if (!fallbackSrc || event.currentTarget.getAttribute('src') === fallbackSrc) return;
+
+  event.currentTarget.onerror = null;
+  event.currentTarget.src = fallbackSrc;
+};
 
 export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, onVote, tallies }: HaraGalleryProps) {
   const galleryRef = useRef<HTMLElement>(null);
@@ -74,6 +88,31 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
       aria-label={`${programName} entries`}
     >
       <div className="hara-gallery__intro">
+        <nav aria-label={`${programName} navigation`} className="hara-gallery__actions">
+          <button className="hara-gallery__home crown-quiet-control" onClick={onBackToHub} type="button">
+            <ArrowLeft aria-hidden="true" size={15} weight="bold" />
+            <span>Home</span>
+          </button>
+
+          {/* A disclosure buried the steps under a click and then pushed
+              the whole toolbar down when it opened. On a subpage the same
+              click can open the dialog the steps describe. */}
+          <button className="hara-gallery__how-to crown-quiet-control" onClick={onHowToVote} type="button">
+            <Question aria-hidden="true" size={15} weight="bold" />
+            <span>How to vote</span>
+          </button>
+
+          <button
+            aria-label={`Open the ${programName} voting overview`}
+            className="hara-gallery__overview crown-quiet-control"
+            onClick={onOpenOverview}
+            type="button"
+          >
+            <ChartBar aria-hidden="true" size={15} weight="bold" />
+            <span>Overview</span>
+          </button>
+        </nav>
+
         {/* Two programmes have a supplied logo, two do not. The lockup is not a
             placeholder for the missing art — it is what those programmes get
             until real art exists, so the intro never renders as a bare toolbar. */}
@@ -95,31 +134,6 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
         )}
 
         <div className="hara-gallery__support">
-          <div className="hara-gallery__actions">
-            <button className="hara-gallery__home crown-quiet-control" onClick={onBackToHub} type="button">
-              <ArrowLeft aria-hidden="true" size={15} weight="bold" />
-              <span>Back to home</span>
-            </button>
-
-            {/* A disclosure buried the steps under a click and then pushed
-                the whole toolbar down when it opened. On a subpage the same
-                click can open the dialog the steps describe. */}
-            <button className="hara-gallery__how-to crown-quiet-control" onClick={onHowToVote} type="button">
-              <Question aria-hidden="true" size={15} weight="bold" />
-              <span>How to vote</span>
-            </button>
-
-            <button
-              aria-label={`Open the ${programName} voting overview`}
-              className="hara-gallery__overview crown-quiet-control"
-              onClick={onOpenOverview}
-              type="button"
-            >
-              <ChartBar aria-hidden="true" size={15} weight="bold" />
-              <span>Overview</span>
-            </button>
-          </div>
-
           <p className="hara-gallery__status" role="status">
             <span className="hara-gallery__status-live">
               <span aria-hidden="true" />
@@ -172,10 +186,12 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
               <div className="hara-gallery-card__motion">
                 <div className="hara-gallery-card__media">
                   <img
-                    alt={`${candidate.name} representing ${candidate.origin}`}
+                    alt={entryImageAlt(arena.id, candidate.name, candidate.origin)}
+                    data-fallback-src={candidate.fallbackImage}
                     decoding="async"
                     height={512}
                     loading={index === 0 ? 'eager' : 'lazy'}
+                    onError={candidate.fallbackImage ? handleEntryImageError : undefined}
                     src={candidate.image ?? undefined}
                     width={512}
                   />

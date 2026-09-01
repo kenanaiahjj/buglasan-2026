@@ -58,6 +58,7 @@ describe('LandingPage Crown of Light contract', () => {
     /* Not "below": below is four plaques on a desktop and one button on a
        phone. Both affordances render; CSS picks. */
     expect(html).toContain('To vote, choose a contest.');
+    expect(html).toContain('class="hero-intro__instruction"');
     expect(html).toContain('class="hero-actions"');
     expect((html.match(/class="hero-arena-card hero-arena-card--/g) ?? []).length).toBe(4);
     expect(html).not.toContain('class="crown-header__cta-button crown-floating-dots-button"');
@@ -324,8 +325,9 @@ describe('LandingPage Crown of Light contract', () => {
       root.render(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
     });
 
-    expect(container.innerHTML).toContain('Hara sa Negros Oriental');
-    expect(container.innerHTML).toContain('Live simulation');
+    expect(container.innerHTML).toContain('Hara sa Negros Oriental 2026');
+    expect(container.innerHTML).not.toContain('Live simulation');
+    expect(container.innerHTML).not.toContain('Buglasan Festival 2026');
     expect(container.innerHTML).not.toContain('class="hara-gallery"');
 
     await act(async () => {
