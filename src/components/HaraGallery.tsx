@@ -6,6 +6,7 @@ import { Question } from '@phosphor-icons/react/dist/icons/Question';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
 import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
+import { entryHash } from '../lib/entryRoutes';
 import { filterHaraCandidates } from '../lib/haraGallery';
 import { pageantContent, type ContestArena } from '../data/pageant';
 
@@ -22,9 +23,8 @@ type HaraGalleryProps = {
    * which the static fields never will be.
    */
   tallies: Record<string, number>;
-  /* The entry being backed, not the programme: on a subpage the vote starts
-     in a dialog against one candidate rather than routing to a ballot. */
-  onVote: (entryId: string) => void;
+  /** Open one entry's shareable profile page. */
+  onOpenEntry: (entryId: string) => void;
 };
 
 const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
@@ -43,7 +43,7 @@ const handleEntryImageError = (event: SyntheticEvent<HTMLImageElement>) => {
   event.currentTarget.src = fallbackSrc;
 };
 
-export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, onVote, tallies }: HaraGalleryProps) {
+export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOpenOverview, tallies }: HaraGalleryProps) {
   const galleryRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
   const cfg = ARENA_VOTING[arena.id];
@@ -175,32 +175,10 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
       ) : (
         <div className="hara-gallery__grid" aria-label={`${programName} entries`}>
           {visibleCandidates.map((candidate, index) => (
-            /*
-             * The card is an article, not a button.
-             *
-             * It used to be `role="button"` with `aria-label="Vote for ..."`,
-             * and both halves of that hurt. `aria-label` on a container
-             * replaces everything inside it, so the town, the heading, the
-             * blurb and the vote count were never announced. And ARIA gives
-             * `button` presentational children — a screen reader is entitled
-             * to drop the subtree entirely — so the `<h2>` was not a heading
-             * to anyone using one. Twenty-two cards announced as twenty-two
-             * identical-shaped "Vote for X, button" and nothing else.
-             *
-             * Now the content is just content, the heading names the article,
-             * and the one thing that was always drawn as a button is one.
-             */
             <article
               aria-labelledby={`${candidate.id}-name`}
               className="hara-gallery-card"
               key={candidate.id}
-              /* Pointer convenience only — anywhere on the card votes, as
-                 before. There is no keyboard handler here because there is no
-                 longer a keyboard affordance here: the button below is the
-                 tab stop, and a native button turns Enter and Space into a
-                 click that bubbles to exactly this handler. One stop, one
-                 code path, no phantom focus on a 22-item grid. */
-              onClick={() => onVote(candidate.id)}
             >
               <div className="hara-gallery-card__motion">
                 <div className="hara-gallery-card__media">
@@ -232,14 +210,20 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
                   {candidate.blurb && <p>{candidate.blurb}</p>}
                   <div className="hara-gallery-card__footer">
                     <span>{(tallies[candidate.id] ?? candidate.votes).toLocaleString()} votes</span>
-                    {/* Its visible text is its accessible name, so it needs
-                        no `aria-label`. No `onClick` either: the click it
-                        raises — from a pointer, or from Enter/Space on a
-                        native button — bubbles to the article's handler. */}
-                    <button className="crown-button crown-floating-dots-button subpage-vote-btn" type="button">
-                      <span>Vote for {candidate.name}</span>
+                    {/* One native link owns navigation. Its CSS hit area
+                        stretches across the card, so pointer users can tap
+                        anywhere without creating a second keyboard target. */}
+                    <a
+                      className="crown-button crown-floating-dots-button subpage-entry-link"
+                      href={entryHash(arena.id, candidate.id)}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        onOpenEntry(candidate.id);
+                      }}
+                    >
+                      <span>View {candidate.name}</span>
                       <ArrowRight aria-hidden="true" size={14} />
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>

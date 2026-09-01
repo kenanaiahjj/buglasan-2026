@@ -28,6 +28,7 @@ import { VoteFlowModal, type VoteFlowMode } from './VoteFlowModal';
 type ContestSubpageViewProps = {
   arena: ContestArena;
   onBackToHub: () => void;
+  onOpenEntry: (entryId: string) => void;
   onOpenOverview: () => void;
   /** Kept for the programme switcher; the gallery does not use it yet. */
   onSwitchArena: (id: ContestArena['id']) => void;
@@ -39,15 +40,14 @@ type ContestSubpageViewProps = {
 export function ContestSubpageView({
   arena,
   onBackToHub,
+  onOpenEntry,
   onOpenOverview,
   tallies,
   dispatch,
 }: ContestSubpageViewProps) {
-  /* One dialog serves both doors: "How to vote" opens on the instructions,
-     a card's vote button opens on the ballot with that entry already picked.
-     There is no other way to vote — the full-page ballot that used to live at
-     `#vote-<arena>` cast straight into the reducer with no payment, and was
-     deleted rather than left as a second path. */
+  /* The roster keeps one dialog for voting instructions. Entry cards now
+     navigate to shareable profiles, whose prominent Vote action opens the
+     same paid flow with that entry selected. */
   const [voteFlow, setVoteFlow] = useState<{ mode: VoteFlowMode; entryId: string | null } | null>(null);
 
   return (
@@ -60,8 +60,8 @@ export function ContestSubpageView({
         arena={arena}
         onBackToHub={onBackToHub}
         onHowToVote={() => setVoteFlow({ mode: 'guide', entryId: null })}
+        onOpenEntry={onOpenEntry}
         onOpenOverview={onOpenOverview}
-        onVote={(entryId) => setVoteFlow({ mode: 'flow', entryId })}
         tallies={tallies}
       />
 

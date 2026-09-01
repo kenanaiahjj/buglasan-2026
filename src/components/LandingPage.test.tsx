@@ -144,6 +144,51 @@ describe('LandingPage Crown of Light contract', () => {
     expect(html).toContain('<strong class="hero-arena-card__name">Hara sa Negros Oriental</strong>');
   });
 
+  it('loads shared entry routes and keeps invalid entry links recoverable', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    const originalIntersectionObserver = globalThis.IntersectionObserver;
+
+    Object.defineProperty(globalThis, 'IntersectionObserver', {
+      configurable: true,
+      value: class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    });
+    document.body.appendChild(container);
+
+    try {
+      window.location.hash = '#festival/sd-01';
+
+      await act(async () => {
+        root.render(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
+      });
+
+      expect(container.querySelector('.entry-profile')).not.toBeNull();
+      expect(container.querySelector('h1')?.textContent).toBe('Sandurot Festival');
+      expect(container.textContent).toContain('Festival of Festivals');
+      expect(container.textContent).toContain('3,120 votes');
+
+      await act(async () => {
+        window.location.hash = '#hara/not-current';
+        window.dispatchEvent(new Event('hashchange'));
+      });
+
+      expect(container.querySelector('.entry-profile--not-found')).not.toBeNull();
+      expect(container.textContent).toContain('Entry not found');
+      expect(container.textContent).toContain('Back to Hara sa Negros Oriental');
+    } finally {
+      await act(async () => root.unmount());
+      Object.defineProperty(globalThis, 'IntersectionObserver', {
+        configurable: true,
+        value: originalIntersectionObserver,
+      });
+      container.remove();
+    }
+  });
+
   it('orders the hero program cards as Hara, Gandang, Booths, then Festival', () => {
     const html = renderToStaticMarkup(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
     const order = ['hara', 'gandang', 'booths', 'festival'].map((id) => html.indexOf(`hero-arena-card--${id}`));

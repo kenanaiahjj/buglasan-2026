@@ -16,12 +16,14 @@ import type { VoterAction, VoterState } from '../state/voterState';
 import { BrandMark } from './BrandMark';
 import { ContestSubpageView } from './ContestSubpageView';
 import { ContestPickerModal } from './ContestPickerModal';
+import { EntryProfilePage } from './EntryProfilePage';
 import { ArchNiche } from './ArchNiche';
 import { VoteCursor } from './VoteCursor';
 import { VoteFlowModal } from './VoteFlowModal';
 import { VotingOverviewPage } from './VotingOverviewPage';
-import { arenaDisplayName } from '../lib/arenaEntries';
+import { arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
 import { enter } from '../lib/enter';
+import { entryHash, parseEntryHash, type EntryRoute } from '../lib/entryRoutes';
 import { trackPlaqueSheen } from '../lib/plaqueSheen';
 import { claimBootStage, useSiteBoot } from '../lib/siteBoot';
 
@@ -73,6 +75,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSubpage, setActiveSubpage] = useState<ContestArena['id'] | null>(null);
   const [activeOverview, setActiveOverview] = useState<ContestArena['id'] | null>(null);
+  const [activeEntry, setActiveEntry] = useState<EntryRoute | null>(null);
   const [showHowToVote, setShowHowToVote] = useState(false);
   const [showContestPicker, setShowContestPicker] = useState(false);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
@@ -101,13 +104,24 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       const arenaIds = ['hara', 'booths', 'festival', 'gandang'];
+      const entryRoute = parseEntryHash(window.location.hash);
+      if (entryRoute) {
+        setActiveEntry(entryRoute);
+        setActiveOverview(null);
+        setActiveSubpage(entryRoute.arenaId);
+        window.scrollTo(0, 0);
+        return;
+      }
+
       const overviewMatch = hash.match(/^([a-z]+)\/overview$/);
       if (overviewMatch && arenaIds.includes(overviewMatch[1])) {
         const id = overviewMatch[1] as ContestArena['id'];
+        setActiveEntry(null);
         setActiveOverview(id);
         setActiveSubpage(id);
         window.scrollTo(0, 0);
       } else if (arenaIds.includes(hash)) {
+        setActiveEntry(null);
         setActiveOverview(null);
         setActiveSubpage(hash as ContestArena['id']);
         window.scrollTo(0, 0);
@@ -117,6 +131,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
            won, so Home opened the Festival of Festivals page. One string, two
            meanings; the hero got its own name. `#contests` remains a safe
            legacy bookmark and now lands on the hero's four contest cards. */
+        setActiveEntry(null);
         setActiveOverview(null);
         setActiveSubpage(null);
         window.scrollTo(0, 0);
@@ -127,6 +142,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
            whatever view was already up, so an unrecognised hash quietly did
            nothing. It goes home instead, without stealing the scroll from a
            real in-page anchor. */
+        setActiveEntry(null);
         setActiveOverview(null);
         setActiveSubpage(null);
       }
@@ -137,6 +153,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   }, []);
 
   const openSubpage = (id: ContestArena['id']) => {
+    setActiveEntry(null);
     setActiveOverview(null);
     setActiveSubpage(id);
     window.location.hash = id;
@@ -144,6 +161,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   };
 
   const closeSubpage = () => {
+    setActiveEntry(null);
     setActiveOverview(null);
     setActiveSubpage(null);
     window.location.hash = 'home';
@@ -151,6 +169,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
   };
 
   const openOverview = (id: ContestArena['id']) => {
+    setActiveEntry(null);
     setActiveOverview(id);
     setActiveSubpage(id);
     window.location.hash = `${id}/overview`;
@@ -159,9 +178,29 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
 
   const closeOverview = () => {
     const id = activeOverview ?? 'hara';
+    setActiveEntry(null);
     setActiveOverview(null);
     setActiveSubpage(id);
     window.location.hash = id;
+    window.scrollTo(0, 0);
+  };
+
+  const openEntry = (arenaId: ContestArena['id'], entryId: string) => {
+    setActiveEntry({ arenaId, entryId });
+    setActiveOverview(null);
+    setActiveSubpage(arenaId);
+    window.location.hash = entryHash(arenaId, entryId);
+    window.scrollTo(0, 0);
+  };
+
+  const closeEntryToProgram = () => {
+    if (!activeEntry) return;
+
+    const arenaId = activeEntry.arenaId;
+    setActiveEntry(null);
+    setActiveOverview(null);
+    setActiveSubpage(arenaId);
+    window.location.hash = arenaId;
     window.scrollTo(0, 0);
   };
 
@@ -318,12 +357,26 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
     </Suspense>
   );
 
-  const activeArena = contestArenas.find((a) => a.id === (activeOverview ?? activeSubpage)) ?? contestArenas[0];
+  const activeArena = contestArenas.find(
+    (arena) => arena.id === (activeEntry?.arenaId ?? activeOverview ?? activeSubpage),
+  ) ?? contestArenas[0];
+  const activeEntryRecord = activeEntry
+    ? entriesForArena(activeEntry.arenaId).find((entry) => entry.id === activeEntry.entryId) ?? null
+    : null;
 
   return (
     <>
       {scene}
-      {activeOverview ? (
+      {activeEntry ? (
+        <EntryProfilePage
+          arena={activeArena}
+          dispatch={dispatch}
+          entry={activeEntryRecord}
+          onBackToHome={closeSubpage}
+          onBackToProgram={closeEntryToProgram}
+          tally={activeEntryRecord ? state.arenaTallies[activeEntry.arenaId][activeEntryRecord.id] : undefined}
+        />
+      ) : activeOverview ? (
         <VotingOverviewPage
           arena={activeArena}
           onBackToHub={closeSubpage}
@@ -335,6 +388,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           arena={activeArena}
           dispatch={dispatch}
           onBackToHub={closeSubpage}
+          onOpenEntry={(entryId) => openEntry(activeArena.id, entryId)}
           onOpenOverview={() => openOverview(activeArena.id)}
           onSwitchArena={(id) => openSubpage(id)}
           tallies={state.arenaTallies[activeArena.id]}

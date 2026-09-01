@@ -51,6 +51,7 @@ describe('ContestSubpageView', () => {
         arena={hara}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -72,6 +73,7 @@ describe('ContestSubpageView', () => {
         arena={hara}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -125,7 +127,7 @@ describe('ContestSubpageView', () => {
       expect(html).toContain(candidate.name);
       expect(html).toContain(candidate.location);
       expect(html).toContain(candidate.image);
-      expect(html).toContain(`Vote for ${candidate.name}`);
+      expect(html).toContain(`View ${candidate.name}`);
     }
   });
 
@@ -136,6 +138,7 @@ describe('ContestSubpageView', () => {
           arena={arena}
           dispatch={() => undefined}
           onBackToHub={() => undefined}
+          onOpenEntry={() => undefined}
           onOpenOverview={() => undefined}
           onSwitchArena={() => undefined}
           tallies={{}}
@@ -150,24 +153,22 @@ describe('ContestSubpageView', () => {
 
       const cardMarkup = html.match(/<article[^>]*class="hara-gallery-card"[\s\S]*?<\/article>/g) ?? [];
       expect(cardMarkup).toHaveLength(arena.totalEntries);
-      /* The card is an article carrying content, not a button wrapping it.
-         `role="button"` gave the subtree presentational children, so the
-         heading stopped being a heading, and `aria-label` on the card
-         replaced the town, the blurb and the vote count with one string.
-         Neither may come back. The one control is a real button, named by
-         its own visible text, and it is the only tab stop in the card. */
+      /* The card remains a semantic article. Its one control is a native
+         profile link, whose stretched hit area makes the complete card
+         clickable without adding a second keyboard stop. */
       expect(cardMarkup.every((card) => !card.includes('role="button"'))).toBe(true);
       expect(cardMarkup.every((card) => !card.includes('tabindex='))).toBe(true);
       expect(cardMarkup.every((card) => !/<article[^>]*aria-label=/.test(card))).toBe(true);
       expect(cardMarkup.every((card) => /<article[^>]*aria-labelledby="/.test(card))).toBe(true);
       expect(cardMarkup.every((card) => /<h2 id="[^"]+"/.test(card))).toBe(true);
-      expect(cardMarkup.every((card) => card.includes('<button'))).toBe(true);
+      expect(cardMarkup.every((card) => card.includes('<a'))).toBe(true);
+      expect(cardMarkup.every((card) => !card.includes('<button'))).toBe(true);
     }
   });
 
-  it('opens a vote from the card surface or its one real button', async () => {
+  it('opens an individual page from the full card through one native link', async () => {
     const originalMatchMedia = window.matchMedia;
-    const onVote = vi.fn();
+    const onOpenEntry = vi.fn();
     const container = document.createElement('div');
     const root = createRoot(container);
 
@@ -196,39 +197,27 @@ describe('ContestSubpageView', () => {
             arena={hara}
             onBackToHub={() => undefined}
             onHowToVote={() => undefined}
+            onOpenEntry={onOpenEntry}
             onOpenOverview={() => undefined}
-            onVote={onVote}
             tallies={{}}
           />,
         );
       });
 
       const card = container.querySelector<HTMLElement>('.hara-gallery-card');
-      expect(card).not.toBeNull();
+      const link = card?.querySelector<HTMLAnchorElement>('.subpage-entry-link');
 
-      // Pointer convenience: anywhere on the card still votes.
-      await act(async () => {
-        card?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      expect(onVote).toHaveBeenLastCalledWith(haraCandidates[0].id);
-      expect(onVote).toHaveBeenCalledTimes(1);
-
-      /* The button is the keyboard path. It carries no handler of its own —
-         Enter and Space on a native button raise a click, and that click
-         bubbles to the card. Which also means it must fire once, not twice. */
-      const button = container.querySelector<HTMLButtonElement>('.subpage-vote-btn');
-      expect(button?.tagName).toBe('BUTTON');
-      expect(button?.textContent).toContain(`Vote for ${haraCandidates[0].name}`);
-
-      await act(async () => {
-        button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      expect(onVote).toHaveBeenLastCalledWith(haraCandidates[0].id);
-      expect(onVote).toHaveBeenCalledTimes(2);
-
-      // And the card itself is no longer a focus target.
-      expect(card?.hasAttribute('tabindex')).toBe(false);
       expect(card?.getAttribute('role')).toBeNull();
+      expect(card?.hasAttribute('tabindex')).toBe(false);
+      expect(card?.querySelectorAll('a,button')).toHaveLength(1);
+      expect(link?.getAttribute('href')).toBe(`#hara/${haraCandidates[0].id}`);
+      expect(link?.textContent).toContain(`View ${haraCandidates[0].name}`);
+
+      await act(async () => {
+        link?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      });
+      expect(onOpenEntry).toHaveBeenCalledOnce();
+      expect(onOpenEntry).toHaveBeenCalledWith(haraCandidates[0].id);
     } finally {
       await act(async () => {
         root.unmount();
@@ -249,6 +238,7 @@ describe('ContestSubpageView', () => {
         arena={booths}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -280,6 +270,7 @@ describe('ContestSubpageView', () => {
         arena={booths}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -294,6 +285,7 @@ describe('ContestSubpageView', () => {
         arena={festival}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -310,6 +302,7 @@ describe('ContestSubpageView', () => {
           arena={arena}
           dispatch={() => undefined}
           onBackToHub={() => undefined}
+          onOpenEntry={() => undefined}
           onOpenOverview={() => undefined}
           onSwitchArena={() => undefined}
           tallies={{}}
@@ -355,6 +348,7 @@ describe('ContestSubpageView', () => {
         arena={festival!}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -371,6 +365,7 @@ describe('ContestSubpageView', () => {
         arena={gandang!}
         dispatch={() => undefined}
         onBackToHub={() => undefined}
+        onOpenEntry={() => undefined}
         onOpenOverview={() => undefined}
         onSwitchArena={() => undefined}
         tallies={{}}
@@ -396,6 +391,7 @@ describe('ContestSubpageView', () => {
           arena={arena}
           dispatch={() => undefined}
           onBackToHub={() => undefined}
+          onOpenEntry={() => undefined}
           onOpenOverview={() => undefined}
           onSwitchArena={() => undefined}
           tallies={{}}
