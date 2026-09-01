@@ -3941,7 +3941,8 @@ img, svg, video { max-width: 100%; }
   background:
     radial-gradient(120% 90% at 50% 0%, color-mix(in oklch, var(--arena, var(--gold)) 7%, transparent) 0%, transparent 62%),
     oklch(0.098 0.014 158);
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .vote-overview__frame {
@@ -4298,11 +4299,45 @@ img, svg, video { max-width: 100%; }
    fills the panel instead of huddling at 8% of the total. */
 .vote-overview__rank-bar { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
 .vote-overview__rank-bar-fill {
+  position: relative;
   display: block; height: 100%;
   background: linear-gradient(90deg,
     color-mix(in oklch, var(--arena, var(--gold)) 24%, transparent),
     color-mix(in oklch, var(--arena, var(--gold)) 4%, transparent));
   transition: width var(--dur-3) var(--ease-out);
+}
+
+.vote-overview__rank-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: -22%;
+  right: -0.2cqw;
+  width: 1.55cqw;
+  height: 144%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--arena, var(--gold)) 30%, var(--crown-ivory)) 48%,
+    transparent
+  );
+  box-shadow: 0 0 0.65cqw color-mix(in oklch, var(--arena, var(--gold)) 62%, transparent);
+  opacity: 0.42;
+  pointer-events: none;
+  transform: translate3d(-0.28cqw, 0, 0) scaleX(0.8);
+  animation: voteOverviewBarEdge 2.8s var(--ease-out) infinite;
+  animation-delay: var(--bar-edge-delay, 0s);
+}
+
+@keyframes voteOverviewBarEdge {
+  0%, 100% {
+    opacity: 0.24;
+    transform: translate3d(-0.5cqw, 0, 0) scaleX(0.72);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(0.08cqw, 0, 0) scaleX(1.24);
+  }
 }
 
 /* A row whose tally just moved. Brief, and colour-only so nothing reflows
@@ -4351,8 +4386,115 @@ img, svg, video { max-width: 100%; }
 .vote-overview__utility-button:hover { color: var(--ink); border-color: var(--line); background: color-mix(in oklch, var(--ink) 9%, transparent); }
 .vote-overview__utility-button:active { transform: scale(.97); }
 
+@media (max-width: 64rem), (max-aspect-ratio: 4 / 3), (max-height: 42rem) {
+  .vote-overview { place-items: start; }
+  .vote-overview__frame {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    container-type: inline-size;
+  }
+  .vote-overview__board {
+    grid-template-rows: auto;
+    height: auto;
+    min-height: 100dvh;
+    padding: clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 6rem;
+    gap: clamp(1.25rem, 4vw, 2rem);
+  }
+  .vote-overview__hero {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .vote-overview__identity { width: 100%; align-items: flex-start; }
+  .vote-overview__crest { height: clamp(3.5rem, 12vw, 6rem); max-width: 4.5rem; }
+  .vote-overview__title { font-size: clamp(1.8rem, 7vw, 3rem); white-space: normal; }
+  .vote-overview__supporting { font-size: clamp(.8rem, 2.1vw, 1rem); line-height: 1.4; }
+  .vote-overview__clock { width: 100%; text-align: left; }
+  .vote-overview__countdown { justify-content: flex-start; flex-wrap: wrap; }
+  .vote-overview__countdown b { font-size: clamp(1.25rem, 5vw, 1.8rem); }
+  .vote-overview__body { grid-template-columns: 1fr; gap: 1.25rem; }
+  .vote-overview__rail { gap: 1.25rem; }
+  .vote-overview__leader { min-height: clamp(22rem, 65vw, 32rem); }
+  .vote-overview__candidate-number { font-size: clamp(.7rem, 1.8vw, .85rem); }
+  .vote-overview__candidate-name { font-size: clamp(1.8rem, 6vw, 2.7rem); }
+  .vote-overview__candidate-votes { font-size: clamp(1.3rem, 4vw, 1.8rem); }
+  .vote-overview__metrics { gap: .75rem; }
+  .vote-overview__metric { padding: .9rem; }
+  .vote-overview__metric-label { font-size: .66rem; }
+  .vote-overview__metric-value { font-size: clamp(1.4rem, 4vw, 2rem); }
+  .vote-overview__metric-note { font-size: .7rem; }
+  .vote-overview__ranking { padding: 1rem; }
+  .vote-overview__ranking-head,
+  .vote-overview__rank-row {
+    grid-template-columns: 2rem 2.3rem 2.75rem minmax(0, 1fr) 5.2rem 3.7rem;
+    gap: .55rem;
+  }
+  .vote-overview__ranking-head { font-size: .64rem; }
+  .vote-overview__ranking-list {
+    justify-content: flex-start;
+    gap: .5rem;
+  }
+  .vote-overview__rank-row {
+    height: auto;
+    min-height: 3.7rem;
+    padding: .55rem .6rem;
+  }
+  .vote-overview__rank { font-size: 1rem; }
+  .vote-overview__delta { font-size: .7rem; }
+  .vote-overview__rank-portrait { height: 2.2rem; }
+  .vote-overview__rank-name { font-size: .95rem; }
+  .vote-overview__rank-location { font-size: .68rem; }
+  .vote-overview__rank-votes { font-size: .9rem; }
+  .vote-overview__rank-share { font-size: .72rem; }
+  .vote-overview__ticker {
+    grid-template-columns: 1fr;
+    gap: .7rem;
+  }
+  .vote-overview__ticker-item:last-child { justify-content: flex-start; }
+  .vote-overview__utility {
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 40rem) {
+  .vote-overview__podium {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  .vote-overview__podium-secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+  .vote-overview__metrics { grid-template-columns: 1fr; }
+  .vote-overview__ranking-head,
+  .vote-overview__rank-row {
+    grid-template-columns: 1.7rem 1.8rem 2.2rem minmax(4rem, 1fr) 4rem 2.5rem;
+    gap: .25rem;
+  }
+  .vote-overview__ranking-head { padding-inline: .5rem; }
+  .vote-overview__rank-row { padding-inline: .45rem; }
+  .vote-overview__rank-votes { font-size: .86rem; }
+  .vote-overview__rank-share { font-size: .68rem; }
+  .vote-overview__podium-card {
+    grid-template-columns: clamp(5.5rem, 26vw, 7rem) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    align-items: center;
+  }
+  .vote-overview__ticker-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .35rem .6rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vote-overview__live { animation: none; }
+  .vote-overview__rank-bar-fill::after { animation: none; opacity: .3; transform: none; }
   .vote-overview__rank-bar-fill, .vote-overview__rank-row, .vote-overview__utility { transition: none; }
 }
 
