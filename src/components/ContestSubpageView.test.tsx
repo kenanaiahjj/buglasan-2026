@@ -93,10 +93,13 @@ describe('ContestSubpageView', () => {
     expect(html).toContain(pageantContent.votingDeadline);
     expect(html).toContain('aria-label="Search candidates or town"');
     expect(html).not.toContain('Most votes');
-    expect(html).toContain('Entry number');
-    expect(html).toContain('Name');
-    expect(html).toContain('22 of 22 candidates');
-    expect(html).toContain('aria-live="polite"');
+    expect(html).not.toContain('Entry number');
+    expect(html).not.toContain('>Name</button>');
+    expect(html).not.toContain('aria-label="Sort candidates"');
+    expect(html).not.toContain('hara-gallery__sort');
+    expect(html).not.toContain('hara-gallery__count');
+    expect(html).not.toContain('22 of 22 candidates');
+    expect(html).not.toContain('aria-live="polite"');
     expect(html).not.toContain('id="hara-gallery-title"');
     expect(html).not.toContain('class="subpage-header');
     expect(html).not.toContain('Festival Hub');
@@ -136,8 +139,10 @@ describe('ContestSubpageView', () => {
     expect(html).not.toContain('class="hara-gallery__logo"');
     expect(html.match(/class="hara-gallery-card"/g)).toHaveLength(lguBooths.length);
     // Nouns follow the programme, not Hara.
-    expect(html).toContain(`${lguBooths.length} of 23 booths`);
     expect(html).toContain('aria-label="Search booths or town"');
+    expect(html).not.toContain('hara-gallery__sort');
+    expect(html).not.toContain('hara-gallery__count');
+    expect(html).not.toContain(`${lguBooths.length} of 23 booths`);
   });
 
   it('gives all four programmes the same gallery chrome', () => {
@@ -165,7 +170,10 @@ describe('ContestSubpageView', () => {
       expect(html).toContain('Voting is open');
       expect(html).toContain('Overview');
       expect(html).not.toContain('Most votes');
-      expect(html).toContain('Entry number');
+      expect(html).not.toContain('Entry number');
+      expect(html).not.toContain('>Name</button>');
+      expect(html).not.toContain('hara-gallery__sort');
+      expect(html).not.toContain('hara-gallery__count');
       expect(html.match(/class="hara-gallery-card"/g)).toHaveLength(entries.length);
       // The old tabbed layout is gone from every programme, not just Hara.
       expect(html).not.toContain('subpage-hero');

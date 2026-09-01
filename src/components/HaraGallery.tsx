@@ -8,7 +8,7 @@ import { MapPin } from '@phosphor-icons/react/dist/icons/MapPin';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
 import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
-import { filterAndSortHaraCandidates, type HaraSortKey } from '../lib/haraGallery';
+import { filterHaraCandidates } from '../lib/haraGallery';
 import { pageantContent, type ContestArena } from '../data/pageant';
 
 type HaraGalleryProps = {
@@ -29,30 +29,23 @@ type HaraGalleryProps = {
   onVote: (entryId: string) => void;
 };
 
-const sortOptions: Array<[HaraSortKey, string]> = [
-  ['number', 'Entry number'],
-  ['name', 'Name'],
-];
-
 const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
 
 export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, onVote, tallies }: HaraGalleryProps) {
   const galleryRef = useRef<HTMLElement>(null);
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<HaraSortKey>('number');
   const cfg = ARENA_VOTING[arena.id];
   const programName = arenaDisplayName(arena);
   const roster = useMemo(() => entriesForArena(arena.id), [arena.id]);
   const visibleCandidates = useMemo(
-    () => filterAndSortHaraCandidates(roster, query, sort),
-    [roster, query, sort],
+    () => filterHaraCandidates(roster, query),
+    [roster, query],
   );
 
-  // Search and sort are per-programme state; switching programmes should not
-  // carry one roster's query onto another.
+  // Search is per-programme state; switching programmes should not carry one
+  // roster's query onto another.
   useEffect(() => {
     setQuery('');
-    setSort('number');
   }, [arena.id]);
 
   useEffect(() => {
@@ -160,25 +153,6 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenOverview, o
           )}
         </label>
 
-        <div className="hara-gallery__sort" aria-label={`Sort ${cfg.noun}`} role="group">
-          {sortOptions.map(([key, label]) => (
-            <button
-              aria-pressed={sort === key}
-              className={sort === key ? 'is-active' : undefined}
-              key={key}
-              onClick={() => setSort(key)}
-              type="button"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p className="hara-gallery__count" aria-live="polite">
-          <span className="hara-gallery__count-chip">
-            {visibleCandidates.length} of {arena.totalEntries} {cfg.noun}
-          </span>
-        </p>
       </div>
 
       {visibleCandidates.length === 0 ? (
