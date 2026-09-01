@@ -321,12 +321,14 @@ describe('Hara gallery card sizing', () => {
     expect(logoBlock).not.toMatch(/border:|border-radius:|box-shadow:/);
   });
 
-  it('styles the Hara support block and candidate toolbar', () => {
+  it('styles the Hara support block and search-only toolbar', () => {
     expect(styles).toMatch(/\.hara-gallery__support\s*\{[\s\S]*?display:\s*grid;/);
     expect(styles).toMatch(/\.hara-gallery__status-live\s*\{[\s\S]*?color:/);
     expect(styles).toMatch(/\.hara-gallery__toolbar\s*\{[\s\S]*?display:\s*grid;/);
+    expect(styles).toMatch(/\.hara-gallery__toolbar\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\);/);
     expect(styles).toMatch(/\.hara-gallery__search\s*\{[\s\S]*?min-height:\s*42px;/);
-    expect(styles).toMatch(/\.hara-gallery__sort\s+button\.is-active/);
+    expect(styles).not.toMatch(/\.hara-gallery__sort/);
+    expect(styles).not.toMatch(/\.hara-gallery__count/);
     expect(styles).toMatch(/\.hara-gallery__empty\s*\{/);
     expect(styles).toMatch(/@media \(max-width:\s*640px\)[\s\S]*?\.hara-gallery__toolbar\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
   });
