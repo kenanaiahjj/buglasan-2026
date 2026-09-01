@@ -2,6 +2,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { contestArenas, haraCandidates } from '../data/pageant';
+import { entriesForArena } from '../lib/arenaEntries';
 import { VoteFlowModal } from './VoteFlowModal';
 import { VotingApiError, type VoteOrder, type VoteOrderRequest, type VotingApi } from '../lib/votingApi';
 import type { VoterAction } from '../state/voterState';
@@ -235,6 +236,11 @@ describe('VoteFlowModal', () => {
       quantity: 55,
     });
     expect(text()).toContain('Vote successful');
+    expect(q('.vote-flow__success-card')).not.toBeNull();
+    expect(q('.vote-flow__success-card')?.getAttribute('aria-labelledby')).toBeTruthy();
+    expect(q('.vote-flow__success-candidate-copy h3')?.textContent).toBe(haraCandidates[0].name);
+    expect(q('.vote-flow__success-category')?.textContent).toBe('Hara sa Negros Oriental');
+    expect(q('.vote-flow__success-stats dd')?.textContent).toBe('55');
     expect(q<HTMLImageElement>('.vote-flow__success-image')?.getAttribute('src')).toBe(haraCandidates[0].image);
     expect(text()).toContain('Votes added');
     expect(text()).toContain('55');
@@ -243,6 +249,30 @@ describe('VoteFlowModal', () => {
     expect(text()).toContain('0917 123 4567');
     // The server's reference wins over the locally derived one.
     expect(text()).toContain('REF-TEST-1');
+  });
+
+  it.each([
+    ['booths', 'LGU Booth Contest'],
+    ['festival', 'Festival of Festivals'],
+  ] as const)('labels the confirmation card with the %s program', async (arenaId, category) => {
+    const arena = contestArenas.find((candidate) => candidate.id === arenaId)!;
+    const entry = entriesForArena(arena.id)[0];
+
+    mount(
+      <VoteFlowModal
+        api={stubApi().api}
+        arena={arena}
+        dispatch={() => undefined}
+        entryId={entry.id}
+        mode="flow"
+        onClose={() => undefined}
+      />,
+    );
+
+    await fillSupporter();
+    await clickAsync(nextButton());
+
+    expect(q('.vote-flow__success-category')?.textContent).toBe(category);
   });
 
   it('keeps the vote uncounted when the charge fails, and offers a retry', async () => {
