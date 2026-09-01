@@ -103,6 +103,10 @@ describe('VotingOverviewPage', () => {
     expect(podium!.textContent).toContain('Charmine');
     expect(podium!.textContent).not.toContain('Shaira');
     expect(html).toContain('Shaira');
+
+    const barFills = [...document.querySelectorAll('.vote-overview__rank-bar-fill')];
+    expect(barFills).toHaveLength(haraCandidates.length);
+    expect(barFills[0].getAttribute('style')).toContain('--bar-edge-delay:');
   });
 
   /* The whole point of the rebuild: the board is composed at wall proportions

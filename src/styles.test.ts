@@ -65,6 +65,27 @@ describe('voting overview podium', () => {
   });
 });
 
+describe('voting overview responsive board and live bar edges', () => {
+  it('keeps wide content safe and provides a readable flow fallback', () => {
+    expect(styles).toMatch(/\.vote-overview\s*\{[\s\S]*?overflow:\s*auto;/);
+    expect(styles).toMatch(/\.vote-overview__rank-bar-fill\s*\{[\s\S]*?position:\s*relative;/);
+    expect(styles).toMatch(/\.vote-overview__rank-bar-fill::after\s*\{[\s\S]*?animation:\s*voteOverviewBarEdge/);
+    expect(styles).toMatch(/@keyframes voteOverviewBarEdge\s*\{[\s\S]*?transform:/);
+    expect(styles).toMatch(
+      /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__frame\s*\{[\s\S]*?height:\s*auto;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__body\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__rank-row\s*\{[\s\S]*?height:\s*auto;/,
+    );
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
+    );
+  });
+});
+
 describe('shared quiet control hover treatment', () => {
   it('uses one flat hover component for landing navigation and gallery controls', () => {
     expect(styles).toMatch(
