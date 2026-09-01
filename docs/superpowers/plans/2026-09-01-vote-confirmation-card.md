@@ -81,7 +81,6 @@ it.each([
 
   await fillSupporter();
   await clickAsync(nextButton());
-  await clickAsync(nextButton());
 
   expect(q('.vote-flow__success-category')?.textContent).toBe(category);
 });
