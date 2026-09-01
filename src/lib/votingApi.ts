@@ -351,7 +351,7 @@ export function resolveVotingApi(): VotingApi {
     );
   }
 
-  resolved = createDemoVotingApi();
+  resolved = createDemoVotingApi({ tallies: seedDemoTallies() });
   return resolved;
 }
 

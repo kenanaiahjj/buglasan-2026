@@ -3,9 +3,11 @@ import {
   VotingApiError,
   createDemoVotingApi,
   createHttpVotingApi,
+  resolveVotingApi,
   setVotingApi,
   type VoteOrderRequest,
 } from './votingApi';
+import { entriesForArena } from './arenaEntries';
 
 const order: VoteOrderRequest = {
   arenaId: 'hara',
@@ -119,6 +121,15 @@ describe('HTTP voting client', () => {
 });
 
 describe('demo voting client', () => {
+  it('starts the resolved demo client from the published entry totals', async () => {
+    const entry = entriesForArena('festival')[0];
+    const api = resolveVotingApi();
+
+    const tally = await api.getTally('festival');
+
+    expect(tally.tallies[entry.id]).toBe(entry.votes);
+  });
+
   it('settles an order and adds the bought quantity to its own tally', async () => {
     const api = createDemoVotingApi({ latencyMs: 0 });
 
