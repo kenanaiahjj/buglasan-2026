@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type Dispatch, type SyntheticEvent } from 'react';
+import { ArrowLeft } from '@phosphor-icons/react/dist/icons/ArrowLeft';
 import { House } from '@phosphor-icons/react/dist/icons/House';
 import { ShareNetwork } from '@phosphor-icons/react/dist/icons/ShareNetwork';
 import type { ContestArena } from '../data/pageant';
@@ -129,6 +130,7 @@ export function EntryProfilePage({
     >
       <nav aria-label={`${entry.name} navigation`} className="entry-profile__nav">
         <button onClick={onBackToProgram} type="button">
+          <ArrowLeft aria-hidden="true" size={16} />
           <span>Back to {programName}</span>
         </button>
         <button onClick={onBackToHome} type="button">

@@ -320,10 +320,19 @@ img, svg, video { max-width: 100%; }
 }
 
 .entry-profile__nav {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   gap: 1rem;
   margin-bottom: clamp(1rem, 3vw, 2rem);
+}
+
+.entry-profile__nav button:first-child {
+  justify-self: start;
+}
+
+.entry-profile__nav button:last-child {
+  justify-self: center;
 }
 
 /* Share keeps a button shape, because it sits beside Vote rather than in a

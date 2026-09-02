@@ -38,6 +38,7 @@ describe('EntryProfilePage', () => {
     }
     expect(html).toContain(`Vote for ${entry.name}`);
     expect(html).toContain('Share');
+    expect(html).toMatch(/<nav[^>]*>[\s\S]*?<button[^>]*><svg[\s\S]*?<span>Back to Festival of Festivals<\/span>/);
   });
 
   it('renders a recoverable not-found state for an unknown entry', () => {

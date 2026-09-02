@@ -27,6 +27,11 @@ describe('entry profile styles', () => {
     );
   });
 
+  it('centers Home while keeping the programme return control at the start', () => {
+    expect(rule('.entry-profile__nav')).toMatch(/display:\s*grid/);
+    expect(rule('.entry-profile__nav')).toMatch(/grid-template-columns:\s*1fr\s+auto\s+1fr/);
+  });
+
   it('keeps primary actions touch-sized and stretches the roster link over its card', () => {
     expect(rule('.entry-profile__vote')).toMatch(/min-height:\s*44px/);
     expect(rule('.entry-profile__share')).toMatch(/min-height:\s*44px/);
