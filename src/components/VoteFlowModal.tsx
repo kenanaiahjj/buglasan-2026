@@ -7,7 +7,7 @@ import { Plus } from '@phosphor-icons/react/dist/icons/Plus';
 import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { CheckCircle } from '@phosphor-icons/react/dist/icons/CheckCircle';
 import { X } from '@phosphor-icons/react/dist/icons/X';
-import type { ContestArena } from '../data/pageant';
+import { pageantContent, type ContestArena } from '../data/pageant';
 import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
 import { useArenaEntries, useContent } from '../lib/contentStore';
 import {
@@ -46,6 +46,8 @@ type VoteFlowModalProps = {
   arena: ContestArena;
   /** 'guide' opens on the instructions; 'flow' goes straight to the ballot. */
   mode: VoteFlowMode;
+  /** Landing-page help is festival-wide; programme pages keep their own nouns and prompt. */
+  guideScope?: 'general' | 'program';
   /** Pre-selected entry when the modal was opened from a card. */
   entryId?: string | null;
   onClose: () => void;
@@ -63,9 +65,22 @@ function focusables(root: HTMLElement): HTMLElement[] {
   ).filter((node) => node.offsetParent !== null || node === document.activeElement);
 }
 
-export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, api }: VoteFlowModalProps) {
+export function VoteFlowModal({
+  arena,
+  mode,
+  guideScope = 'program',
+  entryId = null,
+  onClose,
+  dispatch,
+  api,
+}: VoteFlowModalProps) {
   const cfg = ARENA_VOTING[arena.id];
   const programName = arenaDisplayName(arena);
+  const isGeneralGuide = mode === 'guide' && guideScope === 'general';
+  const guideEyebrow = isGeneralGuide ? pageantContent.title : programName;
+  const guidePrompt = isGeneralGuide
+    ? 'Choose a contest, then select the candidate, booth, or festival contingent you want to support.'
+    : cfg.prompt;
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
@@ -75,7 +90,10 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
      array — a total computed against a catalogue the server has moved on from
      is an order it will reject as `price_mismatch`. */
   const { bundles: catalogue } = useContent();
-  const guide = useMemo(() => voteFlowGuide(cfg.nounSingular), [cfg.nounSingular]);
+  const guide = useMemo(
+    () => voteFlowGuide(isGeneralGuide ? null : cfg.nounSingular),
+    [cfg.nounSingular, isGeneralGuide],
+  );
 
   const [step, setStep] = useState<VoteFlowStep | 'guide'>(mode === 'guide' ? 'guide' : 'supporter');
   const [draft, setDraft] = useState(() => emptyVoteFlowDraft(entryId));
@@ -306,7 +324,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
       >
         <header className="vote-flow__head">
           <div>
-            <p className="vote-flow__eyebrow">{programName}</p>
+            <p className="vote-flow__eyebrow">{guideEyebrow}</p>
             <h2 className="vote-flow__title" id={titleId}>
               {step === 'guide' ? 'How to vote' : step === 'done' ? 'Vote successful' : 'Cast your vote'}
             </h2>
@@ -334,7 +352,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
         <div className="vote-flow__body">
           {step === 'guide' && (
             <>
-              <p className="vote-flow__lede">{cfg.prompt}</p>
+              <p className="vote-flow__lede">{guidePrompt}</p>
               <ol className="vote-flow__guide">
                 {guide.map((item, index) => (
                   <li key={item.title}>

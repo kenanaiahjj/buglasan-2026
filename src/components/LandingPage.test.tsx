@@ -236,6 +236,12 @@ describe('LandingPage Crown of Light contract', () => {
 
       expect(document.body.querySelector('.vote-flow')).not.toBeNull();
       expect(document.body.querySelector('.vote-flow__title')?.textContent).toBe('How to vote');
+      expect(document.body.querySelector('.vote-flow__eyebrow')?.textContent).toBe('Buglasan Festival 2026');
+      expect(document.body.querySelector('.vote-flow__lede')?.textContent).toContain('Choose a contest');
+      expect(document.body.querySelector('.vote-flow__lede')?.textContent).toContain(
+        'candidate, booth, or festival contingent',
+      );
+      expect(document.body.querySelector('.vote-flow__lede')?.textContent).not.toContain('queen');
     } finally {
       await act(async () => {
         root.unmount();

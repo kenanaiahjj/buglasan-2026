@@ -57,11 +57,13 @@ export const SUPPORTER_ORIGINS: string[] = [...NEGROS_ORIENTAL_LGUS, OUTSIDE_PRO
  * the explanation and the thing being explained cannot drift apart. Nouns
  * follow the programme — you back a booth, you do not back a candidate.
  */
-export function voteFlowGuide(nounSingular: string): Array<{ title: string; copy: string }> {
+export function voteFlowGuide(nounSingular: string | null): Array<{ title: string; copy: string }> {
   return [
     {
       title: 'Choose',
-      copy: `Find the ${nounSingular} you are backing on this page and press Vote.`,
+      copy: nounSingular
+        ? `Find the ${nounSingular} you are backing on this page and press Vote.`
+        : 'Open a contest, choose the candidate, booth, or festival contingent you want to support, and press Vote.',
     },
     {
       title: 'Your details',

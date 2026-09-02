@@ -656,6 +656,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         <VoteFlowModal
           arena={defaultGuideArena}
           dispatch={dispatch}
+          guideScope="general"
           mode="guide"
           onClose={() => setShowHowToVote(false)}
         />

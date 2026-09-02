@@ -108,6 +108,8 @@ describe('VoteFlowModal', () => {
 
     expect(q('[role="dialog"]')?.getAttribute('aria-modal')).toBe('true');
     expect(text()).toContain('How to vote');
+    expect(q('.vote-flow__eyebrow')?.textContent).toBe('Hara sa Negros Oriental');
+    expect(q('.vote-flow__lede')?.textContent).toContain('queen');
     expect(all('.vote-flow__guide li')).toHaveLength(4);
     // No stepper, no roster, no fields: choosing happens out on the page.
     expect(q('.vote-flow__steps')).toBeNull();
