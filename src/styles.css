@@ -1100,8 +1100,11 @@ html.is-booting body { overflow: hidden; }
    `height: auto` matters: the img carries a `height` attribute, and that
    presentational hint beats `aspect-ratio`, so without it the box is the
    asset's full 1681px and `object-fit` letterboxes the mark inside it. */
-.hero-boot__mark,
-.site-boot__mark {
+/* The stage's own boot layer stays pinned to the anchor. It sits *inside*
+   `.festival-scene`, in the hero, and its whole job is to hold the wordmark's
+   place until the 3D one arrives — so it has to occupy the rectangle the stage
+   will fit that mark into, wherever on the page that happens to be. */
+.hero-boot__mark {
   position: absolute;
   top: var(--boot-mark-y, 32.4%);
   left: var(--boot-mark-x, 50%);
@@ -1112,8 +1115,7 @@ html.is-booting body { overflow: hidden; }
   transform: translate(-50%, -50%);
   animation: heroBootBreathe 3.2s var(--ease-out) infinite;
 }
-.hero-boot__meter,
-.site-boot__meter {
+.hero-boot__meter {
   position: absolute;
   top: 58%;
   left: 50%;
@@ -1124,16 +1126,7 @@ html.is-booting body { overflow: hidden; }
   background: color-mix(in oklch, var(--ink) 12%, transparent);
   overflow: hidden;
 }
-.hero-boot__meter i,
-.site-boot__meter i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright));
-  transition: width .3s var(--ease-out);
-}
-.hero-boot__label,
-.site-boot__label {
+.hero-boot__label {
   position: absolute;
   top: calc(58% + 1.1rem);
   left: 50%;
@@ -1144,6 +1137,92 @@ html.is-booting body { overflow: hidden; }
   letter-spacing: .14em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+}
+
+/* The curtain centres its own lockup, and does not borrow the stage's.
+ 
+   These three shared the rules above, which put the mark on the measured
+   `[data-scene-anchor]` box and the meter at a flat `top: 58%`. That is right
+   for the layer inside the hero and wrong here: the anchor is high up the hero
+   column, so on a full-viewport curtain with nothing else on screen the mark
+   rode about 190px above centre with a large empty band under the meter.
+ 
+   Flow, not percentages. `justify-content: center` centres mark, meter and
+   label as one group at any viewport, which is what "centred" has to mean for
+   a stack of three things — placing the mark at 50% would only push the two
+   below it off-centre instead.
+ 
+   The trade: the mark now moves during the crossfade to the hero, which the
+   shared geometry existed to prevent. It is a 0.62s dissolve between two
+   different renderings of the mark rather than a cut, so it reads as the
+   wordmark settling into place. */
+.site-boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.4rem, 4vh, 2.6rem);
+}
+.site-boot__mark {
+  width: min(54vw, 760px);
+  height: auto;
+  aspect-ratio: 3198 / 1681;
+  object-fit: contain;
+  /* Its own keyframes: heroBootBreathe carries the centring translate the
+     absolute version needs, and applying that here would drag the mark half
+     its own size up and to the left. */
+  animation: siteBootBreathe 3.2s var(--ease-out) infinite;
+}
+.site-boot__meter {
+  width: min(220px, 40vw);
+  height: 2px;
+  /* The gap above is the lockup's spacing; this pulls the meter and its label
+     back into one unit so the pair reads as a caption to the mark. */
+  margin-bottom: -.7rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+.site-boot__meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright));
+  transition: width .3s var(--ease-out);
+}
+.site-boot__label {
+  color: var(--ink-dim);
+  font-size: .66rem;
+  font-weight: 620;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes siteBootBreathe {
+  0%, 100% { opacity: .84; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.012); }
+}
+
+/* Take the lockup out before the ground it sits on.
+ 
+   The curtain's mark is centred and the hero's is high up the column, so
+   fading the whole curtain at once shows both marks at the same time — a
+   double exposure, and the thing the shared anchored geometry used to prevent.
+   Clearing the lockup in 0.2s while the background keeps its 0.62s fade means
+   the two are never on screen together: the mark goes, then the dark it was
+   drawn on.
+ 
+   `animation: none` first, because a running animation beats a transition on
+   the same property and `siteBootBreathe` owns this element's opacity. */
+.site-boot.is-done .site-boot__mark {
+  animation: none;
+}
+.site-boot.is-done .site-boot__mark,
+.site-boot.is-done .site-boot__meter,
+.site-boot.is-done .site-boot__label {
+  opacity: 0;
+  transition: opacity .2s var(--ease-out);
 }
 
 @keyframes heroBootBreathe {
@@ -1872,6 +1951,21 @@ html.is-booting body { overflow: hidden; }
   padding-top: clamp(1.25rem, 3.5vh, 2.75rem);
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(1rem, 1.8vw, 2rem);
+  /* Centre each plaque in its own column.
+ 
+     The row is centred and the four columns are equal, so this looks like it
+     should be unnecessary — but above 1181px the plaques are capped at
+     `max-width: 21svh` to keep the arch from skewing, and on a 1920x1080
+     screen that is 227px inside a 346px column. Grid aligns a max-width-capped
+     item to the *start* of its track, so all four hugged their columns' left
+     edges and the whole row read 119px left of centre: one column's worth of
+     slack, stranded at the right of the last one. Measured 220px of space on
+     the left against 339px on the right.
+ 
+     `justify-items`, not a change to the tracks: the gap between plaques is
+     the track slack plus `gap`, and it stays exactly as it was. Only the two
+     outer edges rebalance. */
+  justify-items: center;
   /* The row rests 66px low so it peeks; the pull-up keeps the layout box from
      following it down. This used to bridge into the contests chapter, which no
      longer exists — the number stays because it offsets `--card-rest`, not
