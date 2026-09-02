@@ -27,9 +27,23 @@ describe('entry profile styles', () => {
     );
   });
 
-  it('centers Home while keeping the programme return control at the start', () => {
+  it('keeps the programme return control at the start and Home centered', () => {
     expect(rule('.entry-profile__nav')).toMatch(/display:\s*grid/);
     expect(rule('.entry-profile__nav')).toMatch(/grid-template-columns:\s*1fr\s+auto\s+1fr/);
+    expect(rule('.entry-profile__nav-program')).toMatch(/justify-self:\s*start/);
+    expect(rule('.entry-profile__nav-home')).toMatch(/justify-self:\s*center/);
+  });
+
+  it('uses a compact sticky navigation treatment on narrow screens', () => {
+    expect(css).toMatch(
+      /@media\s*\(max-width:\s*720px\)[\s\S]*\.entry-profile__nav\s*\{[^}]*position:\s*sticky/,
+    );
+    expect(css).toMatch(
+      /@media\s*\(max-width:\s*720px\)[\s\S]*\.entry-profile__nav-program-full\s*\{[^}]*display:\s*none/,
+    );
+    expect(css).toMatch(
+      /@media\s*\(max-width:\s*720px\)[\s\S]*\.entry-profile__nav-program-compact\s*\{[^}]*display:\s*inline/,
+    );
   });
 
   it('keeps primary actions touch-sized and stretches the roster link over its card', () => {

@@ -327,18 +327,17 @@ img, svg, video { max-width: 100%; }
   margin-bottom: clamp(1rem, 3vw, 2rem);
 }
 
-.entry-profile__nav button:first-child {
+.entry-profile__nav-program {
   justify-self: start;
 }
 
-.entry-profile__nav button:last-child {
+.entry-profile__nav-home {
   justify-self: center;
 }
 
-/* Share keeps a button shape, because it sits beside Vote rather than in a
-   nav bar. It takes that shape from `.crown-button.crown-button--quiet` — the
-   festival's existing secondary action, a hairline that never competes with
-   the gold — so only its touch height and icon gap are set here. */
+.entry-profile__nav-program-compact {
+  display: none;
+}
 
 .entry-profile__nav button:hover,
 .entry-profile__not-found .entry-profile__actions button:hover {
@@ -575,16 +574,8 @@ img, svg, video { max-width: 100%; }
   gap: .5rem;
 }
 
-/* Side by side, Vote takes the room and Share stays its label's width. The
-   two only need to match when they stop being side by side — wrapped, Vote
-   filled the line and Share sat under it at label width, two different
-   buttons doing one job.
-
-   So the switch is a container query on the column they live in rather than a
-   viewport breakpoint: what decides whether they fit is the width of the
-   content column, which on this page is a fraction of the card and not of the
-   window. Measured, the column is 413px where the pair wraps and 609px where
-   it does not, so 32rem sits clear of both. */
+/* Vote is the primary action. Share stays beside it at label width so both
+   actions remain attached to the entry rather than becoming global chrome. */
 .entry-profile__vote {
   flex: 1 1 15rem;
 }
@@ -699,11 +690,36 @@ img, svg, video { max-width: 100%; }
 
 @media (max-width: 720px) {
   .entry-profile__nav {
-    align-items: stretch;
+    position: sticky;
+    z-index: var(--z-header);
+    top: env(safe-area-inset-top, 0);
+    gap: .25rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-block: .25rem;
+    border-bottom: 1px solid color-mix(in oklch, var(--arena) 18%, var(--line-soft));
+    background: color-mix(in oklch, var(--ground) 94%, transparent);
   }
 
   .entry-profile__nav button {
-    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: .55rem;
+  }
+
+  .entry-profile__nav-program {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .entry-profile__nav-program-full {
+    display: none;
+  }
+
+  .entry-profile__nav-program-compact {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .entry-profile__card {

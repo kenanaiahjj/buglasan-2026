@@ -36,6 +36,13 @@ const replaceBrokenImage = (event: SyntheticEvent<HTMLImageElement>) => {
   event.currentTarget.src = fallback;
 };
 
+const compactProgramName: Record<ContestArena['id'], string> = {
+  hara: 'Hara',
+  booths: 'LGU Booth',
+  festival: 'Festivals',
+  gandang: 'Gandang',
+};
+
 export function EntryProfilePage({
   arena,
   entry,
@@ -129,11 +136,19 @@ export function EntryProfilePage({
       style={{ ['--arena' as string]: arena.accentColor }}
     >
       <nav aria-label={`${entry.name} navigation`} className="entry-profile__nav">
-        <button onClick={onBackToProgram} type="button">
+        <button
+          aria-label={`Back to ${programName}`}
+          className="entry-profile__nav-program"
+          onClick={onBackToProgram}
+          type="button"
+        >
           <ArrowLeft aria-hidden="true" size={16} />
-          <span>Back to {programName}</span>
+          <span className="entry-profile__nav-program-full">{programName}</span>
+          <span aria-hidden="true" className="entry-profile__nav-program-compact">
+            {compactProgramName[arena.id]}
+          </span>
         </button>
-        <button onClick={onBackToHome} type="button">
+        <button className="entry-profile__nav-home" onClick={onBackToHome} type="button">
           <House aria-hidden="true" size={16} />
           <span>Home</span>
         </button>

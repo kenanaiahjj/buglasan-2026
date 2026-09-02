@@ -38,7 +38,22 @@ describe('EntryProfilePage', () => {
     }
     expect(html).toContain(`Vote for ${entry.name}`);
     expect(html).toContain('Share');
-    expect(html).toMatch(/<nav[^>]*>[\s\S]*?<button[^>]*><svg[\s\S]*?<span>Back to Festival of Festivals<\/span>/);
+
+    const shell = document.createElement('div');
+    shell.innerHTML = html;
+    const nav = shell.querySelector('.entry-profile__nav');
+    const navButtons = [...(nav?.querySelectorAll('button') ?? [])];
+
+    expect(navButtons.map((button) => button.textContent?.trim())).toEqual([
+      'Festival of FestivalsFestivals',
+      'Home',
+    ]);
+    expect(nav?.querySelector('.entry-profile__nav-program')?.getAttribute('aria-label')).toBe(
+      'Back to Festival of Festivals',
+    );
+    expect(nav?.querySelector('.entry-profile__nav-home')).not.toBeNull();
+    expect(nav?.querySelector('.entry-profile__share')).toBeNull();
+    expect(shell.querySelector('.entry-profile__content .entry-profile__share')).not.toBeNull();
   });
 
   it('renders a recoverable not-found state for an unknown entry', () => {
