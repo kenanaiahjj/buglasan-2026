@@ -8,6 +8,7 @@ import { enter } from '../lib/enter';
 import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
 import { useArenaEntries, useContent } from '../lib/contentStore';
 import { entryHash } from '../lib/entryRoutes';
+import { PEOPLE_CHOICE_DISCLAIMER, PEOPLE_CHOICE_LABEL } from '../lib/votingCopy';
 import { VoteCursor } from './VoteCursor';
 import { filterHaraCandidates } from '../lib/haraGallery';
 import type { ContestArena } from '../data/pageant';
@@ -140,6 +141,8 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
           </div>
         )}
 
+        <p className="people-choice-mark">{PEOPLE_CHOICE_LABEL}</p>
+
         <div className="hara-gallery__support">
           <p className="hara-gallery__status" role="status">
             <span className="hara-gallery__status-live">
@@ -147,6 +150,7 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
             </span>
             <span>Ends {festival.votingDeadline}</span>
           </p>
+          <p className="people-choice-disclaimer">{PEOPLE_CHOICE_DISCLAIMER}</p>
         </div>
       </div>
 

@@ -147,6 +147,10 @@ describe('ContestSubpageView', () => {
 
       expect(html).not.toContain('class="hara-gallery__status-live"><span');
       expect(html).not.toMatch(/class="hara-gallery-card__location"><svg/);
+      expect(html).toContain('<p class="people-choice-mark">People’s Choice</p>');
+      expect(html).toContain(
+        '<p class="people-choice-disclaimer">People’s Choice voting reflects public preference only and does not determine the official final result.</p>',
+      );
       expect(html).toMatch(
         /<button[^>]*class="hara-gallery__home crown-quiet-control"[^>]*><span>Home<\/span><\/button>/,
       );

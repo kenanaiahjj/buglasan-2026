@@ -159,6 +159,14 @@ describe('VotingOverviewPage', () => {
       expect(html.match(/class="vote-overview__rank-row"/g)).toHaveLength(entries.length);
       expect(html).toContain(ARENA_VOTING[arena.id].originLabel);
       expect(html).toContain(`${arenaDisplayName(arena)} 2026`);
+      expect(html).toContain('<p class="people-choice-mark">People’s Choice</p>');
+      expect(html).toContain(
+        '<p class="people-choice-disclaimer">People’s Choice voting reflects public preference only and does not determine the official final result.</p>',
+      );
+      expect(html.indexOf('class="people-choice-mark"')).toBeLessThan(html.indexOf('class="vote-overview__clock"'));
+      expect(html.indexOf('class="vote-overview__clock-note"')).toBeLessThan(
+        html.indexOf('class="people-choice-disclaimer"'),
+      );
       expect(html).not.toContain(ARENA_VOTING[arena.id].prompt);
       expect(html).not.toContain('Live simulation');
       expect(html).not.toContain('Buglasan Festival 2026');

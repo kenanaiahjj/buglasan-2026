@@ -11,6 +11,29 @@ describe('primary CTA geometry', () => {
     expect(styles).toMatch(/\.crown-floating-dots-button::after\s*\{[^}]*border-radius:\s*999px;/);
   });
 });
+
+describe('People’s Choice label and disclaimer', () => {
+  it('uses gold cursive type and readable surface-specific disclaimer sizing', () => {
+    const labelBlock = styles.match(/\.people-choice-mark\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const disclaimerBlock = styles.match(/\.people-choice-disclaimer\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(labelBlock).toContain('color: var(--gold-bright);');
+    expect(labelBlock).toContain(
+      'font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive;',
+    );
+    expect(labelBlock).toContain('white-space: nowrap;');
+    expect(disclaimerBlock).toContain('font-size: .72rem;');
+    expect(disclaimerBlock).toContain('line-height: 1.45;');
+    expect(disclaimerBlock).toContain('max-width: 40rem;');
+    expect(styles).toMatch(
+      /\.vote-overview__identity-type \.people-choice-mark\s*\{[\s\S]*?font-size: 1\.25cqw;/,
+    );
+    expect(styles).toMatch(
+      /\.vote-overview__clock \.people-choice-disclaimer\s*\{[\s\S]*?font-size: \.58cqw;/,
+    );
+  });
+});
+
 describe('scrolled landing header', () => {
   it('adds a dark blurred surface behind the fixed navigation', () => {
     const headerBlock = styles.match(/\.crown-header\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';

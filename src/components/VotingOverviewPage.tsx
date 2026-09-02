@@ -40,6 +40,7 @@ import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
 import { useNow } from '../lib/clock';
 import { useContent } from '../lib/contentStore';
 import { enter } from '../lib/enter';
+import { PEOPLE_CHOICE_DISCLAIMER, PEOPLE_CHOICE_LABEL } from '../lib/votingCopy';
 import {
   countdownFrom,
   createVotingOverviewSource,
@@ -386,6 +387,7 @@ export function VotingOverviewPage({
               ) : null}
               <div className="vote-overview__identity-type">
                 <h1 className="vote-overview__title">{programName} 2026</h1>
+                <p className="people-choice-mark">{PEOPLE_CHOICE_LABEL}</p>
               </div>
             </div>
 
@@ -424,6 +426,7 @@ export function VotingOverviewPage({
                 </p>
               )}
               <p className="vote-overview__clock-note">{festival.votingDeadline}</p>
+              <p className="people-choice-disclaimer">{PEOPLE_CHOICE_DISCLAIMER}</p>
             </div>
           </header>
 

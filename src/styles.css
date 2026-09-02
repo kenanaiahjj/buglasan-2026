@@ -2813,6 +2813,46 @@ html.is-booting body { overflow: hidden; }
   text-shadow: 0 0 20px var(--subpage-accent-glow);
 }
 
+.people-choice-mark {
+  margin: 0;
+  color: var(--gold-bright);
+  font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive;
+  font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: .01em;
+  line-height: 1;
+  text-shadow: 0 0 18px color-mix(in oklch, var(--gold) 35%, transparent);
+  white-space: nowrap;
+}
+
+.people-choice-disclaimer {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--crown-muted);
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.hara-gallery__intro > .people-choice-mark {
+  margin: 0 auto clamp(1rem, 2vw, 1.4rem);
+}
+
+.vote-overview__identity-type .people-choice-mark {
+  margin-top: .55cqh;
+  font-size: 1.25cqw;
+}
+
+.vote-overview__clock .people-choice-disclaimer {
+  max-width: 18cqw;
+  margin-top: .55cqh;
+  margin-left: auto;
+  font-size: .58cqw;
+  line-height: 1.35;
+}
+
 .hara-gallery__support {
   display: grid;
   justify-items: center;
