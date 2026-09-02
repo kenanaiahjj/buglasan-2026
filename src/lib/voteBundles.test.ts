@@ -4,7 +4,6 @@ import {
   bundleCartTotals,
   cartLineItems,
   cartSignature,
-  fetchVoteBundles,
   isOrderableCart,
   VOTE_BUNDLES,
 } from './voteBundles';
@@ -87,9 +86,5 @@ describe('vote bundles', () => {
       { bundleId: 'b-1000', count: 2 },
     ]);
     expect(cartSignature({})).toBe('');
-  });
-
-  it('exposes the catalogue through an async seam a server can take over', async () => {
-    await expect(fetchVoteBundles()).resolves.toEqual(VOTE_BUNDLES);
   });
 });

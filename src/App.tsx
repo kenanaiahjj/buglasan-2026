@@ -12,10 +12,32 @@ import { DashboardPage } from './components/DashboardPage';
 import { SiteBoot } from './components/SiteBoot';
 import { LandingPage } from './components/LandingPage';
 import { LoginScreen } from './components/LoginScreen';
+import { loadContent } from './lib/contentStore';
 import { initialVoterState, voterReducer } from './state/voterState';
 
 export default function App() {
   const [state, dispatch] = useReducer(voterReducer, initialVoterState);
+
+  /* The one call that makes VITE_CONTENT_API_URL mean anything. Until it
+     lands, every screen renders the bundled roster from `contentStore.ts`;
+     after it, the server's. Fired once, above the views, because all three of
+     them read the same content and none of them should each fetch it.
+
+     Unconditional, including in demo mode where it resolves off the bundle.
+     A prototype that only ever runs the synchronous path is a prototype that
+     hides every await-shaped bug until deployment day.
+
+     No AbortController, deliberately. This fills a module-level cache rather
+     than this component's state, so there is nothing to leak and nothing to
+     cancel: App unmounting means the app is gone. Passing one made it worse —
+     StrictMode double-invokes effects in development, the cleanup aborted the
+     request the first pass had started, and `loadContent` handed the second
+     pass that same rejected promise. Content never loaded in dev, and the
+     abort surfaced as an unhandled rejection in the console. */
+  useEffect(() => {
+    void loadContent();
+  }, []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [state.view]);

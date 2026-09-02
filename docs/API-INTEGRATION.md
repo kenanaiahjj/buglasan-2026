@@ -10,6 +10,14 @@ runs today.
 | `VotingApi` | `src/lib/votingApi.ts` | orders, payment, tallies (the write side) |
 | `ContentApi` | `src/lib/contentApi.ts` | programmes, rosters, prices, dates (the read side) |
 
+Between `ContentApi` and the screens sits **`src/lib/contentStore.ts`**. The
+seam is the interface; the store is the thing that calls it, holds the answer
+and hands it to components through `useContent()`. It matters because for one
+commit the seam existed and nothing used it — every screen still read
+`src/data/pageant.ts` at module scope, so the content URL could point at a
+working server and the page would not change. `src/components/contentWiring.test.tsx`
+exists to stop that happening again.
+
 ## Switching it on
 
 | variable | effect |
@@ -25,6 +33,31 @@ a server while the standings board is still simulating.
 One backend can serve both seams — that is the common case, and why the content
 URL falls back to the voting one.
 
+## Reading content in a component
+
+```tsx
+const { arenas, festival, bundles, status, live, error } = useContent();
+const roster = useArenaEntries('hara');
+```
+
+Four things worth knowing before you rely on it:
+
+- **It is never empty.** The store is seeded synchronously from the bundled
+  data, so there is no loading state to design around and no null to guard.
+  `App.tsx` fires one `loadContent()` on mount and the server's answer replaces
+  the seed.
+- **A failed load keeps the bundled roster on screen** and sets `status:
+  'error'` with `live: false`. That is deliberate — a festival site showing a
+  stale roster beats one showing nothing on voting night — but it means a
+  *silent* failure looks exactly like demo mode. Nothing renders a banner for
+  it today. **A production deployment should**, off `error` and `live`.
+- **`entriesFor(arenaId)` falls back per arena**, so a server that omits one
+  programme costs that programme its live roster rather than blanking it.
+- **Prices must travel with the cart.** Every function in `voteBundles.ts` and
+  the cart helpers in `voteFlow.ts` take an optional catalogue that defaults to
+  the bundled ladder. Pass `useContent().bundles`. A total computed against the
+  local constant is a total the server rejects as `price_mismatch`.
+
 ## Endpoints
 
 ### Content — `GET`, no auth assumed
@@ -35,6 +68,10 @@ URL falls back to the voting one.
 | `/arenas/:arenaId/entries` | `VoteEntry[]` |
 | `/vote-bundles` | `VoteBundle[]` |
 | `/festival` | `FestivalSummary` |
+
+`/arenas` is fetched first and its ids decide which `/entries` calls go out, so
+it is one round trip then three in parallel. An arena the list omits is never
+asked for.
 
 ### Voting
 
@@ -81,7 +118,9 @@ type VoteBundle = { id: string; priceCentavos: number; votes: number };
 type FestivalSummary = {
   title: string;
   votingDeadline: string;   // display text
-  votingClosesAt?: string;  // ISO 8601 — the one to compare against
+  votingClosesAt?: string;  // ISO 8601 — the one the countdowns compare against
+  votingWindow?: string;    // display text for the open period
+  totalVotes?: number;      // festival-wide headline; omit and the UI shows —
 };
 
 type VoteOrderRequest = {
@@ -139,6 +178,7 @@ content client raises the same type, so callers catch one thing.
 | what | where | note |
 | --- | --- | --- |
 | Candidate surnames | `src/data/pageant.ts` | **All 32 invented.** Flagged in caps on the `Candidate` type. |
+| `pageantContent.totalVotes` | `src/data/pageant.ts` | Hardcoded 12,846. Should be a sum of live tallies. |
 | Vote bundle ladder | `src/lib/voteBundles.ts` | Invented price list — ₱10/10 votes up to ₱1,000/1,300. |
 | Rosters, tallies, dates | `src/data/pageant.ts` | Demo data; the same six people appear in two arenas on reused portraits. |
 | Programme logos | `public/assets/program-logos` | Some marked "temporary supplied stand-in" on the arena. |
@@ -148,8 +188,17 @@ content client raises the same type, so callers catch one thing.
 - `entriesForArena()` in `src/lib/arenaEntries.ts` is what normalises the four
   arenas' different source shapes into `VoteEntry`. When the server returns
   `VoteEntry` directly, that function becomes the demo path only.
-- Components still import `src/data/pageant.ts` directly in places. Those are
-  the remaining call sites to move behind `ContentApi` — the seam exists and is
-  tested, but the migration is not finished.
+- **What is still not behind the seam**, and why:
+  - `announcements` and the legacy `candidates` list, both read by
+    `DashboardPage.tsx`. Neither has an endpoint; `candidates` is the pre-arena
+    roster that only that screen still uses.
+  - `BUGLASAN_HERO_LOGO` and the arena `logo` paths preloaded by
+    `siteBoot.ts` — build assets resolved before a fetch could answer.
+  - `NEGROS_ORIENTAL_LGUS`, the origin dropdown. A fixed list of the province's
+    25 LGUs, not festival data.
+  - Type-only imports of `ContestArena` etc. are the contract and stay.
+- `pageantContent` still holds presentational copy the seam does not carry —
+  hero lines, the edition name, hashtags. Only fields a server would own were
+  lifted into `FestivalSummary`.
 - `src/lib/stageBudget.ts` decides whether a device gets the 8.1MB WebGL stage.
   Worth knowing before debugging "why is there no 3D on my phone".

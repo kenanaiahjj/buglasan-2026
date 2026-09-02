@@ -8,7 +8,8 @@ import { ArrowRight } from '@phosphor-icons/react/dist/icons/ArrowRight';
 import { CheckCircle } from '@phosphor-icons/react/dist/icons/CheckCircle';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import type { ContestArena } from '../data/pageant';
-import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
+import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
+import { useArenaEntries, useContent } from '../lib/contentStore';
 import {
   PAYMENT_METHODS,
   SUPPORTER_ORIGINS,
@@ -26,11 +27,10 @@ import {
   voteDraftTotals,
   voteFlowStepIndex,
   voteReference,
-  voteTotalCentavos,
   type PaymentMethodId,
   type VoteFlowStep,
 } from '../lib/voteFlow';
-import { addBundle, cartLineItems, VOTE_BUNDLES } from '../lib/voteBundles';
+import { addBundle, cartLineItems } from '../lib/voteBundles';
 import {
   VotingApiError,
   resolveVotingApi,
@@ -70,7 +70,11 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
-  const roster = useMemo(() => entriesForArena(arena.id), [arena.id]);
+  const roster = useArenaEntries(arena.id);
+  /* The live price list. Everything that prices this cart is handed the same
+     array — a total computed against a catalogue the server has moved on from
+     is an order it will reject as `price_mismatch`. */
+  const { bundles: catalogue } = useContent();
   const guide = useMemo(() => voteFlowGuide(cfg.nounSingular), [cfg.nounSingular]);
 
   const [step, setStep] = useState<VoteFlowStep | 'guide'>(mode === 'guide' ? 'guide' : 'supporter');
@@ -87,8 +91,8 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
 
   const chosen = roster.find((entry) => entry.id === draft.entryId) ?? null;
 
-  const issues = step === 'guide' ? [] : voteFlowIssues(step, draft);
-  const ready = step === 'guide' || canLeaveStep(step, draft);
+  const issues = step === 'guide' ? [] : voteFlowIssues(step, draft, catalogue);
+  const ready = step === 'guide' || canLeaveStep(step, draft, catalogue);
 
   // --- dialog behaviour ---------------------------------------------------
   useEffect(() => {
@@ -158,7 +162,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const key = voteReference(arena.id, draft);
+    const key = voteReference(arena.id, draft, catalogue);
     const order: VoteOrderRequest = {
       arenaId: arena.id,
       entryId: draft.entryId,
@@ -170,7 +174,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
       /* The line items, so a `price_mismatch` can name the bundle that
          disagreed instead of only the total. The server prices from its own
          catalogue either way. */
-      bundles: cartLineItems(draft.bundles),
+      bundles: cartLineItems(draft.bundles, catalogue),
       idempotencyKey: key,
       returnUrl: resolveVotingReturnUrl(),
     };
@@ -242,7 +246,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
       return;
     }
 
-    if (!canLeaveStep(step, draft)) {
+    if (!canLeaveStep(step, draft, catalogue)) {
       setShowIssues(true);
       return;
     }
@@ -278,10 +282,10 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
    * stepper taps it faster than React re-renders.
    */
   const stepBundle = (bundleId: string, step: number) =>
-    setDraft((current) => ({ ...current, bundles: addBundle(current.bundles, bundleId, step) }));
+    setDraft((current) => ({ ...current, bundles: addBundle(current.bundles, bundleId, step, catalogue) }));
 
   const activeIndex = step === 'guide' ? -1 : voteFlowStepIndex(step);
-  const totals = voteDraftTotals(draft);
+  const totals = voteDraftTotals(draft, catalogue);
   const total = totals.amountCentavos;
 
   /* Portalled to the body. `position: fixed` is only fixed to the viewport
@@ -412,7 +416,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
                 </p>
 
                 <ul className="vote-flow__bundle-list">
-                  {VOTE_BUNDLES.map((bundle) => {
+                  {catalogue.map((bundle) => {
                     const count = draft.bundles[bundle.id] ?? 0;
                     const bonus = bundle.votes - bundle.priceCentavos / VOTE_PRICE_CENTAVOS;
 
@@ -545,7 +549,7 @@ export function VoteFlowModal({ arena, mode, entryId = null, onClose, dispatch, 
               </section>
               <p className="vote-flow__done-note">
                 A receipt is on its way to {formatPhMobile(draft.mobile)}. Reference{' '}
-                <strong>{reference ?? voteReference(arena.id, draft)}</strong>.
+                <strong>{reference ?? voteReference(arena.id, draft, catalogue)}</strong>.
               </p>
             </div>
           )}

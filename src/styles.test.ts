@@ -105,31 +105,93 @@ describe('voting overview wallboard and live bar edges', () => {
     expect(frameBlock).toContain('height: min(100dvh, calc(100vw * 10 / 16));');
     expect(frameBlock).not.toContain('16 / 9');
     expect(styles).toMatch(/\.vote-overview__rank-bar-fill\s*\{[\s\S]*?position:\s*relative;/);
-    expect(styles).toMatch(/\.vote-overview__rank-bar-fill::after\s*\{[\s\S]*?animation:\s*voteOverviewBarEdge/);
-    expect(styles).toMatch(/@keyframes voteOverviewBarEdge\s*\{[\s\S]*?transform:/);
     expect(styles).not.toMatch(
       /@media \(max-width:\s*64rem\),\s*\(max-aspect-ratio:\s*4\s*\/\s*3\),\s*\(max-height:\s*42rem\)[\s\S]*?\.vote-overview__frame\s*\{[\s\S]*?height:\s*auto;/,
     );
     expect(styles).not.toMatch(/@media \(max-width:\s*40rem\)[\s\S]*?\.vote-overview__podium\s*\{/);
     expect(styles).toMatch(
-      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill,[\s\S]*?transition:\s*none;/,
     );
   });
 
-  it('turns each bar end into a soft animated light cap', () => {
-    const sparkBlock = styles.match(/\.vote-overview__rank-bar-fill::before\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
-    const edgeBlock = styles.match(/\.vote-overview__rank-bar-fill::after\s*\{(?=\s*top:)([\s\S]*?)\n\}/)?.[1] ?? '';
+  it('draws the bar as an outline, so no light lands behind the standings text', () => {
+    const fillBlock = styles.match(/\.vote-overview__rank-bar-fill\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
-    expect(sparkBlock).toContain('box-shadow:');
-    expect(sparkBlock).toContain('animation: voteOverviewBarSpark');
-    expect(edgeBlock).toContain('mix-blend-mode: screen;');
-    expect(edgeBlock).toMatch(/filter:\s*blur\([^)]*\);/);
-    expect(edgeBlock).toMatch(/box-shadow:\s*0 0 \.8cqw/);
-    expect(edgeBlock).toContain('animation: voteOverviewBarEdge');
-    expect(edgeBlock).not.toContain('border:');
-    expect(styles).toMatch(
-      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.vote-overview__rank-bar-fill::before,[\s\S]*?\.vote-overview__rank-bar-fill::after[\s\S]*?animation:\s*none;/,
-    );
+    /* The bar was a filled gradient ramping to ivory at its head, and the head
+       sits wherever the bar ends — so on some row it was always directly behind
+       a name. Measured on the Hara board: name 1.14:1, town/number line 1.00:1,
+       leader's share 1.01:1, against 4.5:1 required at those sizes. An outline
+       puts nothing bright behind the type. */
+    expect(fillBlock).toContain('box-shadow:');
+    expect(fillBlock).toMatch(/inset 0 0 0 1px/);
+
+    // No ivory in the body: that was the blown-out end of the old fill.
+    expect(fillBlock).not.toContain('--crown-ivory');
+
+    /* The interior is capped. 3% is the ceiling the 9.8px `--ink-dim`
+       town/number line can take before it drops under 4.5:1 — raising it means
+       brightening that text first. Scan the `background` declaration only: a
+       bare `\d+%` also matches the gradient's own stop positions, and `100%` is
+       a stop, not a colour. */
+    const background = fillBlock.match(/background:([\s\S]*?);/)?.[1] ?? '';
+    const interiorAlphas = [...background.matchAll(/(\d+)%,\s*transparent/g)].map((m) => Number(m[1]));
+    expect(interiorAlphas.length).toBeGreaterThan(0);
+    expect(Math.max(...interiorAlphas)).toBeLessThanOrEqual(3);
+  });
+
+  it('keeps every bright pixel on the bar edge, where no text sits', () => {
+    const fillBlock = styles.match(/\.vote-overview__rank-bar-fill\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const glowBlock = styles.match(/\.vote-overview__rank-bar-fill::before\s*\{(?=\s*inset:)([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    /* Nothing on the bar animates. The ring breathed on a 2.8s cycle staggered
+       per row, which is twenty-two outlines pulsing independently on a board
+       people watch for minutes. The bar already moves when a tally does. */
+    expect(glowBlock).not.toContain('animation');
+    expect(styles).not.toContain('voteOverviewBarSpark');
+
+    /* Every shadow on the bar is `inset`, and that is the whole contract. The
+       head sits wherever the bar ends, which is behind a name more often than
+       not, so an outer glow there spills onto the type — measured at 1.14:1
+       against 4.5:1 when this was a blurred bloom. Inset light stays on the
+       edges, and the text is on the centre line. */
+    for (const block of [fillBlock, glowBlock]) {
+      const shadow = block.match(/box-shadow:([\s\S]*?);/)?.[1] ?? '';
+      expect(shadow).not.toBe('');
+      /* Collapse parenthesised groups before splitting: `color-mix()` carries
+         its own commas, and splitting on those reports a layer that merely
+         starts mid-colour as one missing `inset`. */
+      let flat = shadow;
+      while (/\([^()]*\)/.test(flat)) flat = flat.replace(/\([^()]*\)/g, '_');
+      for (const layer of flat.split(',')) {
+        expect(layer.trim().startsWith('inset')).toBe(true);
+      }
+    }
+
+    /* No blur and no additive blending — `screen` lifts whatever it crosses,
+       which is how ivory ended up behind the standings names. */
+    for (const block of [fillBlock, glowBlock]) {
+      expect(block).not.toContain('mix-blend-mode');
+      expect(block).not.toContain('filter:');
+    }
+
+    /* The inward reach is bounded: the row is ~23px at wallboard size and the
+       name's caps take roughly its middle 11px, so a glow reaching much past
+       .3cqw from each edge starts washing the type. */
+    const reaches = [...(fillBlock + glowBlock).matchAll(/inset 0 0 \.(\d+)cqw/g)].map((m) => Number(`0.${m[1]}`));
+    expect(reaches.length).toBeGreaterThan(0);
+    expect(Math.max(...reaches)).toBeLessThanOrEqual(0.3);
+
+    // A 2px cap drawn outside the outline read as a stray tick beside the bar.
+    expect(styles).not.toMatch(/\.vote-overview__rank-bar-fill::after\s*\{/);
+
+    /* No reduced-motion override for the bar either: there is nothing to turn
+       off, and a rule claiming to disable an animation that does not exist is
+       the kind of thing the next person keeps in place while wondering why.
+
+       Exact string, not a regex. `@media …reduce…[\s\S]*?::before` bridges
+       across the whole file and matches the main rule instead of one inside the
+       media block, so it passes whatever the CSS says. */
+    expect(styles).not.toContain('.vote-overview__rank-bar-fill::before { animation: none');
   });
 });
 

@@ -5,11 +5,12 @@ import { MagnifyingGlass } from '@phosphor-icons/react/dist/icons/MagnifyingGlas
 import { Question } from '@phosphor-icons/react/dist/icons/Question';
 import { X } from '@phosphor-icons/react/dist/icons/X';
 import { enter } from '../lib/enter';
-import { ARENA_VOTING, arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
+import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
+import { useArenaEntries, useContent } from '../lib/contentStore';
 import { entryHash } from '../lib/entryRoutes';
 import { VoteCursor } from './VoteCursor';
 import { filterHaraCandidates } from '../lib/haraGallery';
-import { pageantContent, type ContestArena } from '../data/pageant';
+import type { ContestArena } from '../data/pageant';
 
 type HaraGalleryProps = {
   arena: ContestArena;
@@ -49,7 +50,8 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
   const [query, setQuery] = useState('');
   const cfg = ARENA_VOTING[arena.id];
   const programName = arenaDisplayName(arena);
-  const roster = useMemo(() => entriesForArena(arena.id), [arena.id]);
+  const roster = useArenaEntries(arena.id);
+  const { festival } = useContent();
   const visibleCandidates = useMemo(
     () => filterHaraCandidates(roster, query),
     [roster, query],
@@ -143,7 +145,7 @@ export function HaraGallery({ arena, onBackToHub, onHowToVote, onOpenEntry, onOp
             <span className="hara-gallery__status-live">
               Voting is open
             </span>
-            <span>Ends {pageantContent.votingDeadline}</span>
+            <span>Ends {festival.votingDeadline}</span>
           </p>
         </div>
       </div>

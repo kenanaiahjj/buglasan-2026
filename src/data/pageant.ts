@@ -170,7 +170,12 @@ export const contestArenas: ContestArena[] = [
   {
     id: 'hara',
     title: 'Hara sa Dumaguete',
-    shortTitle: 'Hara sa Dumaguete',
+    /* Presented province-wide, so this is the name every surface shows.
+       It used to say "Hara sa Dumaguete" here and get rewritten in
+       `arenaDisplayName()` — which meant the mobile nav, the one place
+       reading `shortTitle` raw, disagreed with the hero card. A name the
+       client rewrites is also a name a server cannot change. */
+    shortTitle: 'Hara sa Negros Oriental',
     subtitle: 'The Premier Festival Queen Pageant',
     tagline: 'Grace, Conviction, and Provincial Sovereignty.',
     icon: 'crown',

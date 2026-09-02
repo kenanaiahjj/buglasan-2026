@@ -9,9 +9,9 @@
  * presentation something coherent to show; the real catalogue is the festival's
  * to set. When it arrives it belongs on the server, for the same reason the
  * per-vote price already does: a client that decides what things cost is a
- * client that decides they cost nothing. `fetchVoteBundles` is the seam — it
- * returns the local ladder today and should return the server's tomorrow, and
- * nothing above it needs to know which happened.
+ * client that decides they cost nothing. The ladder below is the *fallback*;
+ * `ContentApi.getVoteBundles` is the seam, `contentStore.ts` calls it, and the
+ * ballot reads whatever came back through `useContent().bundles`.
  *
  * Money is in centavos throughout. Money in floating point is how a tally goes
  * wrong.
@@ -57,14 +57,29 @@ export type VoteBundleTotals = {
   bonusVotes: number;
 };
 
-export function bundleById(id: string): VoteBundle | undefined {
-  return VOTE_BUNDLES.find((bundle) => bundle.id === id);
+/**
+ * Every function below takes the catalogue it should price against, and every
+ * one of them defaults to the ladder above.
+ *
+ * The default is the demo. The parameter is the point: once a server owns the
+ * prices, a cart priced against this file's constant would compute an
+ * `expectedAmountCentavos` the server disagrees with, and the order would come
+ * back `price_mismatch` every single time. The ballot passes
+ * `useContent().bundles`.
+ */
+export function bundleById(
+  id: string,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): VoteBundle | undefined {
+  return catalogue.find((bundle) => bundle.id === id);
 }
 
 /** The base rate the bonus is measured against: the smallest bundle's. */
-export function baseVotesPerCentavo(): number {
-  const base = VOTE_BUNDLES[0];
-  return base.votes / base.priceCentavos;
+export function baseVotesPerCentavo(catalogue: readonly VoteBundle[] = VOTE_BUNDLES): number {
+  const base = catalogue[0];
+  /* An empty catalogue is a server that answered with nothing. Zero here
+     makes the bonus zero rather than NaN, which would render as "NaN bonus". */
+  return base === undefined ? 0 : base.votes / base.priceCentavos;
 }
 
 /**
@@ -75,10 +90,13 @@ export function baseVotesPerCentavo(): number {
  * bundle the festival withdrew — and the honest answer is to price what is
  * still real.
  */
-export function bundleCartTotals(cart: VoteBundleCart): VoteBundleTotals {
+export function bundleCartTotals(
+  cart: VoteBundleCart,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): VoteBundleTotals {
   const lines: VoteBundleLine[] = [];
 
-  for (const bundle of VOTE_BUNDLES) {
+  for (const bundle of catalogue) {
     const raw = cart[bundle.id] ?? 0;
     const count = Number.isSafeInteger(raw) && raw > 0 ? raw : 0;
     if (count === 0) continue;
@@ -98,17 +116,25 @@ export function bundleCartTotals(cart: VoteBundleCart): VoteBundleTotals {
     lines,
     votes,
     amountCentavos,
-    bonusVotes: Math.max(0, votes - Math.round(amountCentavos * baseVotesPerCentavo())),
+    bonusVotes: Math.max(0, votes - Math.round(amountCentavos * baseVotesPerCentavo(catalogue))),
   };
 }
 
 /** A cart is orderable once it holds at least one bundle. */
-export function isOrderableCart(cart: VoteBundleCart): boolean {
-  return bundleCartTotals(cart).votes > 0;
+export function isOrderableCart(
+  cart: VoteBundleCart,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): boolean {
+  return bundleCartTotals(cart, catalogue).votes > 0;
 }
 
-export function addBundle(cart: VoteBundleCart, id: string, step = 1): VoteBundleCart {
-  if (bundleById(id) === undefined) return cart;
+export function addBundle(
+  cart: VoteBundleCart,
+  id: string,
+  step = 1,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): VoteBundleCart {
+  if (bundleById(id, catalogue) === undefined) return cart;
   const next = Math.max(0, (cart[id] ?? 0) + step);
   const updated: VoteBundleCart = { ...cart, [id]: next };
   if (next === 0) delete updated[id];
@@ -122,23 +148,28 @@ export function addBundle(cart: VoteBundleCart, id: string, step = 1): VoteBundl
  * believed they were buying, so a mismatch can be reported against something
  * specific instead of one wrong total.
  */
-export function cartLineItems(cart: VoteBundleCart): Array<{ bundleId: string; count: number }> {
-  return bundleCartTotals(cart).lines.map((line) => ({ bundleId: line.bundle.id, count: line.count }));
+export function cartLineItems(
+  cart: VoteBundleCart,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): Array<{ bundleId: string; count: number }> {
+  return bundleCartTotals(cart, catalogue).lines.map((line) => ({
+    bundleId: line.bundle.id,
+    count: line.count,
+  }));
 }
 
 /** Stable text for the cart, for idempotency keys and references. */
-export function cartSignature(cart: VoteBundleCart): string {
-  return cartLineItems(cart)
+export function cartSignature(
+  cart: VoteBundleCart,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): string {
+  return cartLineItems(cart, catalogue)
     .map((line) => `${line.bundleId}x${line.count}`)
     .join(',');
 }
 
-/**
- * The catalogue, as an async read.
- *
- * Local today. The signature is the shape a fetch would have so that swapping
- * the body does not ripple outward.
- */
-export async function fetchVoteBundles(): Promise<readonly VoteBundle[]> {
-  return VOTE_BUNDLES;
-}
+/* There was a `fetchVoteBundles()` here that returned the constant above and
+   called itself the seam. It had no callers, and it competed with the real
+   one: `ContentApi.getVoteBundles`, which `contentStore.ts` calls for real and
+   which a server can answer. Two functions claiming to be the same seam is
+   worse than one. Read the catalogue through `useContent().bundles`. */

@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { initialVoterState } from '../state/voterState';
+import * as siteBoot from '../lib/siteBoot';
+import * as stageBudget from '../lib/stageBudget';
 import * as festivalWorld from '../scene/festivalWorld';
 import { getRenderPixelRatios } from '../scene/renderQuality';
 import * as festivalScene from './FestivalScene';
@@ -444,11 +446,57 @@ describe('LandingPage Crown of Light contract', () => {
     expect(hero).toContain('class="planout-credit"');
     expect(hero).toContain('href="https://planout.io"');
     expect(hero).toContain('<span>Powered by</span>');
-    expect(hero).toContain('src="/assets/sponsors/planout-wordmark.webp"');
+    /* The horizontal lockup, tagline included — the credit has width to spend.
+       Replaced a wordmark band cropped out of their stacked PNG by hand. */
+    expect(hero).toContain('src="/assets/sponsors/planout-lockup-horizontal.webp"');
     expect(hero).toContain('data-hero-reveal');
+  });
 
-    // Header and fixed page corners should not contain duplicate marks
+  it('does not claim the boot stage on a device the stage budget rules out', () => {
+    /* The claim used to be unconditional. On every viewport shouldRenderStage
+       rejects -- which is every phone -- it reserved a 0.62-weighted gate for
+       a stage that never mounts, and the CLAIM_MS grace period that exists for
+       precisely that case is skipped *because* something claimed. The curtain
+       then hung at 38% until the 12s ceiling. */
+    const claim = vi.spyOn(siteBoot, 'claimBootStage');
+    const allowed = vi.spyOn(stageBudget, 'shouldRenderStage');
+    const host = document.createElement('div');
+    document.body.append(host);
+
+    allowed.mockReturnValue(false);
+    const root = createRoot(host);
+    act(() => root.render(<LandingPage state={initialVoterState} dispatch={() => undefined} />));
+    expect(claim).not.toHaveBeenCalled();
+    act(() => root.unmount());
+
+    // And it must still claim where a stage genuinely is coming.
+    allowed.mockReturnValue(true);
+    const root2 = createRoot(host);
+    act(() => root2.render(<LandingPage state={initialVoterState} dispatch={() => undefined} />));
+    expect(claim).toHaveBeenCalled();
+    act(() => root2.unmount());
+
+    host.remove();
+    claim.mockRestore();
+    allowed.mockRestore();
+  });
+
+  it('seats the PlanOut badge top-left, inside the header grid\'s first track', () => {
+    const html = renderToStaticMarkup(<LandingPage state={initialVoterState} dispatch={() => undefined} />);
     const header = html.match(/<header class="crown-header"[\s\S]*?<\/header>/)?.[0] ?? '';
-    expect(header).not.toContain('planout-mark');
+
+    /* Near-square lockup here: 4.41:1 is unusable in a header row. */
+    expect(header).toContain('class="planout-badge"');
+    expect(header).toContain('src="/assets/sponsors/planout-lockup-stacked.webp"');
+
+    /* Grouped with the festival brand rather than added as a fourth child of
+       the header grid. The grid is `1fr auto 1fr`; a fourth child takes the
+       nav's track, which put the sponsor badge in the middle of the header. */
+    const left = header.match(/<div class="crown-header__left">[\s\S]*?<\/div>\s*<nav/)?.[0] ?? '';
+    expect(left).toContain('crown-header__brand');
+    expect(left).toContain('planout-badge');
+
+    // The festival's own mark still comes first in the corner.
+    expect(header.indexOf('crown-header__brand')).toBeLessThan(header.indexOf('planout-badge'));
   });
 });

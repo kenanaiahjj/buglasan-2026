@@ -63,13 +63,16 @@ export type ArenaVoteConfig = {
 /**
  * What each programme is called on screen.
  *
- * `shortTitle` is "Hara sa Dumaguete" in the data, but the programme is
- * presented province-wide, so every surface shows "Hara sa Negros Oriental".
- * That override lived privately inside LandingPage; sharing it here keeps the
- * hero cards, the ballot and the overview from disagreeing about the name.
+ * This used to special-case `hara` and return a hardcoded "Hara sa Negros
+ * Oriental" over whatever the data said. The name now lives in the data, which
+ * is the only place a server can reach — see `contestArenas` in `pageant.ts`.
+ *
+ * Kept as a function rather than inlining `arena.shortTitle` at each call site
+ * because there are five of them, and the last time a naming rule lived in one
+ * of them the others disagreed with it.
  */
 export function arenaDisplayName(arena: ContestArena): string {
-  return arena.id === 'hara' ? 'Hara sa Negros Oriental' : arena.shortTitle;
+  return arena.shortTitle;
 }
 
 export const ARENA_VOTING: Record<ContestArena['id'], ArenaVoteConfig> = {

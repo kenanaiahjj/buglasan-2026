@@ -9,9 +9,11 @@
 
 import { NEGROS_ORIENTAL_LGUS, OUTSIDE_PROVINCE } from '../data/pageant';
 import {
+  VOTE_BUNDLES,
   bundleCartTotals,
   cartSignature,
   isOrderableCart,
+  type VoteBundle,
   type VoteBundleCart,
 } from './voteBundles';
 
@@ -95,9 +97,14 @@ export function emptyVoteFlowDraft(entryId: string | null = null): VoteFlowDraft
   return { entryId, mobile: '', origin: '', bundles: {}, method: null };
 }
 
-/** Votes and amount for a draft, from its bundles. */
-export function voteDraftTotals(draft: VoteFlowDraft) {
-  return bundleCartTotals(draft.bundles);
+/**
+ * Votes and amount for a draft, from its bundles.
+ *
+ * `catalogue` defaults to the bundled ladder and should be the live one
+ * wherever a server owns the prices — see `voteBundles.ts`.
+ */
+export function voteDraftTotals(draft: VoteFlowDraft, catalogue: readonly VoteBundle[] = VOTE_BUNDLES) {
+  return bundleCartTotals(draft.bundles, catalogue);
 }
 
 /**
@@ -152,7 +159,11 @@ export function formatPeso(centavos: number): string {
  * Returned as messages rather than a boolean so the dialog can say why the
  * button is dead instead of just presenting a dead button.
  */
-export function voteFlowIssues(step: VoteFlowStep, draft: VoteFlowDraft): string[] {
+export function voteFlowIssues(
+  step: VoteFlowStep,
+  draft: VoteFlowDraft,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): string[] {
   const issues: string[] = [];
 
   switch (step) {
@@ -165,7 +176,7 @@ export function voteFlowIssues(step: VoteFlowStep, draft: VoteFlowDraft): string
       break;
 
     case 'pay':
-      if (!isOrderableCart(draft.bundles)) issues.push('Add at least one vote bundle.');
+      if (!isOrderableCart(draft.bundles, catalogue)) issues.push('Add at least one vote bundle.');
       if (draft.method === null) issues.push('Choose how you want to pay.');
       break;
 
@@ -176,8 +187,12 @@ export function voteFlowIssues(step: VoteFlowStep, draft: VoteFlowDraft): string
   return issues;
 }
 
-export function canLeaveStep(step: VoteFlowStep, draft: VoteFlowDraft): boolean {
-  return voteFlowIssues(step, draft).length === 0;
+export function canLeaveStep(
+  step: VoteFlowStep,
+  draft: VoteFlowDraft,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): boolean {
+  return voteFlowIssues(step, draft, catalogue).length === 0;
 }
 
 const ORDER: VoteFlowStep[] = ['supporter', 'pay', 'done'];
@@ -202,8 +217,12 @@ export function voteFlowStepIndex(step: VoteFlowStep): number {
  * receipt. Real references come from the payment gateway; this stands in
  * until one is wired up.
  */
-export function voteReference(arenaId: string, draft: VoteFlowDraft): string {
-  const seed = `${arenaId}:${draft.entryId ?? ''}:${draft.mobile}:${cartSignature(draft.bundles)}`;
+export function voteReference(
+  arenaId: string,
+  draft: VoteFlowDraft,
+  catalogue: readonly VoteBundle[] = VOTE_BUNDLES,
+): string {
+  const seed = `${arenaId}:${draft.entryId ?? ''}:${draft.mobile}:${cartSignature(draft.bundles, catalogue)}`;
   let hash = 0x811c9dc5;
 
   for (let index = 0; index < seed.length; index += 1) {

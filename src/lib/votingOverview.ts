@@ -164,6 +164,15 @@ export type Countdown = {
 };
 
 export function countdownFrom(targetMs: number, nowMs: number): Countdown {
+  /* A target that is not a finite number means nobody told us when voting
+     ends — a server that omitted `votingClosesAt`, or an unparseable date.
+     Arithmetic on it yields NaN, and NaN never equals 0, so the board would
+     print "NaN days" under the label "Voting closes in" rather than closing.
+     Zeros and an open state; the caller decides whether to show a clock. */
+  if (!Number.isFinite(targetMs) || !Number.isFinite(nowMs)) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, closed: false };
+  }
+
   const remaining = Math.max(0, targetMs - nowMs);
   const totalSeconds = Math.floor(remaining / 1000);
 

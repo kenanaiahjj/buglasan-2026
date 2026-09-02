@@ -36,8 +36,9 @@ import { CaretUp } from '@phosphor-icons/react/dist/icons/CaretUp';
 import { House } from '@phosphor-icons/react/dist/icons/House';
 import { gsap } from 'gsap';
 import type { ContestArena } from '../data/pageant';
-import { pageantContent } from '../data/pageant';
 import { ARENA_VOTING, arenaDisplayName } from '../lib/arenaEntries';
+import { useNow } from '../lib/clock';
+import { useContent } from '../lib/contentStore';
 import { enter } from '../lib/enter';
 import {
   countdownFrom,
@@ -63,7 +64,10 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
   minimumFractionDigits: 1,
 });
-const votingDeadlineMs = Date.parse(pageantContent.votingDeadlineISO);
+/* Parsed at module scope until the dates moved behind the content seam. A
+   deadline decided at import time is a deadline the server cannot change, and
+   this board is the one screen whose whole job is counting down to it. */
+const NO_DEADLINE = Number.NaN;
 
 function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -147,18 +151,6 @@ function Ticker({
   );
 }
 
-/** Wall clock, ticking once a second, for the countdown only. */
-function useNow(intervalMs = 1000): number {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(timer);
-  }, [intervalMs]);
-
-  return now;
-}
-
 export function VotingOverviewPage({
   arena,
   tallies,
@@ -177,6 +169,17 @@ export function VotingOverviewPage({
   const snapshot = useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
   const rankedEntries = useMemo(() => rankVotingOverviewEntries(snapshot), [snapshot]);
   const summary = useMemo(() => summariseVotingOverview(rankedEntries), [rankedEntries]);
+
+  const { festival } = useContent();
+  /* `votingClosesAt` is the machine-readable one; `votingDeadline` beside it
+     is display text and is not parseable. A server that omits the ISO field
+     leaves the clock out rather than counting down to an invalid date. */
+  const votingDeadlineMs = useMemo(
+    () => (festival.votingClosesAt === undefined ? NO_DEADLINE : Date.parse(festival.votingClosesAt)),
+    [festival.votingClosesAt],
+  );
+
+  const hasDeadline = Number.isFinite(votingDeadlineMs);
 
   const now = useNow();
   const countdown = countdownFrom(votingDeadlineMs, now);
@@ -388,10 +391,18 @@ export function VotingOverviewPage({
 
             <div className="vote-overview__clock">
               <p className="vote-overview__clock-label">
-                {countdown.closed ? 'Voting has closed' : 'Voting closes in'}
+                {countdown.closed
+                  ? 'Voting has closed'
+                  : hasDeadline
+                    ? 'Voting closes in'
+                    : 'Voting is open'}
               </p>
               {countdown.closed ? (
                 <p className="vote-overview__clock-final">Final standings</p>
+              ) : !hasDeadline ? (
+                /* No parseable close time. The display text below the clock is
+                   all we can honestly show; four zeroes would read as closed. */
+                null
               ) : (
                 <p aria-label="Time remaining to vote" className="vote-overview__countdown">
                   <span>
@@ -412,7 +423,7 @@ export function VotingOverviewPage({
                   </span>
                 </p>
               )}
-              <p className="vote-overview__clock-note">{pageantContent.votingDeadline}</p>
+              <p className="vote-overview__clock-note">{festival.votingDeadline}</p>
             </div>
           </header>
 
@@ -588,8 +599,11 @@ export function VotingOverviewPage({
                       <span aria-hidden="true" className="vote-overview__rank-bar">
                         <span
                           className="vote-overview__rank-bar-fill"
+                          /* Width is the whole datum. `--bar-edge-delay` used
+                             to ride along here to stagger a per-row glow
+                             pulse; the outline is static now and nothing reads
+                             it. */
                           style={{
-                            ['--bar-edge-delay' as string]: `${(entry.rank % 7) * -0.16}s`,
                             width: `${Math.max(leaderVotes === 0 ? 0 : (entry.votes / leaderVotes) * 100, 2)}%`,
                           }}
                         />

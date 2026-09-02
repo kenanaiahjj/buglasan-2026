@@ -8,8 +8,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   BUGLASAN_HERO_LOGO,
-  contestArenas,
-  pageantContent,
   type ContestArena,
 } from '../data/pageant';
 import type { VoterAction, VoterState } from '../state/voterState';
@@ -21,7 +19,8 @@ import { ArchNiche } from './ArchNiche';
 import { VoteCursor } from './VoteCursor';
 import { VoteFlowModal } from './VoteFlowModal';
 import { VotingOverviewPage } from './VotingOverviewPage';
-import { arenaDisplayName, entriesForArena } from '../lib/arenaEntries';
+import { arenaDisplayName } from '../lib/arenaEntries';
+import { entriesFor, useContent } from '../lib/contentStore';
 import { enter } from '../lib/enter';
 import { entryHash, parseEntryHash, type EntryRoute } from '../lib/entryRoutes';
 import { trackPlaqueSheen } from '../lib/plaqueSheen';
@@ -31,18 +30,25 @@ import { shouldRenderStage } from '../lib/stageBudget';
 gsap.registerPlugin(useGSAP);
 
 /**
- * The sponsor wordmark.
+ * The sponsor marks, both official and supplied by PlanOut.
  *
- * PlanOut ship one asset: a stacked lockup — chevron over wordmark over a
- * "PEOPLE | PLACES | PARTNERSHIPS" tagline — as a 2727x3000 PNG inlined into
- * their site's JS. Stacked is unusable at the sizes it is drawn here: fitted
- * to a 40px-tall header slot its wordmark band comes out about 8px tall, and
- * their own site renders the whole lockup into 34x34. So this is the wordmark
- * band on its own, cropped and trimmed to its ink, which is the one component
- * that survives being small. If they have an official horizontal lockup it
- * should replace this file rather than this being re-cropped.
+ * This replaces a wordmark band I had cropped out of their stacked PNG by
+ * hand, back when planout.io shipped no horizontal lockup — their site still
+ * carries only the bare chevron, in two colour variants, inlined in its JS.
+ *
+ * Two shapes because the two slots want different things:
+ *
+ *   stacked     4.41:1 is useless in a header row, so the near-square lockup
+ *               (80% chevron, 14% wordmark beneath) takes the top-left slot
+ *               beside the festival's own brand.
+ *   horizontal  the full lockup, tagline included, for the hero credit where
+ *               there is width to spend and the wordmark should read.
+ *
+ * Sources live in `scratch/sources/` — gitignored, so the 464 kB of PNG they
+ * arrived as does not ship. Regenerate with the sizes noted on each file.
  */
-const PLANOUT_WORDMARK = '/assets/sponsors/planout-wordmark.webp';
+const PLANOUT_STACKED = '/assets/sponsors/planout-lockup-stacked.webp';
+const PLANOUT_HORIZONTAL = '/assets/sponsors/planout-lockup-horizontal.webp';
 
 const FestivalScene = lazy(() =>
   import('./FestivalScene').then(({ FestivalScene: Scene }) => ({ default: Scene })),
@@ -53,9 +59,20 @@ const SCENE_STOPS = 2;
 
 /** Hero-only order; the source arena order remains canonical elsewhere. */
 const HERO_ARENA_ORDER = ['hara', 'gandang', 'booths', 'festival'] as const satisfies readonly ContestArena['id'][];
-const heroContestArenas = HERO_ARENA_ORDER.map((id) => contestArenas.find((arena) => arena.id === id)!);
 const heroArenaLabel = (arena: ContestArena) => arenaDisplayName(arena);
-const defaultGuideArena = contestArenas.find((arena) => arena.id === 'hara') ?? contestArenas[0];
+
+/* Both of these used to be computed at module scope, off the bundled arena
+   list. That is the exact reason setting VITE_CONTENT_API_URL changed nothing
+   on the home page: the hero row was decided at import time, before any fetch
+   could have answered. They take the live list now.
+
+   The order is the hero's own — the source order stays canonical everywhere
+   else — and an arena the server does not return simply drops out of the row
+   rather than rendering a hole. */
+const heroArenasFrom = (arenas: readonly ContestArena[]) =>
+  HERO_ARENA_ORDER.map((id) => arenas.find((arena) => arena.id === id)).filter(
+    (arena): arena is ContestArena => arena !== undefined,
+  );
 
 function SceneFallback({ quiet = false, arenaId }: { quiet?: boolean; arenaId?: string }) {
   return (
@@ -99,12 +116,29 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
      stage down and rebuilding it while someone drags a window. */
   const [stageAllowed] = useState(shouldRenderStage);
 
+  /* The roster, the programmes and the festival dates. Bundled data until the
+     content service answers, the server's after that — see contentStore.ts. */
+  const content = useContent();
+  const { arenas, festival } = content;
+  const heroContestArenas = heroArenasFrom(arenas);
+  const defaultGuideArena = arenas.find((arena) => arena.id === 'hara') ?? arenas[0];
+
   /* This view mounts the 3D stage, so the curtain has something to wait for.
      Claimed here rather than inside FestivalScene because that component is
      lazy: on a slow connection its chunk can arrive well after the boot gates
      have given up waiting for a stage nobody claimed. Declared above
-     `useSiteBoot` so it runs before the grace timer that hook starts. */
-  useEffect(claimBootStage, []);
+     `useSiteBoot` so it runs before the grace timer that hook starts.
+
+     Only when a stage is actually coming. This was unconditional, and on every
+     viewport `shouldRenderStage` says no to — which is every phone — it claimed
+     a stage that would never mount. Nothing then called `resolveBootStage`, so
+     the 0.62-weighted stage gate never filled, and the CLAIM_MS fallback that
+     exists for exactly this case was skipped *because* the stage was claimed.
+     The curtain sat at 38% until the 12s ceiling. Twelve seconds of loading
+     screen on a page with no 3D on it. */
+  useEffect(() => {
+    if (stageAllowed) claimBootStage();
+  }, [stageAllowed]);
   const { ready: bootReady } = useSiteBoot();
 
   useEffect(() => {
@@ -386,11 +420,11 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
     </Suspense>
   );
 
-  const activeArena = contestArenas.find(
+  const activeArena = arenas.find(
     (arena) => arena.id === (activeEntry?.arenaId ?? activeOverview ?? activeSubpage),
-  ) ?? contestArenas[0];
+  ) ?? arenas[0];
   const activeEntryRecord = activeEntry
-    ? entriesForArena(activeEntry.arenaId).find((entry) => entry.id === activeEntry.entryId) ?? null
+    ? entriesFor(activeEntry.arenaId, content).find((entry) => entry.id === activeEntry.entryId) ?? null
     : null;
 
   return (
@@ -435,14 +469,38 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           {/* The WebGL wordmark flies into this slot as the hero scrolls away.
               The DOM mark stays hidden until the flight lands, then takes over
               so it can sit above the opaque chapters the canvas renders behind. */}
-          <a
-            className="crown-header__brand"
-            data-scene-dock
-            href="#home"
-            aria-label="Buglasan Festival home"
-          >
-            <BrandMark compact official />
-          </a>
+          {/* One wrapper, because the header is a three-track grid — `1fr auto
+              1fr` for brand, nav and provincial marks. A fourth child does not
+              get a fourth track; it takes the nav's, which put the sponsor
+              badge in the middle of the header and shoved everything right. */}
+          <div className="crown-header__left">
+            <a
+              className="crown-header__brand"
+              data-scene-dock
+              href="#home"
+              aria-label="Buglasan Festival home"
+            >
+              <BrandMark compact official />
+            </a>
+
+            {/* Top-left, beside the festival's own mark rather than instead of
+                it — the festival's identity stays primary on its own site. The
+                hairline separates two unrelated brands sharing a corner. */}
+            <a
+              className="planout-badge"
+              href="https://planout.io"
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              <img
+                alt="planout.io"
+                decoding="async"
+                height={189}
+                src={PLANOUT_STACKED}
+                width={192}
+              />
+            </a>
+          </div>
 
           <nav className="crown-nav" aria-label="Main navigation">
             <a className="crown-nav__link crown-quiet-control" href="#home">
@@ -501,7 +559,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
             </button>
 
             <div className="mobile-nav-group-label" style={{ marginTop: '1.2rem' }}>Programs</div>
-            {contestArenas.map((arena) => (
+            {arenas.map((arena) => (
               <button
                 className="mobile-arena-link"
                 key={arena.id}
@@ -511,7 +569,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
                 }}
                 type="button"
               >
-                <strong>{arena.shortTitle}</strong>
+                <strong>{heroArenaLabel(arena)}</strong>
                 <ArrowRight aria-hidden="true" size={16} />
               </button>
             ))}
@@ -534,7 +592,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
               carries it for assistive tech and search without repeating it
               on screen — and without promoting any single arena above the
               festival itself. */}
-          <h1 className="visually-hidden" id="crown-hero-title">{pageantContent.title}</h1>
+          <h1 className="visually-hidden" id="crown-hero-title">{festival.title}</h1>
           <a
             className="planout-credit"
             data-hero-reveal
@@ -543,7 +601,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
             target="_blank"
           >
             <span>Powered by</span>
-            <img alt="planout.io" height={80} src={PLANOUT_WORDMARK} width={400} />
+            <img alt="planout.io" height={109} src={PLANOUT_HORIZONTAL} width={480} />
           </a>
           <p className="hero-intro" data-hero-reveal>
             Celebrate Buglasan 2026 and the people, places, and traditions of Negros Oriental.
@@ -603,7 +661,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
         />
       )}
       {showContestPicker && (
-        <ContestPickerModal arenas={contestArenas} onClose={() => setShowContestPicker(false)} onSelect={selectContest} />
+        <ContestPickerModal arenas={arenas} onClose={() => setShowContestPicker(false)} onSelect={selectContest} />
       )}
       </main>
       )}

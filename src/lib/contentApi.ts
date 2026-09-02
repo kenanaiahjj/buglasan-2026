@@ -51,6 +51,16 @@ export type FestivalSummary = {
   votingDeadline: string;
   /** ISO 8601. The deadline above is display text; this is the one to compare. */
   votingClosesAt?: string;
+  /** Display text for the open period, e.g. "October 1 — October 24, 2026". */
+  votingWindow?: string;
+  /**
+   * Festival-wide vote count for the dashboard headline.
+   *
+   * Optional because it is derivable: it should be the sum of the live
+   * tallies, and a server that would rather not maintain it separately can
+   * leave it out. The bundled value is a hardcoded number.
+   */
+  totalVotes?: number;
 };
 
 export type ContentApi = {
@@ -152,7 +162,15 @@ export function createDemoContentApi(): ContentApi {
     getVoteBundles: (signal) => settle(VOTE_BUNDLES, signal),
     getFestival: (signal) =>
       settle(
-        { title: pageantContent.title, votingDeadline: pageantContent.votingDeadline },
+        {
+          title: pageantContent.title,
+          votingDeadline: pageantContent.votingDeadline,
+          /* The machine-readable twin. Omitting it left the standings board
+             with display text it cannot count down against. */
+          votingClosesAt: pageantContent.votingDeadlineISO,
+          votingWindow: pageantContent.votingWindow,
+          totalVotes: pageantContent.totalVotes,
+        },
         signal,
       ),
   };

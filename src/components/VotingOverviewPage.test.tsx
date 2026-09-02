@@ -130,7 +130,11 @@ describe('VotingOverviewPage', () => {
 
     const barFills = [...document.querySelectorAll('.vote-overview__rank-bar-fill')];
     expect(barFills).toHaveLength(haraCandidates.length);
-    expect(barFills[0].getAttribute('style')).toContain('--bar-edge-delay:');
+    /* Width, and only width. The bar carried a `--bar-edge-delay` here to
+       stagger a per-row glow pulse; the outline is static now, so a delay in
+       the markup would be a value nothing reads. */
+    expect(barFills[0].getAttribute('style')).toContain('width:');
+    expect(barFills[0].getAttribute('style')).not.toContain('--bar-edge-delay');
   });
 
   /* The whole point of the rebuild: the board is composed at wall proportions

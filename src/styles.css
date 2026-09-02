@@ -972,11 +972,32 @@ img, svg, video { max-width: 100%; }
    No frame. The earlier border, backing plate and drop ring drew a box around
    a logo that already has its own silhouette, and a boxed logo on a dark
    stage reads as a placeholder image that failed to load. */
+/* The 2D wordmark: shown until the GLB is ready, and permanently on any device
+   `shouldRenderStage()` turns down.
+
+   Positioned from the *measured* anchor box, not from arithmetic. It used to
+   carry `top: 32.4%` and `width: min(54vw, 760px)` — the same stale constants
+   `.hero-boot__mark` was moved off, and which survive below only as the
+   one-frame fallback before `syncMarkToStage()` runs. At 1440x900 they put its
+   bottom edge at 491px while the hero lockup began at 392px, so the sponsor
+   credit and the intro copy printed across the bottom third of the festival's
+   own wordmark.
+
+   Arithmetic cannot fix that. The hero switches to `justify-content: center`
+   with `height: 100dvh` below 1180px, so the reserve stops being
+   `padding-top + margin-top` and lands wherever centring puts it — a formula
+   correct at 1440 is ~97px out at 1024. `[data-scene-anchor]` is measured on
+   mount, on resize and once the webfont lands, which is right at every width
+   by construction.
+
+   Consequence worth knowing: the flat mark is smaller than it was, because it
+   now matches the size the 3D mark is drawn at instead of being half again
+   bigger than the thing it stands in for. */
 .festival-scene__fallback-logo {
   position: absolute;
-  top: 32.4%;
-  left: 50%;
-  width: min(54vw, 760px);
+  top: var(--boot-mark-y, 32.4%);
+  left: var(--boot-mark-x, 50%);
+  width: var(--boot-mark-w, min(54vw, 760px));
   aspect-ratio: 3198 / 1681;
   transform: translate(-50%, -50%);
   transition: opacity .5s var(--ease-out);
@@ -1678,6 +1699,57 @@ html.is-booting body { overflow: hidden; }
    JS, so there is no state to get wrong and no width at which both are gone.
    ---------------------------------------------------- */
 /* ----------------------------------------------------
+   SPONSOR BADGE: PLANOUT, TOP LEFT
+   ----------------------------------------------------
+   Beside the festival brand, not instead of it. The stacked lockup is
+   near-square (1.01:1), so it is sized by height and left to find its own
+   width — swapping in a wider variant would not need a rule change.
+   ---------------------------------------------------- */
+/* Track 1 of the header grid: the festival's brand and the sponsor badge,
+   side by side. `min-width: 0` so a long badge cannot push the centred nav
+   off its own track. */
+.crown-header__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.planout-badge {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  /* Spacing separates the two brands, not a rule. A hairline was the obvious
+     choice and the wrong one: `.crown-header__brand` sits at opacity 0 until
+     the WebGL wordmark flies into it on scroll, so at first paint the divider
+     had nothing on its left and read as a stray 64px line in the corner. */
+  margin-inline-start: 1.6rem;
+  text-decoration: none;
+  opacity: .82;
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+.planout-badge img {
+  display: block;
+  width: auto;
+  /* Sized off the wordmark, not the chevron. This lockup is 80% mark and 14%
+     wordmark, so the readable floor is set by the smaller part: at 46px the
+     wordmark rendered 6.4px and came out a green smudge; 64px puts it at 9px,
+     where "planout.io" actually reads. 64 also sits inside the 74px the
+     festival brand occupies, so the row does not grow to hold it. */
+  height: clamp(40px, 4.6vw, 64px);
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55));
+}
+.planout-badge:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.planout-badge:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ----------------------------------------------------
    SPONSOR CREDIT: POWERED BY PLANOUT
    ----------------------------------------------------
    Seated in normal flow directly below the Buglasan hero centerpiece.
@@ -1702,7 +1774,16 @@ html.is-booting body { overflow: hidden; }
 .planout-credit img {
   display: block;
   width: auto;
-  height: clamp(14px, 1.2vw, 17px);
+  /* The old asset was a wordmark band alone, so 17px *was* the wordmark. This
+     one is a full lockup: the wordmark is 59% of its height and the
+     PEOPLE | PLACES | PARTNERSHIPS tagline another 13.5%. 28px keeps the
+     wordmark at the ~17px it read at before and leaves the tagline as a fine
+     teal rule.
+
+     The tagline is decoration at this size, not text — legible caps would
+     need ~52px total, which is a banner rather than a credit. If it has to be
+     readable, this slot has to grow, and that is a layout decision. */
+  height: clamp(22px, 2.1vw, 28px);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75));
 }
 .planout-credit:hover {
@@ -4104,7 +4185,9 @@ html.is-booting body { overflow: hidden; }
 }
 
 @media (max-width: 900px) {
-  .festival-scene__fallback-logo { left: 66%; width: min(43vw, 430px); }
+  /* `left: 66%` and a hand-set width lived here. Both are gone: the reserve is
+     centred and the 3D mark fits it, so a fallback at 66% disagreed with the
+     thing it stands in for. */
   .subpage-grid--booths, .subpage-grid--contingents, .subpage-grid--events { grid-template-columns: 1fr; }
   .hara-gallery__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hara-gallery--landscape .hara-gallery__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -4114,6 +4197,12 @@ html.is-booting body { overflow: hidden; }
 @media (max-width: 760px) {
   .crown-header { top: 10px; padding: 0 12px; }
   .crown-header__container { grid-template-columns: 1fr auto; padding: 4px 8px 4px 14px; min-height: 50px; }
+  /* Brand, hairline, badge and the menu button all share one phone-width row,
+     so the badge gives up height here. Its wordmark is unreadable at this size
+     either way — the hero credit below is where PlanOut is legible on a
+     phone. */
+  .planout-badge { margin-inline-start: .9rem; }
+  .planout-badge img { height: 28px; }
   .brand-mark--official { height: 34px; }
   .brand-mark--official img { height: 30px; }
   .crown-nav { display: none; }
@@ -4121,7 +4210,7 @@ html.is-booting body { overflow: hidden; }
   .crown-menu-button { display: grid; justify-self: end; }
   .crown-mobile-nav-shell { display: block; }
   .festival-scene__vignette { background: linear-gradient(180deg, rgba(1, 6, 4, .74) 0%, rgba(1, 6, 4, .16) 32%, rgba(1, 6, 4, .18) 68%, rgba(1, 6, 4, .9) 96%); }
-  .festival-scene__fallback-logo { top: 49%; left: 50%; width: min(76vw, 360px); }
+  /* Sized from the reserve now — see .festival-scene__fallback-logo. */
   .crown-hero h1 { margin-top: 1.1rem; font-size: clamp(3.45rem, 16vw, 5rem); }
   .hero-arena-cards {
     display: grid;
@@ -5265,122 +5354,91 @@ html.is-booting body { overflow: hidden; }
    reads as standing at a glance. Scaled against the leader so the field
    fills the panel instead of huddling at 8% of the total. */
 .vote-overview__rank-bar { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
-/* A solid bar that ends in light — a tube with the lamp at the far end.
-   The body ramps the whole way up and the last few per cent go to white,
-   and then `::before` and `::after` blow that end out into a flare that
-   overruns the bar on every side.
+/* An outline that glows, not a solid bar — a tube drawn in wire.
+
+   It was a filled gradient ramping to ivory at the head. The trouble is that
+   the bright zone is a fraction of the fill's own *width*, so wherever a bar
+   happens to end is where the blowout lands — and the text is at fixed grid
+   positions. Every bar length therefore dropped the flare on some row's text:
+   measured on the Hara board, the candidate's name came out at 1.14:1, the
+   town/number line at 1.00:1 and the leader's share at 1.01:1, where 4.5:1 is
+   required at these sizes. A text-shadow could not fix it — contrast is
+   measured between the glyph and what is actually behind it, and the flare's
+   hot core has a relative luminance of 0.904.
+
+   With no fill there is nothing bright behind the type: the interior stays the
+   row's own surface, so every run of text is read against the same background
+   whether a bar reaches it or not. Length still reads, off the outline.
+
+   The interior is not quite empty — it carries a whisper of the arena colour,
+   capped at 3%. That cap is not taste: the 9.8px town/number line is
+   `--ink-dim`, and against the row's backdrop it can only take about 0.028
+   alpha of arena colour before dropping under 4.5:1. Anything more here has to
+   be paid for by brightening that text first.
 
    The radius is the row's, not a pill's. A 999px cap turned each bar into a
    lozenge sitting on the board, and you read the shape before you read the
-   length.
-
-   The body stays dim behind the portrait and the name, which sit at the
-   left, and does its brightening over the stretch where nothing is written. */
+   length. */
 .vote-overview__rank-bar-fill {
   position: relative;
   display: block; height: 100%;
   border-radius: var(--radius-md);
   background: linear-gradient(90deg,
-    color-mix(in oklch, var(--arena, var(--gold)) 9%, transparent) 0%,
-    color-mix(in oklch, var(--arena, var(--gold)) 15%, transparent) 48%,
-    color-mix(in oklch, var(--arena, var(--gold)) 32%, transparent) 78%,
-    color-mix(in oklch, var(--arena, var(--gold)) 64%, transparent) 94%,
-    color-mix(in oklch, var(--crown-ivory) 52%, var(--arena, var(--gold))) 100%);
+    color-mix(in oklch, var(--arena, var(--gold)) 0%, transparent) 0%,
+    color-mix(in oklch, var(--arena, var(--gold)) 3%, transparent) 100%);
+  /* `inset` box-shadow rather than `border`, so the ring costs the bar no
+     width — a 1px border on an element whose length is the datum would make
+     every bar 2px longer than the number it stands for.
+
+     The ring is bright because it can afford to be: it is a 1px line on the
+     row's top, bottom and end edges, and the text sits on the centre line, so
+     none of it is ever behind a glyph. The interior's 3% is the constrained
+     number; this one is free.
+
+     The glow is inset and tight, and both of those are load-bearing. Inset,
+     because an outer glow at the bar's end spills straight into whatever text
+     the head has landed on. Tight, because an inward glow travels toward the
+     centre line where the text is: the row is ~23px at wallboard size and the
+     name's caps take roughly its middle 11px, so .22cqw of reach from each
+     edge stops about 2px short of them. Widen it and it washes the type. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--arena, var(--gold)) 62%, transparent),
+    inset 0 0 .22cqw color-mix(in oklch, var(--arena, var(--gold)) 34%, transparent);
   transition: width var(--dur-3) var(--ease-out);
 }
 
-.vote-overview__rank-bar-fill::before,
-.vote-overview__rank-bar-fill::after {
+.vote-overview__rank-bar-fill::before {
   content: "";
   position: absolute;
-  border-radius: 999px;
   pointer-events: none;
 }
 
-/* The hot core of the flare. Blurred so it has no outline of its own — the
-   end of the bar is where the light is coming from, not a bead parked on it —
-   and taller than the bar so it reads as light escaping rather than as the
-   bar's own last pixel. */
+/* The breath: the same ring again, brighter, fading in and out.
+
+   What stood here first was a blurred radial core plus a 1.85cqw halo on
+   `mix-blend-mode: screen`, which is what put ivory behind the standings names
+   to begin with — with the bloom modelled, 13 runs of text came out under
+   4.5:1. Narrowing it was not enough and there is no soft version that passes:
+   behind the 9.8px town line the ceiling is about 0.028 alpha, and a glow that
+   dim is not a glow. Then a 2px cap on the leading edge, which sat outside the
+   rounded outline and read as a stray tick parked beside the bar.
+
+   Glowing the ring keeps every bright pixel on the bar's own edges, where
+   there is no text — and nothing here is positioned relative to the head, so
+   nothing's brightness depends any more on where a bar happens to end. */
 .vote-overview__rank-bar-fill::before {
-  top: 50%;
-  right: -0.22cqw;
-  z-index: 1;
-  width: .7cqw;
-  height: 96%;
-  background: radial-gradient(closest-side,
-    color-mix(in oklch, var(--crown-ivory) 96%, var(--arena, var(--gold))) 0%,
-    color-mix(in oklch, var(--crown-ivory) 58%, var(--arena, var(--gold))) 42%,
-    color-mix(in oklch, var(--arena, var(--gold)) 40%, transparent) 100%);
-  filter: blur(.18cqw);
+  inset: 0;
+  border-radius: inherit;
   box-shadow:
-    0 0 .8cqw color-mix(in oklch, var(--arena, var(--gold)) 92%, transparent),
-    0 0 2cqw color-mix(in oklch, var(--arena, var(--gold)) 52%, transparent);
-  opacity: .96;
-  transform: translate3d(0, -50%, 0);
-  animation: voteOverviewBarSpark 2.8s var(--ease-out) infinite;
-  animation-delay: var(--bar-edge-delay, 0s);
-}
-
-/* The halo around that core, overrunning the row top and bottom so the
-   flare is bigger than the thing it is coming out of. Radial and blurred
-   half a column wide, so it spills evenly around the end instead of
-   streaking back along the bar — the 2.45cqw horizontal gradient this
-   replaced reached most of a column back into the row, and since `screen`
-   only ever adds, everything it crossed got lifted with it: the name, the
-   portrait, and on the top rows the very number the bar was about. */
-.vote-overview__rank-bar-fill::after {
-  top: -16%;
-  right: -0.78cqw;
-  z-index: 0;
-  width: 1.85cqw;
-  height: 132%;
-  background: radial-gradient(closest-side,
-    color-mix(in oklch, var(--crown-ivory) 74%, var(--arena, var(--gold))) 0%,
-    color-mix(in oklch, var(--arena, var(--gold)) 44%, transparent) 40%,
-    color-mix(in oklch, var(--arena, var(--gold)) 12%, transparent) 70%,
-    color-mix(in oklch, var(--arena, var(--gold)) 0%, transparent) 100%
-  );
-  mix-blend-mode: screen;
-  filter: blur(.38cqw);
-  box-shadow:
-    0 0 .8cqw color-mix(in oklch, var(--arena, var(--gold)) 34%, transparent),
-    0 0 1.7cqw color-mix(in oklch, var(--arena, var(--gold)) 16%, transparent);
-  opacity: .82;
-  transform: translate3d(-.06cqw, 0, 0);
-  /* Same value the keyframes hold, so nothing steps when the animation
-     starts or when reduced motion takes it away. */
-  animation: voteOverviewBarEdge 2.8s var(--ease-out) infinite;
-  animation-delay: var(--bar-edge-delay, 0s);
-}
-
-/* Drift only. Not just no `scale` — no opacity swing either, which is the
-   part that kept reading as growth after the scale came out. Fading a
-   blurred halo up and down moves the point where its falloff drops below
-   what the eye can pick out, so the same pixels look like a bigger flare:
-   brightness *is* size on a soft edge. The halo therefore holds one value
-   and only slides, about a pixel each way. */
-@keyframes voteOverviewBarEdge {
-  0%, 100% {
-    opacity: 0.82;
-    transform: translate3d(-0.06cqw, 0, 0);
-  }
-  50% {
-    opacity: 0.82;
-    transform: translate3d(0.05cqw, 0, 0);
-  }
-}
-
-/* The core can flicker, just barely. It is small and hard-centred, so a
-   tenth of opacity does not move its edge the way it would on the halo. */
-@keyframes voteOverviewBarSpark {
-  0%, 100% {
-    opacity: .9;
-    transform: translate3d(-.06cqw, -50%, 0);
-  }
-  50% {
-    opacity: 1;
-    transform: translate3d(.05cqw, -50%, 0);
-  }
+    inset 0 0 0 1px color-mix(in oklch, var(--crown-ivory) 58%, var(--arena, var(--gold))),
+    inset 0 0 .3cqw color-mix(in oklch, var(--arena, var(--gold)) 48%, transparent);
+  /* Static. This breathed between .34 and .78 on a 2.8s cycle, staggered per
+     row off a `--bar-edge-delay` custom property. Twenty-two outlines each
+     fading in and out on their own offset is a lot of motion on a board people
+     watch for minutes at a time, and it earned nothing: the bar's length is
+     the datum and it already animates when a tally moves. Held at the top of
+     what the breath used to reach. */
+  opacity: .6;
 }
 
 /* A row whose tally just moved. Brief, and colour-only so nothing reflows
@@ -5412,8 +5470,8 @@ html.is-booting body { overflow: hidden; }
 .vote-overview__utility-button:active { transform: scale(.97); }
 
 @media (prefers-reduced-motion: reduce) {
-  .vote-overview__rank-bar-fill::before,
-  .vote-overview__rank-bar-fill::after { animation: none; opacity: .3; transform: none; }
+  /* Parked near the top of the breath rather than the bottom, so a board with
+     motion switched off still shows the border lit rather than nearly out. */
   .vote-overview__rank-bar-fill, .vote-overview__rank-row, .vote-overview__utility { transition: none; }
 }
 

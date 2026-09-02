@@ -21,8 +21,8 @@ const MARK_ASPECT = BUGLASAN_HERO_LOGO.width / BUGLASAN_HERO_LOGO.height;
 const FADE_MS = 700;
 
 /**
- * Put both flat marks — this one and the stage's own boot layer — on the box
- * the stage fits its 3D wordmark into, so the three are the same rectangle.
+ * Put every flat mark on the box the stage fits its 3D wordmark into, so they
+ * are all the same rectangle.
  *
  * `.hero-boot__mark` was placed at a hard-coded 32.4% of the viewport with a
  * comment claiming that was where the rendered mark lands. It is not: the
@@ -30,6 +30,13 @@ const FADE_MS = 700;
  * first, and on a tall window that is some 90px higher. Nobody noticed while
  * the flat mark sat behind a translucent overlay; against a full-screen
  * curtain the two crossfade side by side and it reads as a double exposure.
+ *
+ * Three consumers now, not two: `.festival-scene__fallback-logo` was left on
+ * the old constants and overhung the hero lockup by ~99px at 1440x900,
+ * printing the sponsor credit across the bottom of the wordmark. So this
+ * outliving the curtain (see below) is load-bearing for the fallback path,
+ * which is permanent on any device the stage budget turns down — not just a
+ * nicety for a lost canvas context.
  */
 function syncMarkToStage() {
   const anchor = document.querySelector<HTMLElement>('[data-scene-anchor]');
