@@ -16,6 +16,13 @@ describe('LandingPage Crown of Light contract', () => {
 
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    /* jsdom answers 1024, which is *below* the 1181px the hero needs before it
+       draws the plaque row — so with the row now gated on width rather than
+       hidden in CSS, every case below that asserts a plaque was reading an
+       empty hero. These cases describe the desktop composition, so the harness
+       has to say so out loud rather than inherit a width that happens to be
+       on the wrong side of a breakpoint. */
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
     previousHash = window.location.hash;
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -456,6 +463,61 @@ describe('LandingPage Crown of Light contract', () => {
        Replaced a wordmark band cropped out of their stacked PNG by hand. */
     expect(hero).toContain('src="/assets/sponsors/planout-lockup-horizontal.webp"');
     expect(hero).toContain('data-hero-reveal');
+  });
+
+  it('keeps the provincial marks out of the document on a phone', () => {
+    /* `display: none` does not stop a browser fetching an `<img>` that is in
+       the document, and those two PNGs are 82 kB that no phone ever shows —
+       they are hidden under `@media (max-width: 760px)`. Hiding is not enough;
+       they have to be absent. */
+    const original = window.innerWidth;
+    const set = (value: number) =>
+      Object.defineProperty(window, 'innerWidth', { value, configurable: true });
+
+    try {
+      set(375);
+      const phone = renderToStaticMarkup(
+        <LandingPage state={initialVoterState} dispatch={() => undefined} />,
+      );
+      expect(phone).not.toContain('official-marks/');
+
+      set(1440);
+      const desktop = renderToStaticMarkup(
+        <LandingPage state={initialVoterState} dispatch={() => undefined} />,
+      );
+      expect(desktop).toContain('official-marks/negros-oriental-tourism-logo.png');
+      expect(desktop).toContain('official-marks/province-of-negros-oriental-seal-transparent.png');
+    } finally {
+      set(original);
+    }
+  });
+
+  it('keeps the plaque crests out of the document on a phone', () => {
+    /* 281 kB of programme crests, on a row the hero replaces with a button
+       below 1181px. `loading="lazy"` does not hold them back: an image with no
+       layout box is not far from the viewport, it is nowhere, and Chrome loads
+       it eagerly — measured `complete: true` at 375px with the attribute set. */
+    const original = window.innerWidth;
+    const set = (value: number) =>
+      Object.defineProperty(window, 'innerWidth', { value, configurable: true });
+
+    try {
+      set(375);
+      const phone = renderToStaticMarkup(
+        <LandingPage state={initialVoterState} dispatch={() => undefined} />,
+      );
+      expect(phone).not.toContain('program-logos/');
+      expect(phone).not.toContain('hero-arena-cards');
+
+      set(1440);
+      const desktop = renderToStaticMarkup(
+        <LandingPage state={initialVoterState} dispatch={() => undefined} />,
+      );
+      expect(desktop).toContain('hero-arena-cards');
+      expect(desktop).toContain('program-logos/');
+    } finally {
+      set(original);
+    }
   });
 
   it('does not claim the boot stage on a device the stage budget rules out', () => {

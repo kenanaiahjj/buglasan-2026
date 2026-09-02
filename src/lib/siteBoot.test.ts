@@ -68,6 +68,27 @@ async function openEveryGate(mod: Boot) {
 }
 
 describe('site boot', () => {
+  it('does not wait on the programme crests where the plaques are not drawn', async () => {
+    /* The crests are 281 kB and the art gate is 22% of the meter, so on a
+       phone they were holding the loading screen up for plaques that phone
+       hides at `max-width: 1180px`. Measured on a 375px viewport before this:
+       490 kB of images requested, 363 kB of it never displayed. */
+    Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true });
+    await boot();
+    await flush();
+    const phone = decoders.length;
+
+    vi.resetModules();
+    decoders = [];
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
+    await boot();
+    await flush();
+    const desktop = decoders.length;
+
+    expect(phone).toBe(1);
+    expect(desktop).toBeGreaterThan(phone);
+  });
+
   it('stays up until every gate has reported', async () => {
     const { boot: mod, state } = await boot();
     mod.claimBootStage();

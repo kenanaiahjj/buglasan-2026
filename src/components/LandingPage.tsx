@@ -116,6 +116,33 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
      stage down and rebuilding it while someone drags a window. */
   const [stageAllowed] = useState(shouldRenderStage);
 
+  /* The provincial marks are `display: none` under `@media (max-width: 760px)`,
+     and `display: none` does not stop a browser fetching an `<img>` that is in
+     the document — those two PNGs are 82 kB, downloaded by every phone and
+     shown to none of them. Hiding in CSS is not enough; they have to be absent.
+
+     Defaults to rendering them where there is no window to ask (SSR, and the
+     static-markup tests), which is the safe direction: a mark that ships when
+     it did not need to costs bytes, one that is missing costs the province its
+     credit on the page. */
+  const [officialMarksShown] = useState(
+    () => typeof window === 'undefined' || window.innerWidth > 760,
+  );
+
+  /* Same story, bigger numbers. The plaque row is `display: none` under
+     `@media (max-width: 1180px)` — the hero offers the "Choose a contest"
+     button there instead — but its three programme crests are 281 kB that
+     every phone downloaded and none displayed.
+
+     `ArchNiche` already marks them `loading="lazy"`, and that turned out not to
+     help: an image with no layout box is not "far from the viewport", it is
+     nowhere, and Chrome loads it eagerly. Measured on a 375px viewport with the
+     attribute in place — `complete: true`, `initiatorType: "img"`. The only
+     thing that keeps an image off a phone is not putting it in the document. */
+  const [plaquesShown] = useState(
+    () => typeof window === 'undefined' || window.innerWidth > 1180,
+  );
+
   /* The roster, the programmes and the festival dates. Bundled data until the
      content service answers, the server's after that — see contentStore.ts. */
   const content = useContent();
@@ -511,24 +538,26 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
             </button>
           </nav>
 
-          <div aria-label="Official provincial marks" className="crown-header__marks hero-official-marks hero-official-marks--header" role="group">
-            <img
-              alt="Negros Oriental Tourism logo"
-              className="hero-official-marks__tourism"
-              decoding="async"
-              height={2048}
-              src="/assets/official-marks/negros-oriental-tourism-logo.png"
-              width={2048}
-            />
-            <img
-              alt="Province of Negros Oriental official seal"
-              className="hero-official-marks__seal"
-              decoding="async"
-              height={2460}
-              src="/assets/official-marks/province-of-negros-oriental-seal-transparent.png"
-              width={2480}
-            />
-          </div>
+          {officialMarksShown ? (
+            <div aria-label="Official provincial marks" className="crown-header__marks hero-official-marks hero-official-marks--header" role="group">
+              <img
+                alt="Negros Oriental Tourism logo"
+                className="hero-official-marks__tourism"
+                decoding="async"
+                height={2048}
+                src="/assets/official-marks/negros-oriental-tourism-logo.png"
+                width={2048}
+              />
+              <img
+                alt="Province of Negros Oriental official seal"
+                className="hero-official-marks__seal"
+                decoding="async"
+                height={2460}
+                src="/assets/official-marks/province-of-negros-oriental-seal-transparent.png"
+                width={2480}
+              />
+            </div>
+          ) : null}
 
           <button
             aria-controls="crown-mobile-nav"
@@ -628,7 +657,9 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
           </div>
         </div>
 
-        {/* Desktop only; see .hero-actions above. */}
+        {/* Desktop only; see .hero-actions above. The CSS still hides this at
+            the same breakpoint — belt and braces, and it covers a resize. */}
+        {plaquesShown ? (
         <div className="hero-arena-cards" data-hero-reveal>
           {heroContestArenas.map((arena) => (
             <button
@@ -650,6 +681,7 @@ export function LandingPage({ state, dispatch }: { state: VoterState; dispatch: 
             </button>
           ))}
         </div>
+        ) : null}
       </section>
 
       {showHowToVote && (

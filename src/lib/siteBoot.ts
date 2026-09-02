@@ -125,16 +125,52 @@ function afterFrames(run: () => void) {
 
 type Art = { src: string; srcSet?: string; sizes?: string };
 
-const ART: Art[] = [
-  { src: BUGLASAN_HERO_LOGO.src, srcSet: BUGLASAN_HERO_LOGO.srcSet, sizes: BUGLASAN_HERO_LOGO.sizes },
-  ...contestArenas
-    .map((arena) => arena.logo)
-    .filter((logo): logo is string => typeof logo === 'string')
-    .map((src) => ({ src })),
-];
+/**
+ * Below this the hero plaques are not drawn, so their crests are not worth
+ * waiting for. Matches `@media (max-width: 1180px)` in `styles.css`, where
+ * `.crown-hero .hero-arena-cards` goes `display: none` and the row is replaced
+ * by the "Choose a contest" button.
+ */
+const PLAQUES_MIN_WIDTH = 1181;
+
+/**
+ * What the art gate waits for.
+ *
+ * Read at boot rather than at module scope: it asks the window how wide it is,
+ * and this module is imported during SSR and in tests where evaluating that at
+ * import time would either throw or answer for the wrong viewport.
+ *
+ * The four programme crests used to be in here unconditionally. On a phone
+ * that was 281 kB fetched *and decoded* before the curtain would lift, for
+ * plaques the same phone hides — the biggest three are 180 kB, 82 kB and
+ * 20 kB. Measured on a 375px viewport: 490 kB of images requested, of which
+ * 363 kB was never displayed. The gate is 22% of the meter, so those bytes
+ * were not merely dead weight, they were holding the loading screen up.
+ */
+function bootArt(): Art[] {
+  const wordmark: Art = {
+    src: BUGLASAN_HERO_LOGO.src,
+    srcSet: BUGLASAN_HERO_LOGO.srcSet,
+    sizes: BUGLASAN_HERO_LOGO.sizes,
+  };
+
+  if (typeof window === 'undefined' || window.innerWidth < PLAQUES_MIN_WIDTH) {
+    return [wordmark];
+  }
+
+  return [
+    wordmark,
+    ...contestArenas
+      .map((arena) => arena.logo)
+      .filter((logo): logo is string => typeof logo === 'string')
+      .map((src) => ({ src })),
+  ];
+}
 
 function preloadArt() {
-  if (ART.length === 0) {
+  const art = bootArt();
+
+  if (art.length === 0) {
     fill('art', 1);
     return;
   }
@@ -142,18 +178,18 @@ function preloadArt() {
   let settled = 0;
   const step = () => {
     settled += 1;
-    fill('art', settled / ART.length);
+    fill('art', settled / art.length);
   };
 
-  for (const art of ART) {
+  for (const item of art) {
     const image = new Image();
     /* srcSet and sizes together, so the browser warms the same file it will
        later paint rather than the 3198px original. */
-    if (art.srcSet !== undefined) {
-      image.sizes = art.sizes ?? '';
-      image.srcset = art.srcSet;
+    if (item.srcSet !== undefined) {
+      image.sizes = item.sizes ?? '';
+      image.srcset = item.srcSet;
     }
-    image.src = art.src;
+    image.src = item.src;
 
     const decoded =
       typeof image.decode === 'function'

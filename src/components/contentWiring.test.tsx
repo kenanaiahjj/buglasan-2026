@@ -26,6 +26,10 @@ import { VoteFlowModal } from './VoteFlowModal';
 
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  /* The hero draws its plaque row above 1180px only, and jsdom answers 1024 —
+     the wrong side of that line. The served arena name is asserted on a
+     plaque, so this has to declare a desktop width rather than inherit one. */
+  Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
 });
 
 afterEach(() => {
